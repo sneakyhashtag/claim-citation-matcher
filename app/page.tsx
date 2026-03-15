@@ -981,12 +981,9 @@ export default function Home() {
   };
 
   const charLimit = isPro ? PRO_CHAR_LIMIT : FREE_CHAR_LIMIT;
-  const remaining = charLimit - text.length;
-  const overLimit = remaining < 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (overLimit) return;
 
     setLoading(true);
     setError("");
@@ -1360,11 +1357,11 @@ export default function Home() {
                   <div className="relative">
                     <textarea
                       value={text}
-                      onChange={(e) => { setText(e.target.value.slice(0, charLimit + 50)); setUploadError(""); }}
+                      onChange={(e) => { setText(e.target.value.slice(0, charLimit)); setUploadError(""); }}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
                       className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-black/[0.03] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-slate-900 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
-                        overLimit
+                        !isPro && text.length >= FREE_CHAR_LIMIT
                           ? "border-red-500/40 focus:ring-red-500/40"
                           : "border-white/10 light:border-black/[0.1] focus:ring-white/20 light:focus:ring-black/[0.15]"
                       }`}
@@ -1372,12 +1369,31 @@ export default function Home() {
                     />
                     <span
                       className={`absolute bottom-2 right-3 text-xs tabular-nums ${
-                        overLimit ? "text-red-400 font-medium" : remaining <= (isPro ? 500 : 100) ? "text-amber-400" : "text-slate-500"
+                        !isPro && text.length >= FREE_CHAR_LIMIT
+                          ? "text-red-400 font-medium"
+                          : charLimit - text.length <= (isPro ? 500 : 100)
+                          ? "text-amber-400"
+                          : "text-slate-500"
                       }`}
                     >
-                      {remaining < 0 ? `${Math.abs(remaining)} over limit` : `${remaining.toLocaleString()} / ${charLimit.toLocaleString()}`}
+                      {text.length.toLocaleString()}/{charLimit.toLocaleString()}
                     </span>
                   </div>
+
+                  {/* Free-user limit warning */}
+                  {!isPro && text.length >= FREE_CHAR_LIMIT && (
+                    <p className="text-xs text-red-400 light:text-red-500">
+                      Free accounts are limited to 1,000 characters.{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowPlanModal(true)}
+                        className="underline underline-offset-2 hover:text-amber-400 transition-colors"
+                      >
+                        Upgrade to Pro
+                      </button>{" "}
+                      for up to 10,000 characters.
+                    </p>
+                  )}
 
                   {/* Hidden file input for Pro users */}
                   <input
@@ -1405,7 +1421,7 @@ export default function Home() {
                       setExtracting(false);
 
                       if (data?.text) {
-                        setText(data.text.slice(0, charLimit + 50));
+                        setText(data.text.slice(0, charLimit));
                       } else {
                         setUploadError(err ?? "Failed to extract text from file");
                       }
@@ -1507,7 +1523,7 @@ export default function Home() {
                       )}
                       <button
                         type="submit"
-                        disabled={!text.trim() || overLimit || loading || extracting || (!isPro && usage.remaining === 0)}
+                        disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
                         className="btn-submit px-5 py-2 rounded-lg bg-white light:bg-slate-900 text-gray-950 light:text-white text-sm font-semibold hover:bg-slate-100 light:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}

@@ -41,6 +41,20 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
+  const charLimit = pro ? 10000 : 1000;
+  if (text.length > charLimit) {
+    const res = NextResponse.json(
+      {
+        error: pro
+          ? "Text exceeds the 10,000 character limit."
+          : "Free accounts are limited to 1,000 characters. Upgrade to Pro for up to 10,000 characters.",
+      },
+      { status: 413 }
+    );
+    applyToResponse(res);
+    return res;
+  }
+
   const stream = client.messages.stream({
     model: "claude-opus-4-6",
     max_tokens: 2048,
