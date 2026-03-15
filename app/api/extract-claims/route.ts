@@ -30,11 +30,15 @@ Return ONLY a valid JSON array of these objects. No markdown, no explanation, ju
 
   const message = await stream.finalMessage();
 
-  const raw = message.content.find((b) => b.type === "text")?.text ?? "[]";
+  const raw = message.content.find((b) => b.type === "text")?.text ?? "";
 
   let claims: { claim: string; searchQuery: string }[];
   try {
-    claims = JSON.parse(raw);
+    // Strip markdown code fences if present, then find the JSON array
+    const stripped = raw.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
+    const match = stripped.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("No JSON array found");
+    claims = JSON.parse(match[0]);
   } catch {
     return NextResponse.json(
       { error: "Failed to parse claims from model response", raw },
