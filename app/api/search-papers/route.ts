@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Paper } from "@/lib/rate-relevance";
 
 interface OpenAlexWork {
   id: string;
@@ -13,6 +14,22 @@ interface OpenAlexWork {
   primary_location: {
     source: { display_name: string } | null;
   } | null;
+  primary_topic: {
+    field: { display_name: string };
+  } | null;
+}
+
+interface SemanticScholarPaper {
+  paperId: string;
+  title: string;
+  authors: { name: string }[];
+  year: number | null;
+  abstract: string | null;
+  externalIds: { DOI?: string } | null;
+  citationCount: number;
+  influentialCitationCount: number;
+  journal: { name: string } | null;
+  fieldsOfStudy: string[] | null;
 }
 
 function reconstructAbstract(
@@ -29,19 +46,18 @@ function reconstructAbstract(
   return entries.map(([, word]) => word).join(" ");
 }
 
-export async function GET(req: NextRequest) {
-  const query = req.nextUrl.searchParams.get("query");
+function normalizeDoi(doi: string | null): string | null {
+  if (!doi) return null;
+  return doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase();
+}
 
-  if (!query || !query.trim()) {
-    return NextResponse.json({ error: "query is required" }, { status: 400 });
-  }
-
+async function fetchOpenAlex(query: string): Promise<Paper[]> {
   const url = new URL("https://api.openalex.org/works");
   url.searchParams.set("search", query);
   url.searchParams.set("per_page", "5");
   url.searchParams.set(
     "select",
-    "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location"
+    "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location,primary_topic"
   );
 
   const res = await fetch(url.toString(), {
@@ -49,26 +65,88 @@ export async function GET(req: NextRequest) {
       "User-Agent": "claim-citation-matcher (mailto:contact@example.com)",
     },
   });
-
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: `OpenAlex request failed: ${res.status}` },
-      { status: 502 }
-    );
-  }
+  if (!res.ok) return [];
 
   const data = await res.json();
   const works: OpenAlexWork[] = data.results ?? [];
 
-  const papers = works.map((work) => ({
+  return works.map((work) => ({
     title: work.title ?? null,
     authors: work.authorships.map((a) => a.author.display_name),
     year: work.publication_year ?? null,
     journal: work.primary_location?.source?.display_name ?? null,
     citationCount: work.cited_by_count,
+    subjectArea: work.primary_topic?.field?.display_name ?? null,
     doi: work.doi ?? null,
     abstract: reconstructAbstract(work.abstract_inverted_index),
+    source: "OpenAlex" as const,
   }));
+}
+
+async function fetchSemanticScholar(query: string): Promise<Paper[]> {
+  const url = new URL("https://api.semanticscholar.org/graph/v1/paper/search");
+  url.searchParams.set("query", query);
+  url.searchParams.set("limit", "5");
+  url.searchParams.set(
+    "fields",
+    "title,authors,year,abstract,externalIds,citationCount,influentialCitationCount,journal,fieldsOfStudy"
+  );
+
+  const res = await fetch(url.toString());
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  const papers: SemanticScholarPaper[] = data.data ?? [];
+
+  return papers.map((p) => ({
+    title: p.title ?? null,
+    authors: p.authors.map((a) => a.name),
+    year: p.year ?? null,
+    journal: p.journal?.name ?? null,
+    citationCount: p.citationCount ?? 0,
+    influentialCitationCount: p.influentialCitationCount ?? 0,
+    subjectArea: p.fieldsOfStudy?.[0] ?? null,
+    doi: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null,
+    abstract: p.abstract ?? null,
+    source: "Semantic Scholar" as const,
+  }));
+}
+
+export async function GET(req: NextRequest) {
+  const query = req.nextUrl.searchParams.get("query");
+
+  if (!query || !query.trim()) {
+    return NextResponse.json({ error: "query is required" }, { status: 400 });
+  }
+
+  const [openAlexResult, semanticScholarResult] = await Promise.allSettled([
+    fetchOpenAlex(query),
+    fetchSemanticScholar(query),
+  ]);
+
+  const openAlexPapers =
+    openAlexResult.status === "fulfilled" ? openAlexResult.value : [];
+  const semanticScholarPapers =
+    semanticScholarResult.status === "fulfilled"
+      ? semanticScholarResult.value
+      : [];
+
+  // Combine and deduplicate by DOI — OpenAlex takes priority
+  const seen = new Set<string>();
+  const papers: Paper[] = [];
+
+  for (const paper of openAlexPapers) {
+    const normDoi = normalizeDoi(paper.doi);
+    if (normDoi) seen.add(normDoi);
+    papers.push(paper);
+  }
+
+  for (const paper of semanticScholarPapers) {
+    const normDoi = normalizeDoi(paper.doi);
+    if (normDoi && seen.has(normDoi)) continue;
+    if (normDoi) seen.add(normDoi);
+    papers.push(paper);
+  }
 
   return NextResponse.json({ papers });
 }

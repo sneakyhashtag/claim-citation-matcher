@@ -155,21 +155,17 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
         ? paper.authors.join(", ")
         : `${paper.authors[0]}, et al.`;
 
-  const meta = [
-    authorLine,
-    paper.year,
-    paper.journal,
-    paper.citationCount != null
-      ? `${paper.citationCount.toLocaleString()} citations`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const authorYearMeta = [authorLine, paper.year].filter(Boolean).join(" · ");
+
+  const isHighImpact =
+    (paper.citationCount != null && paper.citationCount >= 500) ||
+    (paper.influentialCitationCount != null && paper.influentialCitationCount >= 20);
 
   const { cardClass } = getTier(paper.relevanceScore);
 
   return (
     <div className={`rounded-md border p-4 shadow-sm ${cardClass}`}>
+      {/* title row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {paper.doi ? (
@@ -187,13 +183,73 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
             </span>
           )}
         </div>
-        <ScoreBadge score={paper.relevanceScore} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          {paper.source && (
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              paper.source === "Semantic Scholar"
+                ? "bg-purple-100 text-purple-700"
+                : "bg-gray-100 text-gray-600"
+            }`}>
+              {paper.source === "Semantic Scholar" ? "S2" : "OA"}
+            </span>
+          )}
+          <ScoreBadge score={paper.relevanceScore} />
+        </div>
       </div>
 
-      {meta && (
-        <p className="mt-1.5 text-xs text-gray-500 break-words">{meta}</p>
+      {/* authors · year */}
+      {authorYearMeta && (
+        <p className="mt-1.5 text-xs text-gray-500 break-words">{authorYearMeta}</p>
       )}
 
+      {/* journal */}
+      {paper.journal && (
+        <p className="mt-0.5 text-xs text-gray-500 italic truncate" title={paper.journal}>
+          {paper.journal}
+        </p>
+      )}
+
+      {/* quality badges row */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {/* subject area */}
+        {paper.subjectArea && (
+          <span className="inline-flex items-center rounded-full bg-sky-50 border border-sky-100 px-2 py-0.5 text-xs text-sky-700">
+            {paper.subjectArea}
+          </span>
+        )}
+
+        {/* citation count */}
+        {paper.citationCount != null && paper.citationCount > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+            <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/>
+            </svg>
+            {paper.citationCount.toLocaleString()} cited
+          </span>
+        )}
+
+        {/* influential citation count — S2 only */}
+        {paper.influentialCitationCount != null && paper.influentialCitationCount > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-100 px-2 py-0.5 text-xs text-purple-700">
+            <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.83-4.401z" clipRule="evenodd"/>
+            </svg>
+            {paper.influentialCitationCount} influential
+          </span>
+        )}
+
+        {/* high-impact indicator */}
+        {isHighImpact && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 border border-yellow-200 px-2 py-0.5 text-xs font-medium text-yellow-700">
+            <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.83-4.401z" clipRule="evenodd"/>
+            </svg>
+            High Impact
+          </span>
+        )}
+      </div>
+
+      {/* relevance explanation */}
       <p className="mt-2 text-xs text-gray-500 italic leading-relaxed">
         {paper.relevanceExplanation}
       </p>
@@ -299,7 +355,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
               <ol className="space-y-3">
                 {[
                   { icon: "1", text: "Your paragraph is scanned for individual factual claims that would need academic backing." },
-                  { icon: "2", text: "Each claim is searched against OpenAlex — a database of 250 million+ real academic works." },
+                  { icon: "2", text: "Each claim is searched against OpenAlex and Semantic Scholar in parallel — covering 250 million+ real academic works." },
                   { icon: "3", text: "Papers are rated for relevance and returned with APA citations you can copy directly." },
                 ].map(({ icon, text }) => (
                   <li key={icon} className="flex items-start gap-3">
@@ -330,7 +386,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
               </div>
 
               <p className="text-xs text-gray-400">
-                All papers are sourced from OpenAlex with verifiable DOIs linking to the original publications.
+                Papers are sourced from OpenAlex <span className="font-medium text-gray-500">OA</span> and Semantic Scholar <span className="font-medium text-purple-500">S2</span>, with verifiable DOIs linking to original publications.
               </p>
             </div>
           </div>

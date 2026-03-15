@@ -10,8 +10,11 @@ export interface Paper {
   year: number | null;
   journal: string | null;
   citationCount: number;
+  influentialCitationCount?: number;
+  subjectArea?: string | null;
   doi: string | null;
   abstract: string | null;
+  source?: "OpenAlex" | "Semantic Scholar";
 }
 
 export interface RatedPaper extends Paper {
