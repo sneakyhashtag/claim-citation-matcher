@@ -116,18 +116,18 @@ function getTier(score: number): {
 } {
   if (score >= 5) return {
     label: "Direct",
-    cardClass: "bg-green-500/[0.07] border-green-500/25",
-    badgeClass: "bg-green-500/15 text-green-400",
+    cardClass: "bg-green-500/[0.07] light:bg-green-500/[0.08] border-green-500/25 light:border-green-500/35",
+    badgeClass: "bg-green-500/15 text-green-400 light:text-green-700",
   };
   if (score >= 4) return {
     label: "High",
-    cardClass: "bg-blue-500/[0.07] border-blue-500/25",
-    badgeClass: "bg-blue-500/15 text-blue-400",
+    cardClass: "bg-blue-500/[0.07] light:bg-blue-500/[0.07] border-blue-500/25 light:border-blue-500/30",
+    badgeClass: "bg-blue-500/15 text-blue-400 light:text-blue-700",
   };
   return {
     label: "Moderate",
-    cardClass: "bg-amber-500/[0.06] border-amber-500/20",
-    badgeClass: "bg-amber-500/15 text-amber-400",
+    cardClass: "bg-amber-500/[0.06] light:bg-amber-500/[0.07] border-amber-500/20 light:border-amber-500/30",
+    badgeClass: "bg-amber-500/15 text-amber-400 light:text-amber-700",
   };
 }
 
@@ -157,7 +157,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       type="button"
-      className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+      className="text-xs text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 transition-colors"
       title="Copy APA citation"
     >
       {copied ? "✓ Copied" : "Copy APA"}
@@ -241,12 +241,12 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
               href={paper.doi}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-slate-100 hover:text-blue-400 transition-colors leading-snug break-words"
+              className="text-sm font-medium text-slate-100 light:text-slate-900 hover:text-blue-400 light:hover:text-blue-600 transition-colors leading-snug break-words"
             >
               {paper.title ?? "Untitled"}
             </a>
           ) : (
-            <span className="text-sm font-medium text-slate-100 leading-snug break-words">
+            <span className="text-sm font-medium text-slate-100 light:text-slate-900 leading-snug break-words">
               {paper.title ?? "Untitled"}
             </span>
           )}
@@ -255,8 +255,8 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           {paper.source && (
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               paper.source === "Semantic Scholar"
-                ? "bg-purple-500/15 text-purple-400"
-                : "bg-white/10 text-slate-300"
+                ? "bg-purple-500/15 text-purple-400 light:text-purple-700"
+                : "bg-white/10 light:bg-black/[0.07] text-slate-300 light:text-slate-600"
             }`}>
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
@@ -267,12 +267,12 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
 
       {/* authors · year */}
       {authorYearMeta && (
-        <p className="mt-1.5 text-xs text-slate-400 break-words">{authorYearMeta}</p>
+        <p className="mt-1.5 text-xs text-slate-400 light:text-slate-600 break-words">{authorYearMeta}</p>
       )}
 
       {/* journal */}
       {paper.journal && (
-        <p className="mt-0.5 text-xs text-slate-500 italic truncate" title={paper.journal}>
+        <p className="mt-0.5 text-xs text-slate-500 light:text-slate-500 italic truncate" title={paper.journal}>
           {paper.journal}
         </p>
       )}
@@ -284,8 +284,8 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           <StatBadge
             colorClass={
               paper.citationCount >= 500
-                ? "bg-orange-500/15 border-orange-500/40 text-orange-400"
-                : "bg-orange-500/10 border-orange-500/20 text-orange-500"
+                ? "bg-orange-500/15 border-orange-500/40 text-orange-400 light:text-orange-600"
+                : "bg-orange-500/10 border-orange-500/20 text-orange-500 light:text-orange-600"
             }
             glowing={paper.citationCount >= 500}
             text={`Cited ${paper.citationCount.toLocaleString()}x`}
@@ -303,7 +303,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           paper.influentialCitationCount != null &&
           paper.influentialCitationCount > 0 && (
           <StatBadge
-            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400"
+            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400 light:text-violet-700"
             text={`Influential: ${paper.influentialCitationCount}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -316,7 +316,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         {/* 📊 blue bars — journal h-index */}
         {paper.journalHIndex != null && (
           <StatBadge
-            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400"
+            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400 light:text-sky-700"
             text={`h-index: ${paper.journalHIndex}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -331,7 +331,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         {/* 📖 green book — field / subject area */}
         {paper.subjectArea && (
           <StatBadge
-            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:text-emerald-700"
             text={paper.subjectArea}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -343,7 +343,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
       </div>
 
       {/* relevance explanation */}
-      <p className="mt-2 text-xs text-slate-500 italic leading-relaxed">
+      <p className="mt-2 text-xs text-slate-500 light:text-slate-500 italic leading-relaxed">
         {paper.relevanceExplanation}
       </p>
 
@@ -371,17 +371,17 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`claim-card rounded-xl border border-white/10 border-l-2 ${accentClass} bg-white/[0.03] backdrop-blur-sm overflow-hidden`}
+      className={`claim-card rounded-xl border border-white/10 light:border-black/[0.09] border-l-2 ${accentClass} bg-white/[0.03] light:bg-black/[0.025] backdrop-blur-sm overflow-hidden`}
     >
       {/* claim header */}
-      <div className="bg-white/[0.04] border-b border-white/10 px-5 py-4">
+      <div className="bg-white/[0.04] light:bg-black/[0.03] border-b border-white/10 light:border-black/[0.09] px-5 py-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 text-white text-xs font-medium shrink-0">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-slate-800 text-xs font-medium shrink-0">
             {index + 1}
           </span>
-          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Claim</span>
+          <span className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Claim</span>
         </div>
-        <p className="text-sm font-medium text-slate-100 leading-relaxed">
+        <p className="text-sm font-medium text-slate-100 light:text-slate-900 leading-relaxed">
           &ldquo;{result.claim}&rdquo;
         </p>
       </div>
@@ -389,7 +389,7 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       {/* papers */}
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 light:text-slate-400">
             No relevant papers found for this claim.
           </p>
         ) : (
@@ -401,6 +401,30 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
         )}
       </div>
     </motion.div>
+  );
+}
+
+// ── theme toggle ─────────────────────────────────────────────────────────────
+
+function ThemeToggle({ theme, onToggle }: { theme: "dark" | "light"; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] hover:bg-white/15 light:hover:bg-black/[0.1] backdrop-blur-sm transition-colors"
+      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+    >
+      {theme === "dark" ? (
+        <svg className="h-3.5 w-3.5 text-slate-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden>
+          <circle cx="12" cy="12" r="4"/>
+          <path strokeLinecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      ) : (
+        <svg className="h-3.5 w-3.5 text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      )}
+    </button>
   );
 }
 
@@ -438,13 +462,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h2 id="how-to-use-title" className="font-semibold text-slate-100 text-base">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09]">
+              <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
                 How it works
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-md text-slate-500 light:text-slate-400 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -455,13 +479,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
             {/* body */}
             <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
-              <p className="text-sm text-slate-400 leading-relaxed">
+              <p className="text-sm text-slate-400 light:text-slate-600 leading-relaxed">
                 Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
               </p>
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2.5">How it works</p>
+                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide mb-2.5">How it works</p>
                 <ol className="space-y-3">
                   {[
                     { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
@@ -470,88 +494,88 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                     { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
                   ].map(({ icon, text }) => (
                     <li key={icon} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 text-slate-100 text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-slate-100 light:text-slate-800 text-xs font-medium shrink-0 mt-0.5">
                         {icon}
                       </span>
-                      <p className="text-sm text-slate-400 leading-relaxed">{text}</p>
+                      <p className="text-sm text-slate-400 light:text-slate-600 leading-relaxed">{text}</p>
                     </li>
                   ))}
                 </ol>
               </div>
 
               {/* paper badges */}
-              <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Paper stat badges</p>
-                <p className="text-xs text-slate-500 leading-relaxed">
+              <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs text-slate-500 light:text-slate-500 leading-relaxed">
                   Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300"><strong className="text-orange-400">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300"><strong className="text-violet-400">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300"><strong className="text-sky-400">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300"><strong className="text-emerald-400">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
-              <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Relevance tiers</p>
-                <p className="text-xs text-slate-500 leading-relaxed">
+              <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs text-slate-500 light:text-slate-500 leading-relaxed">
                   Papers are ranked by relevance with three color-coded tiers.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300"><strong className="text-green-400">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300"><strong className="text-blue-400">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300"><strong className="text-amber-400">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Good to know</p>
+                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Good to know</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-200">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-800">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-200">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-800">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-200">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-800">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-200">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-800">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
                   </p>
                 </div>
               </div>
@@ -605,16 +629,16 @@ function PlanModal({
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09]">
               <div>
-                <h2 id="plan-modal-title" className="font-semibold text-slate-100 text-base">
+                <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
                   Upgrade to Pro
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Unlimited searches, forever.</p>
+                <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">Unlimited searches, forever.</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-md text-slate-500 light:text-slate-400 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -629,16 +653,16 @@ function PlanModal({
               <button
                 onClick={() => onSelectPlan("monthly")}
                 disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-white/15 px-4 py-4 hover:border-white/30 hover:bg-white/[0.05] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full text-left rounded-xl border-2 border-white/15 light:border-black/[0.12] px-4 py-4 hover:border-white/30 light:hover:border-black/[0.22] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-100">Monthly</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Billed every month</p>
+                    <p className="text-sm font-semibold text-slate-100 light:text-slate-900">Monthly</p>
+                    <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">Billed every month</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-slate-100">¥299</p>
-                    <p className="text-xs text-slate-500">/ month</p>
+                    <p className="text-lg font-bold text-slate-100 light:text-slate-900">¥299</p>
+                    <p className="text-xs text-slate-500 light:text-slate-500">/ month</p>
                   </div>
                 </div>
               </button>
@@ -654,12 +678,12 @@ function PlanModal({
                 </span>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-amber-300">Yearly</p>
-                    <p className="text-xs text-amber-500 mt-0.5">Billed once per year</p>
+                    <p className="text-sm font-semibold text-amber-300 light:text-amber-700">Yearly</p>
+                    <p className="text-xs text-amber-500 light:text-amber-600 mt-0.5">Billed once per year</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-amber-300">¥2,990</p>
-                    <p className="text-xs text-amber-500">/ year</p>
+                    <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥2,990</p>
+                    <p className="text-xs text-amber-500 light:text-amber-600">/ year</p>
                   </div>
                 </div>
               </button>
@@ -711,7 +735,7 @@ function UserMenu({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 transition-colors"
+        className="flex items-center gap-2 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -725,11 +749,11 @@ function UserMenu({
             className="h-6 w-6 rounded-full object-cover"
           />
         ) : (
-          <span className="h-6 w-6 rounded-full bg-white/15 text-white text-xs font-medium flex items-center justify-center">
+          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-slate-800 text-xs font-medium flex items-center justify-center">
             {initials}
           </span>
         )}
-        <span className="text-sm font-medium text-slate-200 max-w-[120px] truncate hidden sm:block">
+        <span className="text-sm font-medium text-slate-200 light:text-slate-800 max-w-[120px] truncate hidden sm:block">
           {firstName}
         </span>
         {isPro && (
@@ -740,7 +764,7 @@ function UserMenu({
             Pro
           </span>
         )}
-        <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+        <svg className={`h-3.5 w-3.5 text-slate-400 light:text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
         </svg>
       </button>
@@ -756,27 +780,27 @@ function UserMenu({
             role="menu"
           >
             <div className="px-3 py-2 border-b border-white/10">
-              <p className="text-xs font-medium text-slate-200 truncate">{name}</p>
+              <p className="text-xs font-medium text-slate-200 light:text-slate-900 truncate">{name}</p>
               {session.user?.email && (
-                <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
+                <p className="text-xs text-slate-500 light:text-slate-500 truncate">{session.user.email}</p>
               )}
             </div>
             <button
               onClick={() => { setOpen(false); onOpenHistory(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-white/[0.06] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-slate-700 hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500 light:text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
               </svg>
               History
             </button>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-white/[0.06] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-slate-700 hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500 light:text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
                 <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
               </svg>
@@ -861,6 +885,27 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // ── Theme ──────────────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  // Load saved theme on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("rf_theme") as "dark" | "light" | null;
+    if (saved === "light" || saved === "dark") setTheme(saved);
+  }, []);
+
+  // Apply theme class to <html> and persist
+  useEffect(() => {
+    localStorage.setItem("rf_theme", theme);
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
@@ -1119,16 +1164,16 @@ export default function Home() {
       {/* ── main page ── */}
       <motion.div
         layout
-        className={`noise-overlay relative min-h-screen bg-[#080a12] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
+        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
       >
         {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
           {/* Dot grid pattern */}
           <div className="dot-pattern absolute inset-0" />
           {/* Gradient orbs */}
-          <div className="orb-1 absolute top-[20%] left-[15%] w-[480px] h-[480px] rounded-full bg-indigo-600/[0.12] blur-[100px]" />
-          <div className="orb-2 absolute bottom-[20%] right-[10%] w-[420px] h-[420px] rounded-full bg-violet-600/[0.10] blur-[90px]" />
-          <div className="orb-3 absolute top-[55%] left-[55%] w-[300px] h-[300px] rounded-full bg-blue-500/[0.07] blur-[80px]" />
+          <div className="orb-1 absolute top-[20%] left-[15%] w-[480px] h-[480px] rounded-full bg-indigo-600/[0.12] light:bg-indigo-500/[0.07] blur-[100px]" />
+          <div className="orb-2 absolute bottom-[20%] right-[10%] w-[420px] h-[420px] rounded-full bg-violet-600/[0.10] light:bg-violet-500/[0.06] blur-[90px]" />
+          <div className="orb-3 absolute top-[55%] left-[55%] w-[300px] h-[300px] rounded-full bg-blue-500/[0.07] light:bg-blue-400/[0.05] blur-[80px]" />
           {/* Edge vignette */}
           <div className="vignette absolute inset-0" />
         </div>
@@ -1141,6 +1186,8 @@ export default function Home() {
               exit={{ opacity: 0 }}
               className="fixed top-4 right-4 z-30 flex items-center gap-2"
             >
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+
               {/* Upgrade to Pro button — shown when not already pro */}
               {!isPro && (
                 <button
@@ -1171,9 +1218,9 @@ export default function Home() {
               ) : (
                 <button
                   onClick={openHistory}
-                  className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 transition-colors text-sm font-medium text-slate-300"
+                  className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-300 light:text-slate-700"
                 >
-                  <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <svg className="h-4 w-4 text-slate-400 light:text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
                   </svg>
                   History
@@ -1193,7 +1240,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white sm:text-5xl leading-tight tracking-tight"
+              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-slate-900 sm:text-5xl leading-tight tracking-tight"
             >
               Reference Finder
             </motion.h1>
@@ -1207,7 +1254,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mt-3 text-lg font-light text-slate-400 tracking-wide sm:text-xl"
+                  className="mt-3 text-lg font-light text-slate-400 light:text-slate-500 tracking-wide sm:text-xl"
                 >
                   Real papers, not hallucinated ones.
                 </motion.p>
@@ -1220,7 +1267,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400"
+                  className="mt-2 text-sm text-slate-400 light:text-slate-600"
                 >
                   {session?.user?.name
                     ? `Welcome back, ${session.user.name.split(" ")[0]}. Paste a paragraph to find citations.`
@@ -1233,7 +1280,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400"
+                  className="mt-2 text-sm text-slate-400 light:text-slate-600"
                 >
                   Find academic citations for every factual claim in your writing.
                 </motion.p>
@@ -1244,6 +1291,11 @@ export default function Home() {
           <AnimatePresence mode="wait">
 
             {/* ── auth stage ── */}
+            {ready && stage === "auth" && (
+              <div className="fixed top-4 right-4 z-30">
+                <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              </div>
+            )}
             {ready && stage === "auth" && (
               <motion.div
                 key="auth"
@@ -1268,14 +1320,14 @@ export default function Home() {
                 </button>
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-xs text-slate-500">or</span>
-                  <div className="flex-1 h-px bg-white/10" />
+                  <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
+                  <span className="text-xs text-slate-500 light:text-slate-400">or</span>
+                  <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
                 </div>
 
                 <button
                   onClick={() => setStage("app")}
-                  className="w-full max-w-xs rounded-xl border border-white/15 bg-white/8 px-6 py-3 text-sm font-medium text-slate-300 hover:bg-white/12 hover:text-white transition-colors"
+                  className="w-full max-w-xs rounded-xl border border-white/15 light:border-black/[0.1] bg-white/8 light:bg-black/[0.05] px-6 py-3 text-sm font-medium text-slate-300 light:text-slate-700 hover:bg-white/12 light:hover:bg-black/[0.09] hover:text-white light:hover:text-slate-900 transition-colors"
                 >
                   Continue as Guest
                 </button>
@@ -1283,7 +1335,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowHowTo(true)}
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors mt-1"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 transition-colors mt-1"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
@@ -1308,10 +1360,10 @@ export default function Home() {
                       onChange={(e) => setText(e.target.value.slice(0, CHAR_LIMIT + 50))}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
-                      className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
+                      className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-black/[0.03] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-slate-900 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
                         overLimit
                           ? "border-red-500/40 focus:ring-red-500/40"
-                          : "border-white/10 focus:ring-white/20"
+                          : "border-white/10 light:border-black/[0.1] focus:ring-white/20 light:focus:ring-black/[0.15]"
                       }`}
                       disabled={loading || extracting}
                     />
@@ -1373,7 +1425,7 @@ export default function Home() {
                               setShowUpgradeHint((v) => !v);
                             }
                           }}
-                          className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center gap-1.5 text-sm text-slate-400 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Upload document"
                         >
                           {extracting ? (
@@ -1426,7 +1478,7 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 hover:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
@@ -1445,7 +1497,7 @@ export default function Home() {
                             ? "bg-red-500/15 text-red-400"
                             : usage.remaining <= 2
                             ? "bg-amber-500/15 text-amber-400"
-                            : "bg-white/8 text-slate-400"
+                            : "bg-white/8 light:bg-black/[0.05] text-slate-400 light:text-slate-600"
                         }`}>
                           {usage.remaining}/{usage.limit} searches left today
                         </span>
@@ -1453,7 +1505,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!text.trim() || overLimit || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="btn-submit px-5 py-2 rounded-lg bg-white text-gray-950 text-sm font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="btn-submit px-5 py-2 rounded-lg bg-white light:bg-slate-900 text-gray-950 light:text-white text-sm font-semibold hover:bg-slate-100 light:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
                       </button>
@@ -1480,7 +1532,7 @@ export default function Home() {
                       <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                         <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                       </svg>
-                      <p className="text-sm text-amber-300">
+                      <p className="text-sm text-amber-300 light:text-amber-700">
                         You&apos;ve used all {usage.limit} free searches for today.
                       </p>
                     </div>
@@ -1498,7 +1550,7 @@ export default function Home() {
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400">
+                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-slate-600">
                     <svg className="animate-spin h-4 w-4 shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -1511,7 +1563,7 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <h2 className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                    <h2 className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">
                       {results.length} claim{results.length > 1 ? "s" : ""} found
                     </h2>
 
