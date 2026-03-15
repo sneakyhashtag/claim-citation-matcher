@@ -1290,19 +1290,34 @@ export default function Home() {
                 </span>
               )}
 
-              {/* User menu (signed-in) or History button (guest) */}
+              {/* User menu (signed-in) or Sign in + History buttons (guest) */}
               {session ? (
                 <UserMenu session={session} onOpenHistory={openHistory} isPro={isPro} />
               ) : (
-                <button
-                  onClick={openHistory}
-                  className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-300 light:text-slate-700"
-                >
-                  <svg className="h-4 w-4 text-slate-400 light:text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-                  </svg>
-                  History
-                </button>
+                <>
+                  {/* History button */}
+                  <button
+                    onClick={openHistory}
+                    className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-300 light:text-slate-700"
+                    aria-label="Open search history"
+                  >
+                    <svg className="h-4 w-4 text-slate-400 light:text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="hidden sm:inline">History</span>
+                  </button>
+
+                  {/* Sign in button */}
+                  <button
+                    onClick={() => signIn("google")}
+                    className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/[0.18] light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-200 light:text-slate-700"
+                  >
+                    <svg className="h-4 w-4 text-slate-400 light:text-slate-500 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
+                    </svg>
+                    Sign in
+                  </button>
+                </>
               )}
             </motion.div>
           )}
