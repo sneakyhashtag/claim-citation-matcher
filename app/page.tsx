@@ -838,6 +838,7 @@ export default function Home() {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeHint, setShowUpgradeHint] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -1271,7 +1272,7 @@ export default function Home() {
                           ? "border-red-400 focus:ring-red-400"
                           : "border-gray-200 focus:ring-gray-900"
                       }`}
-                      disabled={loading}
+                      disabled={loading || extracting}
                     />
                     <span
                       className={`absolute bottom-2 right-3 text-xs tabular-nums ${
@@ -1286,15 +1287,31 @@ export default function Home() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    accept=".pdf,.docx,.png,.jpg,.jpeg"
                     className="hidden"
-                    onChange={(e) => {
-                      // File parsing will be handled in a future update.
-                      // For now the picker opens and the selection is acknowledged.
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
-                      if (file) {
-                        // Reset so the same file can be re-selected if needed.
-                        e.target.value = "";
+                      // Reset immediately so the same file can be re-selected later.
+                      e.target.value = "";
+                      if (!file) return;
+
+                      setExtracting(true);
+                      setError("");
+
+                      const fd = new FormData();
+                      fd.append("file", file);
+
+                      const { data, error: err } = await apiFetch<{ text: string }>(
+                        "/api/extract-text",
+                        { method: "POST", body: fd }
+                      );
+
+                      setExtracting(false);
+
+                      if (data?.text) {
+                        setText(data.text.slice(0, CHAR_LIMIT + 50));
+                      } else {
+                        setError(err ?? "Failed to extract text from file");
                       }
                     }}
                   />
@@ -1306,7 +1323,7 @@ export default function Home() {
                         <button
                           ref={uploadBtnRef}
                           type="button"
-                          disabled={loading}
+                          disabled={loading || extracting}
                           onClick={() => {
                             if (isPro) {
                               setShowUpgradeHint(false);
@@ -1318,10 +1335,17 @@ export default function Home() {
                           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Upload document"
                         >
-                          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v1A1.5 1.5 0 004.5 19h11A1.5 1.5 0 0017 17.5v-1M10 3v10m0-10L7 6m3-3l3 3"/>
-                          </svg>
-                          Upload
+                          {extracting ? (
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                            </svg>
+                          ) : (
+                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v1A1.5 1.5 0 004.5 19h11A1.5 1.5 0 0017 17.5v-1M10 3v10m0-10L7 6m3-3l3 3"/>
+                            </svg>
+                          )}
+                          {extracting ? "Extracting…" : "Upload"}
                         </button>
 
                         {/* Upgrade hint popover for free users */}
@@ -1387,7 +1411,7 @@ export default function Home() {
                       )}
                       <button
                         type="submit"
-                        disabled={!text.trim() || overLimit || loading || (!isPro && usage.remaining === 0)}
+                        disabled={!text.trim() || overLimit || loading || extracting || (!isPro && usage.remaining === 0)}
                         className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {loading ? "Analyzing…" : "Submit"}
