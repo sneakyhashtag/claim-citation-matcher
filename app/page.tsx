@@ -1011,7 +1011,10 @@ export default function Home() {
   useEffect(() => {
     if (stage !== "app") return;
     fetchUsage();
-    apiFetch<{ pro: boolean }>("/api/pro-status").then(({ data }) => {
+    // Check Stripe subscription status on every app load so Pro access survives
+    // sign-out / sign-in cycles. The route reads the email from the server-side
+    // session and re-sets the Pro cookie if an active subscription is found.
+    apiFetch<{ pro: boolean }>("/api/check-subscription").then(({ data }) => {
       if (data?.pro) setIsPro(true);
     });
     // Handle post-checkout success redirect: /?payment=success&session_id=cs_xxx
