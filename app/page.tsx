@@ -1115,23 +1115,35 @@ export default function Home() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-              className="fixed top-0 right-0 h-full w-full max-w-sm glass-panel shadow-2xl z-50 flex flex-col border-l border-white/10"
+              transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
+              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#0e1120] light:bg-[#f0f3fa] border-l border-white/[0.08] light:border-black/[0.1] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(0,0,0,0.12)]"
+              role="complementary"
+              aria-label="Search history"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                <h2 className="font-semibold text-slate-100">Search History</h2>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-5 border-b border-white/[0.08] light:border-black/[0.08] shrink-0">
+                <div>
+                  <h2 className="text-base font-bold text-slate-100 light:text-slate-900 tracking-tight">
+                    Search History
+                  </h2>
+                  <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">
+                    {history.length === 0
+                      ? "No searches yet"
+                      : `${history.length} search${history.length !== 1 ? "es" : ""}`}
+                  </p>
+                </div>
                 <div className="flex items-center gap-1">
                   {history.length > 0 && (
                     <button
                       onClick={clearHistory}
-                      className="px-2 py-1 rounded-md text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 light:text-slate-500 hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/10 light:hover:bg-red-500/[0.08] transition-colors"
                     >
                       Clear all
                     </button>
                   )}
                   <button
                     onClick={() => setShowHistory(false)}
-                    className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
+                    className="p-1.5 rounded-lg text-slate-500 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-800 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                     aria-label="Close history"
                   >
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -1141,25 +1153,35 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Entry list */}
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {history.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-12">
-                    No searches yet. Run your first analysis to see it here.
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <svg className="h-8 w-8 text-slate-600 light:text-slate-400 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p className="text-sm font-medium text-slate-500 light:text-slate-500">No searches yet</p>
+                    <p className="text-xs text-slate-600 light:text-slate-400 mt-1">Your analyses will appear here</p>
+                  </div>
                 ) : (
                   <ul className="flex flex-col gap-2">
                     {history.map((entry) => (
                       <li key={entry.id}>
                         <button
                           onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 px-4 py-3 transition-colors"
+                          className="w-full text-left rounded-xl border border-white/[0.08] light:border-black/[0.08] bg-white/[0.04] light:bg-black/[0.03] hover:bg-white/[0.08] light:hover:bg-black/[0.06] hover:border-white/[0.15] light:hover:border-black/[0.14] px-4 py-3.5 transition-colors group"
                         >
-                          <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">
+                          <p className="text-sm text-slate-300 light:text-slate-700 line-clamp-2 leading-relaxed group-hover:text-slate-100 light:group-hover:text-slate-900 transition-colors">
                             {entry.paragraph}
                           </p>
-                          <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
-                            <span>{entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}</span>
-                            <span>·</span>
+                          <div className="mt-2 flex items-center gap-2 text-xs text-slate-600 light:text-slate-400">
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+                              </svg>
+                              {entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}
+                            </span>
+                            <span className="text-slate-700 light:text-slate-300">·</span>
                             <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
                           </div>
                         </button>
