@@ -2,7 +2,11 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+// /tmp is the only writable directory on Vercel serverless functions.
+// NOTE: /tmp is ephemeral — data resets on cold starts and is not shared
+// between function instances. For persistent storage, migrate to a hosted
+// database (e.g. Vercel Postgres, PlanetScale, Turso).
+const DATA_DIR = "/tmp/data";
 const DB_PATH = path.join(DATA_DIR, "searches.db");
 
 let _db: Database.Database | null = null;
