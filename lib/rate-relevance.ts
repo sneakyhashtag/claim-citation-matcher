@@ -11,6 +11,7 @@ export interface Paper {
   journal: string | null;
   citationCount: number;
   influentialCitationCount?: number;
+  journalHIndex?: number | null;
   subjectArea?: string | null;
   doi: string | null;
   abstract: string | null;

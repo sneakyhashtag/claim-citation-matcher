@@ -12,7 +12,7 @@ interface OpenAlexWork {
     author: { display_name: string };
   }[];
   primary_location: {
-    source: { display_name: string } | null;
+    source: { id: string; display_name: string } | null;
   } | null;
   primary_topic: {
     field: { display_name: string };
@@ -70,17 +70,62 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
   const data = await res.json();
   const works: OpenAlexWork[] = data.results ?? [];
 
-  return works.map((work) => ({
-    title: work.title ?? null,
-    authors: work.authorships.map((a) => a.author.display_name),
-    year: work.publication_year ?? null,
-    journal: work.primary_location?.source?.display_name ?? null,
-    citationCount: work.cited_by_count,
-    subjectArea: work.primary_topic?.field?.display_name ?? null,
-    doi: work.doi ?? null,
-    abstract: reconstructAbstract(work.abstract_inverted_index),
-    source: "OpenAlex" as const,
-  }));
+  // Collect unique source IDs so we can batch-fetch journal h-indexes
+  const shortId = (id: string) => id.replace("https://openalex.org/", "");
+  const sourceIds = [
+    ...new Set(
+      works
+        .map((w) => w.primary_location?.source?.id)
+        .filter((id): id is string => !!id)
+        .map(shortId)
+    ),
+  ];
+
+  // Single batch request for all journal h-indexes
+  const hIndexMap: Record<string, number | null> = {};
+  if (sourceIds.length > 0) {
+    try {
+      const sourcesUrl = new URL("https://api.openalex.org/sources");
+      sourcesUrl.searchParams.set(
+        "filter",
+        `ids.openalex:${sourceIds.join("|")}`
+      );
+      sourcesUrl.searchParams.set("select", "id,summary_stats");
+      sourcesUrl.searchParams.set("per_page", "20");
+      const sourcesRes = await fetch(sourcesUrl.toString(), {
+        headers: {
+          "User-Agent": "claim-citation-matcher (mailto:contact@example.com)",
+        },
+      });
+      if (sourcesRes.ok) {
+        const sourcesData = await sourcesRes.json();
+        for (const src of sourcesData.results ?? []) {
+          hIndexMap[shortId(src.id as string)] =
+            (src.summary_stats?.h_index as number | undefined) ?? null;
+        }
+      }
+    } catch {
+      // h-index fetch failed — continue without it
+    }
+  }
+
+  return works.map((work) => {
+    const sid = work.primary_location?.source?.id
+      ? shortId(work.primary_location.source.id)
+      : null;
+    return {
+      title: work.title ?? null,
+      authors: work.authorships.map((a) => a.author.display_name),
+      year: work.publication_year ?? null,
+      journal: work.primary_location?.source?.display_name ?? null,
+      citationCount: work.cited_by_count,
+      journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
+      subjectArea: work.primary_topic?.field?.display_name ?? null,
+      doi: work.doi ?? null,
+      abstract: reconstructAbstract(work.abstract_inverted_index),
+      source: "OpenAlex" as const,
+    };
+  });
 }
 
 async function fetchSemanticScholar(query: string): Promise<Paper[]> {
