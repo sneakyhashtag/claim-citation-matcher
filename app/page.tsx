@@ -450,20 +450,21 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
           className="fixed inset-0 bg-black/30 z-50 backdrop-blur-[2px]"
           onClick={onClose}
         />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <motion.div
           key="modal"
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
+          className="pointer-events-auto w-full max-w-md"
           role="dialog"
           aria-modal="true"
           aria-labelledby="how-to-use-title"
         >
-          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
+          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
               <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
                 How it works
               </h2>
@@ -479,7 +480,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* body */}
-            <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+            <div className="px-6 py-5 space-y-5 overflow-y-auto">
               <p className="text-sm text-slate-400 light:text-slate-600 leading-relaxed">
                 Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
               </p>
@@ -583,6 +584,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </motion.div>
+        </div>
       </>
     </AnimatePresence>
   );
@@ -617,20 +619,21 @@ function PlanModal({
           className="fixed inset-0 bg-black/30 z-50 backdrop-blur-[2px]"
           onClick={onClose}
         />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <motion.div
           key="plan-modal"
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm mx-4"
+          className="pointer-events-auto w-full max-w-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="plan-modal-title"
         >
-          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
+          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
               <div>
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
                   Upgrade to Pro
@@ -649,7 +652,7 @@ function PlanModal({
             </div>
 
             {/* plan cards */}
-            <div className="px-6 py-5 flex flex-col gap-3">
+            <div className="px-6 py-5 flex flex-col gap-3 overflow-y-auto">
               {/* Monthly */}
               <button
                 onClick={() => onSelectPlan("monthly")}
@@ -695,6 +698,7 @@ function PlanModal({
             </div>
           </div>
         </motion.div>
+        </div>
       </>
     </AnimatePresence>
   );
