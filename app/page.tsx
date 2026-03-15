@@ -875,6 +875,7 @@ export default function Home() {
   // History sidebar
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Modals
   const [showHowTo, setShowHowTo] = useState(false);
@@ -974,6 +975,7 @@ export default function Home() {
   const clearHistory = () => {
     lsClearHistory();
     setHistory([]);
+    setShowClearConfirm(false);
   };
 
   const loadHistoryEntry = (entry: HistoryEntry) => {
@@ -1121,29 +1123,24 @@ export default function Home() {
               aria-label="Search history"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-5 border-b border-white/[0.08] light:border-black/[0.08] shrink-0">
-                <div>
-                  <h2 className="text-base font-bold text-slate-100 light:text-slate-900 tracking-tight">
-                    Search History
-                  </h2>
-                  <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">
-                    {history.length === 0
-                      ? "No searches yet"
-                      : `${history.length} search${history.length !== 1 ? "es" : ""}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {history.length > 0 && (
-                    <button
-                      onClick={clearHistory}
-                      className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 light:text-slate-500 hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/10 light:hover:bg-red-500/[0.08] transition-colors"
-                    >
-                      Clear all
-                    </button>
-                  )}
+              <div className="border-b border-white/[0.08] light:border-black/[0.08] shrink-0">
+                {/* Title row */}
+                <div className="flex items-center justify-between px-5 pt-5 pb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-100 light:text-slate-900 tracking-tight">
+                      Search History
+                    </h2>
+                    <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">
+                      {history.length === 0
+                        ? "No searches yet"
+                        : `${history.length} search${history.length !== 1 ? "es" : ""}`}
+                    </p>
+                  </div>
+
+                  {/* Close button — prominent X in top-right */}
                   <button
-                    onClick={() => setShowHistory(false)}
-                    className="p-1.5 rounded-lg text-slate-500 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-800 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                    onClick={() => { setShowHistory(false); setShowClearConfirm(false); }}
+                    className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 light:text-slate-500 hover:text-slate-100 light:hover:text-slate-900 hover:bg-white/[0.10] light:hover:bg-black/[0.07] transition-colors"
                     aria-label="Close history"
                   >
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -1151,6 +1148,44 @@ export default function Home() {
                     </svg>
                   </button>
                 </div>
+
+                {/* Clear all row — only shown when history exists */}
+                {history.length > 0 && (
+                  <div className="px-5 pb-3">
+                    {showClearConfirm ? (
+                      /* Confirmation prompt */
+                      <div className="flex items-center justify-between rounded-lg bg-red-500/[0.09] light:bg-red-50 border border-red-500/20 light:border-red-200 px-3 py-2">
+                        <span className="text-xs text-red-400 light:text-red-600 font-medium">
+                          Delete all history?
+                        </span>
+                        <div className="flex items-center gap-2 ml-3">
+                          <button
+                            onClick={clearHistory}
+                            className="px-2.5 py-1 rounded-md text-xs font-semibold bg-red-500/20 light:bg-red-100 text-red-400 light:text-red-600 hover:bg-red-500/30 light:hover:bg-red-200 transition-colors"
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => setShowClearConfirm(false)}
+                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/[0.08] light:hover:bg-black/[0.05] transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setShowClearConfirm(true)}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400/70 light:text-rose-600/70 hover:text-rose-400 light:hover:text-rose-600 transition-colors group"
+                      >
+                        <svg className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                          <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
+                        </svg>
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Entry list */}
