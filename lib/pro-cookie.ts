@@ -76,6 +76,21 @@ export function readPro(req: NextRequest): boolean {
   return payload.until >= todayUTC();
 }
 
+/**
+ * Delete the pro cookie from a response.
+ * Call this whenever the server determines the user is not signed in,
+ * so stale pro cookies don't linger on guest browsers.
+ */
+export function clearProCookie(res: NextResponse): void {
+  res.cookies.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
 /** Write a signed pro cookie onto a response, valid for PRO_DURATION_DAYS days. */
 export function setProCookie(res: NextResponse): void {
   const until = futureDateUTC(PRO_DURATION_DAYS);

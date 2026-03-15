@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { readCount, writeCount, DAILY_LIMIT } from "@/lib/usage-cookie";
 import { readPro } from "@/lib/pro-cookie";
 
@@ -18,8 +19,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  // ── 2. Pro check ───────────────────────────────────────────────────────────
-  const pro = readPro(req);
+  // ── 2. Pro check — requires BOTH a signed-in session AND a valid Pro cookie ─
+  // A guest user must never receive Pro features regardless of any cookie.
+  const session = await auth();
+  const pro = !!session?.user && readPro(req);
 
   // ── 3. Character limit ─────────────────────────────────────────────────────
   const charLimit = pro ? 10000 : 1000;
