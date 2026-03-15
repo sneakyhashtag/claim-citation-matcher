@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: "https://claim-citation-matcher.vercel.app/sitemap.xml",
+    sitemap: "https://claim-citation-matcher-38hj.vercel.app/sitemap.xml",
   };
 }

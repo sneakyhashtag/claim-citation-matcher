@@ -14,7 +14,7 @@ const playfair = Playfair_Display({
   weight: ["700", "800"],
 });
 
-const BASE_URL = "https://claim-citation-matcher.vercel.app";
+const BASE_URL = "https://claim-citation-matcher-38hj.vercel.app";
 const TITLE = "Reference Finder - AI-Powered Academic Citation Tool";
 const DESCRIPTION =
   "Paste any academic paragraph and instantly find real, verified research papers for every claim. Powered by AI and real academic databases.";
