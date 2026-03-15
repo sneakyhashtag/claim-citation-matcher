@@ -9,7 +9,9 @@ export async function POST(req: NextRequest) {
   const { allowed, applyToResponse } = checkAndIncrement(req);
 
   if (!allowed) {
-    return NextResponse.json(
+    // applyToResponse is a no-op when allowed=false, but we call it for
+    // consistency so every exit path after checkAndIncrement looks the same.
+    const res = NextResponse.json(
       {
         error:
           "You've reached your daily limit of 10 free searches. Come back tomorrow!",
@@ -18,6 +20,8 @@ export async function POST(req: NextRequest) {
       },
       { status: 429 }
     );
+    applyToResponse(res);
+    return res;
   }
 
   // Parse body after the limit check so the slot is consumed even if the
