@@ -81,8 +81,9 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
     ),
   ];
 
-  // Single batch request for all journal h-indexes
+  // Single batch request for journal h-index + 2yr mean citedness (≈ Impact Factor)
   const hIndexMap: Record<string, number | null> = {};
+  const ifMap: Record<string, number | null> = {};
   if (sourceIds.length > 0) {
     try {
       const sourcesUrl = new URL("https://api.openalex.org/sources");
@@ -100,12 +101,18 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
       if (sourcesRes.ok) {
         const sourcesData = await sourcesRes.json();
         for (const src of sourcesData.results ?? []) {
-          hIndexMap[shortId(src.id as string)] =
+          const sid = shortId(src.id as string);
+          hIndexMap[sid] =
             (src.summary_stats?.h_index as number | undefined) ?? null;
+          // 2yr_mean_citedness is OpenAlex's free proxy for journal Impact Factor
+          const raw2yr = src.summary_stats?.["2yr_mean_citedness"] as
+            | number
+            | undefined;
+          ifMap[sid] = typeof raw2yr === "number" && raw2yr > 0 ? raw2yr : null;
         }
       }
     } catch {
-      // h-index fetch failed — continue without it
+      // source stats fetch failed — continue without them
     }
   }
 
@@ -120,6 +127,7 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
       journal: work.primary_location?.source?.display_name ?? null,
       citationCount: work.cited_by_count,
       journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
+      impactFactor: sid != null ? (ifMap[sid] ?? null) : null,
       subjectArea: work.primary_topic?.field?.display_name ?? null,
       doi: work.doi ?? null,
       abstract: reconstructAbstract(work.abstract_inverted_index),

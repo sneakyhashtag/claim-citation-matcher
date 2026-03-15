@@ -12,6 +12,8 @@ export interface Paper {
   citationCount: number;
   influentialCitationCount?: number;
   journalHIndex?: number | null;
+  /** 2-year mean citedness from OpenAlex — a free proxy for Impact Factor. */
+  impactFactor?: number | null;
   subjectArea?: string | null;
   doi: string | null;
   abstract: string | null;

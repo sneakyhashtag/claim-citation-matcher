@@ -329,6 +329,19 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           />
         )}
 
+        {/* 🔵 teal pill — 2-year mean citedness (≈ Impact Factor, OpenAlex) */}
+        {paper.impactFactor != null && (
+          <StatBadge
+            colorClass="bg-teal-500/10 border-teal-500/20 text-teal-400 light:text-teal-700"
+            text={`IF ${paper.impactFactor.toFixed(1)}`}
+            icon={
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/>
+              </svg>
+            }
+          />
+        )}
+
         {/* 📖 green book — field / subject area */}
         {paper.subjectArea && (
           <StatBadge
@@ -699,6 +712,10 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
                     <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-teal-400 light:text-teal-700">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
