@@ -1,29 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { checkAndIncrementUsage } from "@/lib/db";
+import { checkAndIncrement } from "@/lib/usage-cookie";
 
 const client = new Anthropic();
 
-function getKey(req: NextRequest, email: string | null | undefined): string {
-  if (email) return `user:${email}`;
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
-  return `ip:${ip}`;
-}
-
 export async function POST(req: NextRequest) {
-  // ── usage limit ──
-  const session = await auth();
-  const key = getKey(req, session?.user?.email);
-  const usage = checkAndIncrementUsage(key);
-  if (!usage.allowed) {
+  // ── usage limit (cookie-based) ─────────────────────────────────────────────
+  const { allowed, applyToResponse } = checkAndIncrement(req);
+
+  if (!allowed) {
     return NextResponse.json(
       {
         error:
-          "You've reached your daily limit of 3 free searches. Upgrade to Pro for unlimited access.",
+          "You've reached your daily limit of 10 free searches. Come back tomorrow!",
         limitReached: true,
         remaining: 0,
       },
@@ -31,10 +20,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Parse body after the limit check so the slot is consumed even if the
+  // body is malformed (mirrors the previous DB behaviour).
   const { text } = await req.json();
 
   if (!text || typeof text !== "string" || !text.trim()) {
-    return NextResponse.json({ error: "text is required" }, { status: 400 });
+    const res = NextResponse.json(
+      { error: "text is required" },
+      { status: 400 }
+    );
+    applyToResponse(res);
+    return res;
   }
 
   const stream = client.messages.stream({
@@ -56,22 +52,24 @@ Return ONLY a valid JSON array of these objects. No markdown, no explanation, ju
   });
 
   const message = await stream.finalMessage();
-
   const raw = message.content.find((b) => b.type === "text")?.text ?? "";
 
   let claims: { claim: string; searchQuery: string }[];
   try {
-    // Strip markdown code fences if present, then find the JSON array
     const stripped = raw.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
     const match = stripped.match(/\[[\s\S]*\]/);
     if (!match) throw new Error("No JSON array found");
     claims = JSON.parse(match[0]);
   } catch {
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: "Failed to parse claims from model response", raw },
       { status: 500 }
     );
+    applyToResponse(res);
+    return res;
   }
 
-  return NextResponse.json({ claims });
+  const res = NextResponse.json({ claims });
+  applyToResponse(res);
+  return res;
 }

@@ -575,7 +575,7 @@ export default function Home() {
   const [showHowTo, setShowHowTo] = useState(false);
 
   // Usage counter — default to full allowance so counter is visible immediately
-  const [usage, setUsage] = useState({ count: 0, remaining: 3, limit: 3 });
+  const [usage, setUsage] = useState({ count: 0, remaining: 10, limit: 10 });
 
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
@@ -936,7 +936,7 @@ export default function Home() {
                       <span className={`text-xs font-medium tabular-nums px-2 py-1 rounded-md ${
                         usage.remaining === 0
                           ? "bg-red-100 text-red-600"
-                          : usage.remaining === 1
+                          : usage.remaining <= 2
                           ? "bg-amber-100 text-amber-700"
                           : "bg-gray-100 text-gray-600"
                       }`}>
