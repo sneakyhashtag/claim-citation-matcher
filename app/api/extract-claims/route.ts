@@ -1,9 +1,36 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { checkAndIncrementUsage } from "@/lib/db";
 
 const client = new Anthropic();
 
+function getKey(req: NextRequest, email: string | null | undefined): string {
+  if (email) return `user:${email}`;
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
+  return `ip:${ip}`;
+}
+
 export async function POST(req: NextRequest) {
+  // ── usage limit ──
+  const session = await auth();
+  const key = getKey(req, session?.user?.email);
+  const usage = checkAndIncrementUsage(key);
+  if (!usage.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "You've reached your daily limit of 3 free searches. Upgrade to Pro for unlimited access.",
+        limitReached: true,
+        remaining: 0,
+      },
+      { status: 429 }
+    );
+  }
+
   const { text } = await req.json();
 
   if (!text || typeof text !== "string" || !text.trim()) {

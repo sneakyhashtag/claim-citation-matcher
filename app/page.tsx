@@ -473,6 +473,9 @@ export default function Home() {
   // Modals
   const [showHowTo, setShowHowTo] = useState(false);
 
+  // Usage counter
+  const [usage, setUsage] = useState<{ count: number; remaining: number; limit: number } | null>(null);
+
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 1500);
     return () => clearTimeout(t);
@@ -481,6 +484,16 @@ export default function Home() {
   useEffect(() => {
     if (session) setStage("app");
   }, [session]);
+
+  useEffect(() => {
+    if (stage === "app") fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
+
+  const fetchUsage = async () => {
+    const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
+    if (data) setUsage(data);
+  };
 
   const fetchHistory = async () => {
     setHistoryLoading(true);
@@ -527,6 +540,8 @@ export default function Home() {
 
       if (claimsError || !claimsData) {
         setError(claimsError ?? "Failed to extract claims. Please try again.");
+        // Refresh usage in case the limit was hit server-side
+        await fetchUsage();
         return;
       }
 
@@ -566,6 +581,7 @@ export default function Home() {
 
       setResults(claimResults);
       setStatus("");
+      await fetchUsage();
 
       // Save to history if signed in
       if (session?.user?.email) {
@@ -815,15 +831,33 @@ export default function Home() {
                     >
                       Try an example
                     </button>
-                    <button
-                      type="submit"
-                      disabled={!text.trim() || overLimit || loading}
-                      className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {loading ? "Analyzing…" : "Submit"}
-                    </button>
+                    <div className="flex items-center gap-2.5">
+                      {usage && (
+                        <span className={`text-xs tabular-nums ${usage.remaining === 0 ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                          {usage.remaining}/{usage.limit} left today
+                        </span>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={!text.trim() || overLimit || loading || usage?.remaining === 0}
+                        className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {loading ? "Analyzing…" : "Submit"}
+                      </button>
+                    </div>
                   </div>
                 </form>
+
+                {usage?.remaining === 0 && !loading && (
+                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                    </svg>
+                    <p className="text-sm text-amber-800">
+                      You&apos;ve reached your daily limit of {usage.limit} free searches. Upgrade to Pro for unlimited access.
+                    </p>
+                  </div>
+                )}
 
                 {loading && (
                   <div className="mt-8 flex items-center gap-3 text-sm text-gray-500">
