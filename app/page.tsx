@@ -5,7 +5,8 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { RatedPaper } from "@/lib/rate-relevance";
 
-const CHAR_LIMIT = 2000;
+const FREE_CHAR_LIMIT = 1000;
+const PRO_CHAR_LIMIT = 10000;
 
 const EXAMPLE_TEXTS = [
   // Climate change
@@ -979,7 +980,8 @@ export default function Home() {
     setShowHistory(false);
   };
 
-  const remaining = CHAR_LIMIT - text.length;
+  const charLimit = isPro ? PRO_CHAR_LIMIT : FREE_CHAR_LIMIT;
+  const remaining = charLimit - text.length;
   const overLimit = remaining < 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1358,7 +1360,7 @@ export default function Home() {
                   <div className="relative">
                     <textarea
                       value={text}
-                      onChange={(e) => { setText(e.target.value.slice(0, CHAR_LIMIT + 50)); setUploadError(""); }}
+                      onChange={(e) => { setText(e.target.value.slice(0, charLimit + 50)); setUploadError(""); }}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
                       className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-black/[0.03] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-slate-900 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
@@ -1370,10 +1372,10 @@ export default function Home() {
                     />
                     <span
                       className={`absolute bottom-2 right-3 text-xs tabular-nums ${
-                        overLimit ? "text-red-400 font-medium" : remaining <= 200 ? "text-amber-400" : "text-slate-500"
+                        overLimit ? "text-red-400 font-medium" : remaining <= (isPro ? 500 : 100) ? "text-amber-400" : "text-slate-500"
                       }`}
                     >
-                      {remaining < 0 ? `${Math.abs(remaining)} over limit` : `${remaining} remaining`}
+                      {remaining < 0 ? `${Math.abs(remaining)} over limit` : `${remaining.toLocaleString()} / ${charLimit.toLocaleString()}`}
                     </span>
                   </div>
 
@@ -1403,7 +1405,7 @@ export default function Home() {
                       setExtracting(false);
 
                       if (data?.text) {
-                        setText(data.text.slice(0, CHAR_LIMIT + 50));
+                        setText(data.text.slice(0, charLimit + 50));
                       } else {
                         setUploadError(err ?? "Failed to extract text from file");
                       }
