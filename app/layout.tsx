@@ -14,11 +14,33 @@ const playfair = Playfair_Display({
   weight: ["700", "800"],
 });
 
+const BASE_URL = "https://claim-citation-matcher-38hj.vercel.app";
+const TITLE = "Reference Finder - AI-Powered Academic Citation Tool";
+const DESCRIPTION =
+  "Paste any academic paragraph and instantly find real, verified research papers for every claim. Powered by AI and real academic databases.";
+
 export const metadata: Metadata = {
-  title: "Reference Finder",
-  description: "Find academic citations for factual claims in your writing",
+  title: TITLE,
+  description: DESCRIPTION,
+  metadataBase: new URL(BASE_URL),
   verification: {
     google: "v4GUZl9aYCoCzR09ubk-5o5et9cBEbbqgz4cG8Z4A8I",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: BASE_URL,
+    siteName: "Reference Finder",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  alternates: {
+    canonical: BASE_URL,
   },
 };
 
