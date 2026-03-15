@@ -5,6 +5,10 @@
   --foreground: #f1f5f9;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -124,4 +128,43 @@ body {
 .paper-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ── Dot grid background pattern ────────────────────────────────────────── */
+
+.dot-pattern {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.22;
+}
+
+/* ── Edge vignette ───────────────────────────────────────────────────────── */
+
+.vignette {
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    transparent 45%,
+    rgba(8, 10, 18, 0.65) 75%,
+    rgba(8, 10, 18, 0.92) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Dark glass panel (modals, sidebar, dropdown) ────────────────────────── */
+
+.glass-panel {
+  background: rgba(14, 17, 32, 0.96);
+  border-color: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Claim card left accent ──────────────────────────────────────────────── */
+
+.claim-card {
+  transition: box-shadow 0.18s ease;
+}
+
+.claim-card:hover {
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
 }

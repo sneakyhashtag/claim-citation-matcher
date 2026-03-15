@@ -357,12 +357,21 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
 // ── claim card ────────────────────────────────────────────────────────────────
 
 function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
+  const topScore = result.papers.length > 0
+    ? Math.max(...result.papers.map((p) => p.relevanceScore))
+    : 0;
+  const accentClass =
+    topScore >= 5 ? "border-l-green-500/60" :
+    topScore >= 4 ? "border-l-blue-500/55" :
+    result.papers.length > 0 ? "border-l-amber-500/50" :
+    "border-l-white/15";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden"
+      className={`claim-card rounded-xl border border-white/10 border-l-2 ${accentClass} bg-white/[0.03] backdrop-blur-sm overflow-hidden`}
     >
       {/* claim header */}
       <div className="bg-white/[0.04] border-b border-white/10 px-5 py-4">
@@ -427,15 +436,15 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
           aria-modal="true"
           aria-labelledby="how-to-use-title"
         >
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 id="how-to-use-title" className="font-semibold text-gray-900 text-base">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h2 id="how-to-use-title" className="font-semibold text-slate-100 text-base">
                 How it works
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -446,13 +455,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
             {/* body */}
             <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-slate-400 leading-relaxed">
                 Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
               </p>
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2.5">How it works</p>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2.5">How it works</p>
                 <ol className="space-y-3">
                   {[
                     { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
@@ -461,88 +470,88 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                     { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
                   ].map(({ icon, text }) => (
                     <li key={icon} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-900 text-white text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 text-slate-100 text-xs font-medium shrink-0 mt-0.5">
                         {icon}
                       </span>
-                      <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
+                      <p className="text-sm text-slate-400 leading-relaxed">{text}</p>
                     </li>
                   ))}
                 </ol>
               </div>
 
               {/* paper badges */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Paper stat badges</p>
-                <p className="text-xs text-gray-500 leading-relaxed">
+              <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
-                    <span className="text-orange-500 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-gray-700"><strong className="text-orange-700">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
+                    <span className="text-xs text-slate-300"><strong className="text-orange-400">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <span className="text-purple-500 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-gray-700"><strong className="text-purple-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
+                    <span className="text-xs text-slate-300"><strong className="text-violet-400">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <span className="text-blue-500 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-gray-700"><strong className="text-blue-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
+                    <span className="text-xs text-slate-300"><strong className="text-sky-400">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <span className="text-green-600 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-gray-700"><strong className="text-green-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
+                    <span className="text-xs text-slate-300"><strong className="text-emerald-400">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Relevance tiers</p>
-                <p className="text-xs text-gray-500 leading-relaxed">
+              <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Papers are ranked by relevance with three color-coded tiers.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-700"><strong className="text-green-700">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300"><strong className="text-green-400">Direct</strong> — the paper directly supports the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-700"><strong className="text-blue-700">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300"><strong className="text-blue-400">High</strong> — closely related and useful context for the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-700"><strong className="text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300"><strong className="text-amber-400">Moderate</strong> — touches on the topic but is not a direct match.</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Good to know</p>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Good to know</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    <strong>Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    <strong>10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    <strong>Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    <strong>Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <strong className="text-slate-200">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
                   </p>
                 </div>
               </div>
@@ -594,18 +603,18 @@ function PlanModal({
           aria-modal="true"
           aria-labelledby="plan-modal-title"
         >
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
-                <h2 id="plan-modal-title" className="font-semibold text-gray-900 text-base">
+                <h2 id="plan-modal-title" className="font-semibold text-slate-100 text-base">
                   Upgrade to Pro
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">Unlimited searches, forever.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Unlimited searches, forever.</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -620,16 +629,16 @@ function PlanModal({
               <button
                 onClick={() => onSelectPlan("monthly")}
                 disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-gray-200 px-4 py-4 hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full text-left rounded-xl border-2 border-white/15 px-4 py-4 hover:border-white/30 hover:bg-white/[0.05] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Monthly</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Billed every month</p>
+                    <p className="text-sm font-semibold text-slate-100">Monthly</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Billed every month</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">¥299</p>
-                    <p className="text-xs text-gray-400">/ month</p>
+                    <p className="text-lg font-bold text-slate-100">¥299</p>
+                    <p className="text-xs text-slate-500">/ month</p>
                   </div>
                 </div>
               </button>
@@ -638,25 +647,25 @@ function PlanModal({
               <button
                 onClick={() => onSelectPlan("yearly")}
                 disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-4 hover:bg-amber-100 hover:border-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+                className="w-full text-left rounded-xl border-2 border-amber-500/50 bg-amber-500/10 px-4 py-4 hover:bg-amber-500/15 hover:border-amber-500/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 <span className="absolute -top-2.5 right-3 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide">
                   Save 2 months
                 </span>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-amber-900">Yearly</p>
-                    <p className="text-xs text-amber-700 mt-0.5">Billed once per year</p>
+                    <p className="text-sm font-semibold text-amber-300">Yearly</p>
+                    <p className="text-xs text-amber-500 mt-0.5">Billed once per year</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-amber-900">¥2,990</p>
-                    <p className="text-xs text-amber-600">/ year</p>
+                    <p className="text-lg font-bold text-amber-300">¥2,990</p>
+                    <p className="text-xs text-amber-500">/ year</p>
                   </div>
                 </div>
               </button>
 
               {upgrading && (
-                <p className="text-center text-xs text-gray-400 pt-1">Redirecting to checkout…</p>
+                <p className="text-center text-xs text-slate-500 pt-1">Redirecting to checkout…</p>
               )}
             </div>
           </div>
@@ -716,7 +725,7 @@ function UserMenu({
             className="h-6 w-6 rounded-full object-cover"
           />
         ) : (
-          <span className="h-6 w-6 rounded-full bg-gray-900 text-white text-xs font-medium flex items-center justify-center">
+          <span className="h-6 w-6 rounded-full bg-white/15 text-white text-xs font-medium flex items-center justify-center">
             {initials}
           </span>
         )}
@@ -724,7 +733,7 @@ function UserMenu({
           {firstName}
         </span>
         {isPro && (
-          <span className="hidden sm:inline-flex items-center gap-0.5 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 leading-none">
+          <span className="hidden sm:inline-flex items-center gap-0.5 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400 leading-none">
             <svg className="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
@@ -743,31 +752,31 @@ function UserMenu({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 z-50"
+            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/10 glass-panel shadow-xl py-1 z-50"
             role="menu"
           >
-            <div className="px-3 py-2 border-b border-gray-100">
-              <p className="text-xs font-medium text-gray-900 truncate">{name}</p>
+            <div className="px-3 py-2 border-b border-white/10">
+              <p className="text-xs font-medium text-slate-200 truncate">{name}</p>
               {session.user?.email && (
-                <p className="text-xs text-gray-400 truncate">{session.user.email}</p>
+                <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
               )}
             </div>
             <button
               onClick={() => { setOpen(false); onOpenHistory(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-white/[0.06] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
               </svg>
               History
             </button>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-white/[0.06] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
                 <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
               </svg>
@@ -851,6 +860,7 @@ export default function Home() {
   const [extracting, setExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
@@ -1001,6 +1011,16 @@ export default function Home() {
     }
   };
 
+  // Scroll to results when they appear
+  useEffect(() => {
+    if (results.length > 0) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results.length > 0 ? results[0]?.claim : null]);
+
   const hasActivity = loading || error !== "" || results.length > 0;
   const isCentered = !ready && !hasActivity;
 
@@ -1039,22 +1059,22 @@ export default function Home() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-              className="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 flex flex-col"
+              className="fixed top-0 right-0 h-full w-full max-w-sm glass-panel shadow-2xl z-50 flex flex-col border-l border-white/10"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Search History</h2>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                <h2 className="font-semibold text-slate-100">Search History</h2>
                 <div className="flex items-center gap-1">
                   {history.length > 0 && (
                     <button
                       onClick={clearHistory}
-                      className="px-2 py-1 rounded-md text-xs text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="px-2 py-1 rounded-md text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       Clear all
                     </button>
                   )}
                   <button
                     onClick={() => setShowHistory(false)}
-                    className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/10 transition-colors"
                     aria-label="Close history"
                   >
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -1066,7 +1086,7 @@ export default function Home() {
 
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {history.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-12">
+                  <p className="text-sm text-slate-500 text-center py-12">
                     No searches yet. Run your first analysis to see it here.
                   </p>
                 ) : (
@@ -1075,12 +1095,12 @@ export default function Home() {
                       <li key={entry.id}>
                         <button
                           onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 hover:border-gray-200 px-4 py-3 transition-colors"
+                          className="w-full text-left rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 px-4 py-3 transition-colors"
                         >
-                          <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">
+                          <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">
                             {entry.paragraph}
                           </p>
-                          <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
+                          <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
                             <span>{entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}</span>
                             <span>·</span>
                             <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
@@ -1101,11 +1121,16 @@ export default function Home() {
         layout
         className={`noise-overlay relative min-h-screen bg-[#080a12] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
       >
-        {/* Ambient gradient orbs — always present, most visible during centered phase */}
+        {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+          {/* Dot grid pattern */}
+          <div className="dot-pattern absolute inset-0" />
+          {/* Gradient orbs */}
           <div className="orb-1 absolute top-[20%] left-[15%] w-[480px] h-[480px] rounded-full bg-indigo-600/[0.12] blur-[100px]" />
           <div className="orb-2 absolute bottom-[20%] right-[10%] w-[420px] h-[420px] rounded-full bg-violet-600/[0.10] blur-[90px]" />
           <div className="orb-3 absolute top-[55%] left-[55%] w-[300px] h-[300px] rounded-full bg-blue-500/[0.07] blur-[80px]" />
+          {/* Edge vignette */}
+          <div className="vignette absolute inset-0" />
         </div>
         {/* top-right controls — fixed, only visible in app stage */}
         <AnimatePresence>
@@ -1378,9 +1403,9 @@ export default function Home() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 4 }}
                                 transition={{ duration: 0.15 }}
-                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-gray-200 bg-white shadow-lg px-4 py-3"
+                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 glass-panel shadow-xl px-4 py-3"
                               >
-                                <p className="text-xs text-gray-700 leading-relaxed">
+                                <p className="text-xs text-slate-300 leading-relaxed">
                                   Uploading documents is a Pro feature.{" "}
                                   <button
                                     type="button"
@@ -1485,7 +1510,7 @@ export default function Home() {
                 {error && <ErrorBanner message={error} />}
 
                 {results.length > 0 && (
-                  <div className="mt-8 flex flex-col gap-6">
+                  <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
                     <h2 className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                       {results.length} claim{results.length > 1 ? "s" : ""} found
                     </h2>
