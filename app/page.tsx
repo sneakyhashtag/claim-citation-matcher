@@ -1169,20 +1169,29 @@ export default function Home() {
                       <li key={entry.id}>
                         <button
                           onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-xl border border-white/[0.08] light:border-black/[0.08] bg-white/[0.04] light:bg-black/[0.03] hover:bg-white/[0.08] light:hover:bg-black/[0.06] hover:border-white/[0.15] light:hover:border-black/[0.14] px-4 py-3.5 transition-colors group"
+                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-black/[0.09] bg-[#161b2e] light:bg-white px-4 py-4 transition-all duration-150 hover:bg-[#1d2440] light:hover:bg-slate-50 hover:border-white/[0.18] light:hover:border-black/[0.15] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] group"
                         >
-                          <p className="text-sm text-slate-300 light:text-slate-700 line-clamp-2 leading-relaxed group-hover:text-slate-100 light:group-hover:text-slate-900 transition-colors">
+                          {/* Preview — single line, truncates with ellipsis */}
+                          <p className="text-sm font-medium text-slate-200 light:text-slate-800 truncate group-hover:text-white light:group-hover:text-slate-900 transition-colors">
                             {entry.paragraph}
                           </p>
-                          <div className="mt-2 flex items-center gap-2 text-xs text-slate-600 light:text-slate-400">
-                            <span className="inline-flex items-center gap-1">
-                              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-                              </svg>
-                              {entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}
-                            </span>
-                            <span className="text-slate-700 light:text-slate-300">·</span>
-                            <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+
+                          {/* Metadata row */}
+                          <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs text-slate-500 light:text-slate-500">
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+                                </svg>
+                                {entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}
+                              </span>
+                              <span className="text-slate-700 light:text-slate-300">·</span>
+                              <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+                            </div>
+                            {/* Arrow hint — appears on hover */}
+                            <svg className="h-3.5 w-3.5 text-slate-600 light:text-slate-400 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd"/>
+                            </svg>
                           </div>
                         </button>
                       </li>
