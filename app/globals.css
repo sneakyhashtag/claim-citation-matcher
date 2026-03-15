@@ -14,9 +14,9 @@
 }
 
 html.light {
-  --background: #f4f6fb;
+  --background: #e8ecf4;
   --foreground: #0f172a;
-  --page-bg: #f4f6fb;
+  --page-bg: #e8ecf4;
 }
 
 html {
@@ -186,8 +186,8 @@ html.light .vignette {
   background: radial-gradient(
     ellipse at 50% 35%,
     transparent 45%,
-    rgba(244, 246, 251, 0.60) 75%,
-    rgba(244, 246, 251, 0.88) 100%
+    rgba(232, 236, 244, 0.60) 75%,
+    rgba(232, 236, 244, 0.88) 100%
   );
 }
 
@@ -201,8 +201,8 @@ html.light .vignette {
 }
 
 html.light .glass-panel {
-  background: rgba(255, 255, 255, 0.97);
-  border-color: rgba(0, 0, 0, 0.09);
+  background: rgba(246, 248, 253, 1.0);
+  border-color: rgba(0, 0, 0, 0.13);
 }
 
 /* ── Claim card hover ────────────────────────────────────────────────────── */
@@ -223,5 +223,5 @@ html.light .claim-card:hover {
 
 html.light textarea::placeholder,
 html.light input::placeholder {
-  color: rgba(0, 0, 0, 0.30);
+  color: rgba(0, 0, 0, 0.45);
 }

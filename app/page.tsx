@@ -273,7 +273,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
 
       {/* journal */}
       {paper.journal && (
-        <p className="mt-0.5 text-xs text-slate-500 light:text-slate-500 italic truncate" title={paper.journal}>
+        <p className="mt-0.5 text-xs text-slate-500 light:text-slate-600 italic truncate" title={paper.journal}>
           {paper.journal}
         </p>
       )}
@@ -344,7 +344,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
       </div>
 
       {/* relevance explanation */}
-      <p className="mt-2 text-xs text-slate-500 light:text-slate-500 italic leading-relaxed">
+      <p className="mt-2 text-xs text-slate-500 light:text-slate-600 italic leading-relaxed">
         {paper.relevanceExplanation}
       </p>
 
@@ -380,7 +380,7 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-slate-800 text-xs font-medium shrink-0">
             {index + 1}
           </span>
-          <span className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Claim</span>
+          <span className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Claim</span>
         </div>
         <p className="text-sm font-medium text-slate-100 light:text-slate-900 leading-relaxed">
           &ldquo;{result.claim}&rdquo;
@@ -390,7 +390,7 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       {/* papers */}
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
-          <p className="text-xs text-slate-500 light:text-slate-400">
+          <p className="text-xs text-slate-500 light:text-slate-600">
             No relevant papers found for this claim.
           </p>
         ) : (
@@ -486,7 +486,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide mb-2.5">How it works</p>
+                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide mb-2.5">How it works</p>
                 <ol className="space-y-3">
                   {[
                     { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
@@ -506,77 +506,77 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
               {/* paper badges */}
               <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Paper stat badges</p>
-                <p className="text-xs text-slate-500 light:text-slate-500 leading-relaxed">
+                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs text-slate-500 light:text-slate-600 leading-relaxed">
                   Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
               <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Relevance tiers</p>
-                <p className="text-xs text-slate-500 light:text-slate-500 leading-relaxed">
+                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs text-slate-500 light:text-slate-600 leading-relaxed">
                   Papers are ranked by relevance with three color-coded tiers.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-600"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">Good to know</p>
+                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Good to know</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
-                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-800">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-900">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
-                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-800">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-900">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
-                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-800">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-900">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
-                  <p className="text-xs text-slate-400 light:text-slate-600 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-800">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
+                    <strong className="text-slate-200 light:text-slate-900">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
                   </p>
                 </div>
               </div>
@@ -635,7 +635,7 @@ function PlanModal({
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
                   Upgrade to Pro
                 </h2>
-                <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">Unlimited searches, forever.</p>
+                <p className="text-xs text-slate-500 light:text-slate-600 mt-0.5">Unlimited searches, forever.</p>
               </div>
               <button
                 onClick={onClose}
@@ -659,11 +659,11 @@ function PlanModal({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-slate-100 light:text-slate-900">Monthly</p>
-                    <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">Billed every month</p>
+                    <p className="text-xs text-slate-500 light:text-slate-600 mt-0.5">Billed every month</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-slate-100 light:text-slate-900">¥299</p>
-                    <p className="text-xs text-slate-500 light:text-slate-500">/ month</p>
+                    <p className="text-xs text-slate-500 light:text-slate-600">/ month</p>
                   </div>
                 </div>
               </button>
@@ -783,7 +783,7 @@ function UserMenu({
             <div className="px-3 py-2 border-b border-white/10">
               <p className="text-xs font-medium text-slate-200 light:text-slate-900 truncate">{name}</p>
               {session.user?.email && (
-                <p className="text-xs text-slate-500 light:text-slate-500 truncate">{session.user.email}</p>
+                <p className="text-xs text-slate-500 light:text-slate-600 truncate">{session.user.email}</p>
               )}
             </div>
             <button
@@ -1254,7 +1254,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mt-3 text-lg font-light text-slate-400 light:text-slate-500 tracking-wide sm:text-xl"
+                  className="mt-3 text-lg font-light text-slate-400 light:text-slate-600 tracking-wide sm:text-xl"
                 >
                   Real papers, not hallucinated ones.
                 </motion.p>
@@ -1267,7 +1267,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400 light:text-slate-600"
+                  className="mt-2 text-sm text-slate-400 light:text-slate-700"
                 >
                   {session?.user?.name
                     ? `Welcome back, ${session.user.name.split(" ")[0]}. Paste a paragraph to find citations.`
@@ -1280,7 +1280,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400 light:text-slate-600"
+                  className="mt-2 text-sm text-slate-400 light:text-slate-700"
                 >
                   Find academic citations for every factual claim in your writing.
                 </motion.p>
@@ -1321,7 +1321,7 @@ export default function Home() {
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
                   <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
-                  <span className="text-xs text-slate-500 light:text-slate-400">or</span>
+                  <span className="text-xs text-slate-500 light:text-slate-600">or</span>
                   <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
                 </div>
 
@@ -1335,7 +1335,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowHowTo(true)}
-                  className="flex items-center gap-1.5 text-sm text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 transition-colors mt-1"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 light:text-slate-600 hover:text-slate-300 light:hover:text-slate-800 transition-colors mt-1"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
@@ -1370,10 +1370,10 @@ export default function Home() {
                     <span
                       className={`absolute bottom-2 right-3 text-xs tabular-nums ${
                         !isPro && text.length >= FREE_CHAR_LIMIT
-                          ? "text-red-400 font-medium"
+                          ? "text-red-400 light:text-red-600 font-medium"
                           : charLimit - text.length <= (isPro ? 500 : 100)
-                          ? "text-amber-400"
-                          : "text-slate-500"
+                          ? "text-amber-400 light:text-amber-600"
+                          : "text-slate-500 light:text-slate-600"
                       }`}
                     >
                       {text.length.toLocaleString()}/{charLimit.toLocaleString()}
@@ -1444,7 +1444,7 @@ export default function Home() {
                               setShowUpgradeHint((v) => !v);
                             }
                           }}
-                          className="flex items-center gap-1.5 text-sm text-slate-400 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center gap-1.5 text-sm text-slate-400 light:text-slate-600 hover:text-slate-200 light:hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Upload document"
                         >
                           {extracting ? (
@@ -1474,9 +1474,9 @@ export default function Home() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 4 }}
                                 transition={{ duration: 0.15 }}
-                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 glass-panel shadow-xl px-4 py-3"
+                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-black/[0.13] glass-panel shadow-xl px-4 py-3"
                               >
-                                <p className="text-xs text-slate-300 leading-relaxed">
+                                <p className="text-xs text-slate-300 light:text-slate-700 leading-relaxed">
                                   Uploading documents is a Pro feature.{" "}
                                   <button
                                     type="button"
@@ -1497,7 +1497,7 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 light:text-slate-600 hover:text-slate-300 light:hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
@@ -1574,7 +1574,7 @@ export default function Home() {
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-slate-600">
+                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-slate-700">
                     <svg className="animate-spin h-4 w-4 shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -1587,7 +1587,7 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <h2 className="text-xs font-medium text-slate-500 light:text-slate-500 uppercase tracking-wide">
+                    <h2 className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">
                       {results.length} claim{results.length > 1 ? "s" : ""} found
                     </h2>
 
