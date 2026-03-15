@@ -860,7 +860,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 1500);
+    // 2500ms hold so users have time to read the title + tagline before the
+    // transition to the search UI begins.
+    const t = setTimeout(() => setReady(true), 2500);
     return () => clearTimeout(t);
   }, []);
 
@@ -1152,11 +1154,27 @@ export default function Home() {
             </motion.h1>
 
             <AnimatePresence>
+              {/* Landing tagline — visible only during the initial hold, fades out when ready */}
+              {!ready && (
+                <motion.p
+                  key="tagline"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+                  className="mt-3 text-lg font-light text-gray-400 tracking-wide sm:text-xl"
+                >
+                  Real papers, not hallucinated ones.
+                </motion.p>
+              )}
+
+              {/* App subtitle — fades in after the tagline exits */}
               {ready && stage === "app" && (
                 <motion.p
+                  key="app-sub"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="mt-2 text-sm text-gray-500"
                 >
                   {session?.user?.name
@@ -1166,9 +1184,10 @@ export default function Home() {
               )}
               {ready && stage === "auth" && (
                 <motion.p
+                  key="auth-sub"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="mt-2 text-sm text-gray-500"
                 >
                   Find academic citations for every factual claim in your writing.
