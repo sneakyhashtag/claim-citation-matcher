@@ -882,6 +882,7 @@ export default function Home() {
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeHint, setShowUpgradeHint] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -1357,7 +1358,7 @@ export default function Home() {
                   <div className="relative">
                     <textarea
                       value={text}
-                      onChange={(e) => setText(e.target.value.slice(0, CHAR_LIMIT + 50))}
+                      onChange={(e) => { setText(e.target.value.slice(0, CHAR_LIMIT + 50)); setUploadError(""); }}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
                       className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-black/[0.03] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-slate-900 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
@@ -1389,7 +1390,7 @@ export default function Home() {
                       if (!file) return;
 
                       setExtracting(true);
-                      setError("");
+                      setUploadError("");
 
                       const fd = new FormData();
                       fd.append("file", file);
@@ -1404,7 +1405,7 @@ export default function Home() {
                       if (data?.text) {
                         setText(data.text.slice(0, CHAR_LIMIT + 50));
                       } else {
-                        setError(err ?? "Failed to extract text from file");
+                        setUploadError(err ?? "Failed to extract text from file");
                       }
                     }}
                   />
@@ -1512,6 +1513,11 @@ export default function Home() {
                     </div>
                   </div>
                 </form>
+
+                {/* Upload error — only shown after a failed file upload */}
+                {uploadError && (
+                  <p className="mt-2 text-xs text-red-400 light:text-red-600">{uploadError}</p>
+                )}
 
                 {/* Pro success toast */}
                 {proSuccess && (

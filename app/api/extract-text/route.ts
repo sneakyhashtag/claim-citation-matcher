@@ -33,15 +33,37 @@ export async function POST(req: NextRequest) {
 
     // ── PDF ──────────────────────────────────────────────────────────────────
     if (mime === "application/pdf" || name.endsWith(".pdf")) {
-      // Dynamic import avoids pdf-parse reading test files at module load time
-      // (a known incompatibility with Next.js webpack).
-      const mod = await import("pdf-parse");
-      // pdf-parse ships as CJS; when bundled with ESM interop the callable
-      // function may be on `.default` or on the module itself.
+      // pdf2json works in Node.js/Vercel serverless without DOM dependencies.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfParse = (mod as any).default ?? mod;
-      const result = await pdfParse(buffer);
-      text = result.text;
+      const PDFParser = (await import("pdf2json")).default as any;
+      const parser = new PDFParser(null, 1); // rawTextMode = 1
+      text = await new Promise<string>((resolve, reject) => {
+        parser.on("pdfParser_dataReady", () => {
+          try {
+            resolve(parser.getRawTextContent() as string);
+          } catch (e) {
+            reject(e);
+          }
+        });
+        parser.on("pdfParser_dataError", (err: unknown) => {
+          reject(
+            new Error(
+              typeof err === "object" &&
+              err !== null &&
+              "parserError" in err
+                ? String((err as { parserError: unknown }).parserError)
+                : "Failed to parse PDF"
+            )
+          );
+        });
+        parser.parseBuffer(buffer);
+      });
+      // Strip pdf2json page-break markers and normalise whitespace
+      text = text
+        .replace(/----------------Page \(\d+\) Break----------------/g, "\n\n")
+        .replace(/\r\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
 
     // ── DOCX ─────────────────────────────────────────────────────────────────
     } else if (
