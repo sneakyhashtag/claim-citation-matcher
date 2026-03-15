@@ -435,47 +435,107 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* body */}
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
               <p className="text-sm text-gray-600 leading-relaxed">
-                Paste any academic paragraph and Reference Finder will identify the claims that need citations, then search real academic databases to find relevant papers for each one.
+                Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
               </p>
 
-              <ol className="space-y-3">
-                {[
-                  { icon: "1", text: "Your paragraph is scanned for individual factual claims that would need academic backing." },
-                  { icon: "2", text: "Each claim is searched against OpenAlex and Semantic Scholar in parallel — covering 250 million+ real academic works." },
-                  { icon: "3", text: "Papers are rated for relevance and returned with APA citations you can copy directly." },
-                ].map(({ icon, text }) => (
-                  <li key={icon} className="flex items-start gap-3">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-900 text-white text-xs font-medium shrink-0 mt-0.5">
-                      {icon}
-                    </span>
-                    <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
-                  </li>
-                ))}
-              </ol>
+              {/* steps */}
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2.5">How it works</p>
+                <ol className="space-y-3">
+                  {[
+                    { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
+                    { icon: "2", text: "Claude scans your text and extracts each individual claim that would benefit from academic backing." },
+                    { icon: "3", text: "Each claim is searched against OpenAlex and Semantic Scholar in parallel, covering 250 million+ real academic works across all fields." },
+                    { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
+                  ].map(({ icon, text }) => (
+                    <li key={icon} className="flex items-start gap-3">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-900 text-white text-xs font-medium shrink-0 mt-0.5">
+                        {icon}
+                      </span>
+                      <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
 
+              {/* paper badges */}
               <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Relevance tiers</p>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0" />
-                    <span className="text-xs text-gray-700"><strong>Direct</strong> — directly supports or proves the claim</span>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-orange-500 text-sm shrink-0 leading-none mt-0.5">🔥</span>
+                    <span className="text-xs text-gray-700"><strong className="text-orange-700">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0" />
-                    <span className="text-xs text-gray-700"><strong>High</strong> — closely related and useful context</span>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-purple-500 text-sm shrink-0 leading-none mt-0.5">★</span>
+                    <span className="text-xs text-gray-700"><strong className="text-purple-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="text-xs text-gray-700"><strong>Moderate</strong> — touches on the topic, not a direct match</span>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-blue-500 text-sm shrink-0 leading-none mt-0.5">▦</span>
+                    <span className="text-xs text-gray-700"><strong className="text-blue-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-green-600 text-sm shrink-0 leading-none mt-0.5">📖</span>
+                    <span className="text-xs text-gray-700"><strong className="text-green-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
-              <p className="text-xs text-gray-400">
-                Papers are sourced from OpenAlex <span className="font-medium text-gray-500">OA</span> and Semantic Scholar <span className="font-medium text-purple-500">S2</span>, with verifiable DOIs linking to original publications.
-              </p>
+              {/* relevance tiers */}
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Papers are ranked by relevance with three color-coded tiers.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-700"><strong className="text-green-700">Direct</strong> — the paper directly supports the claim.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-700"><strong className="text-blue-700">High</strong> — closely related and useful context for the claim.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-700"><strong className="text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* good to know */}
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Good to know</p>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0 leading-none">🌐</span>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <strong>Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0 leading-none">🔢</span>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <strong>10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0 leading-none">👤</span>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <strong>Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0 leading-none">💡</span>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <strong>Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
