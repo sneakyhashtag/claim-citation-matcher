@@ -14,9 +14,9 @@
 }
 
 html.light {
-  --background: #e8ecf4;
+  --background: #f5f7fb;
   --foreground: #0f172a;
-  --page-bg: #e8ecf4;
+  --page-bg: #f5f7fb;
 }
 
 html {
@@ -186,8 +186,8 @@ html.light .vignette {
   background: radial-gradient(
     ellipse at 50% 35%,
     transparent 45%,
-    rgba(232, 236, 244, 0.60) 75%,
-    rgba(232, 236, 244, 0.88) 100%
+    rgba(245, 247, 251, 0.60) 75%,
+    rgba(245, 247, 251, 0.88) 100%
   );
 }
 

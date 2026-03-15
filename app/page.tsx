@@ -429,6 +429,173 @@ function ThemeToggle({ theme, onToggle }: { theme: "dark" | "light"; onToggle: (
   );
 }
 
+// ── Light mode banner (IPCC-style, blue, fixed top) ──────────────────────────
+// Hidden in dark mode (hidden), visible only when html.light is set (light:flex).
+
+function LightBanner({
+  onToggle,
+  session,
+  isPro,
+  upgrading,
+  onShowPlanModal,
+  onOpenHistory,
+}: {
+  onToggle: () => void;
+  session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null } | null;
+  isPro: boolean;
+  upgrading: boolean;
+  onShowPlanModal: () => void;
+  onOpenHistory: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, []);
+
+  const name = session?.user?.name ?? "Account";
+  const firstName = name.split(" ")[0];
+  const image = session?.user?.image;
+  const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+
+  return (
+    <div className="hidden light:flex fixed top-0 inset-x-0 z-30 h-[52px] items-center px-4 sm:px-6 bg-[#4a90d9] shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+      {/* Right-aligned controls */}
+      <div className="ml-auto flex items-center gap-1">
+
+        {/* Theme toggle — switches to dark mode */}
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/20 transition-colors"
+          aria-label="Switch to dark mode"
+          title="Switch to dark mode"
+        >
+          <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+        </button>
+
+        {/* History button — guest users only; signed-in users have it in the user menu */}
+        {!session && (
+          <button
+            onClick={onOpenHistory}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/20 transition-colors text-sm font-medium text-white/90 hover:text-white"
+            aria-label="Open search history"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+            </svg>
+            <span className="hidden sm:inline">History</span>
+          </button>
+        )}
+
+        {/* Upgrade to Pro / Pro badge */}
+        {!isPro ? (
+          <button
+            onClick={onShowPlanModal}
+            disabled={upgrading}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/35 bg-white/15 hover:bg-white/25 transition-colors text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+          </button>
+        ) : (
+          <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-white/30 bg-white/10 text-sm font-medium text-white">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            Pro
+          </span>
+        )}
+
+        {/* User menu (signed-in) or Sign in button (guest) */}
+        {session ? (
+          <div ref={menuRef} className="relative">
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-lg border border-white/30 bg-white/15 hover:bg-white/25 transition-colors px-2.5 py-1.5"
+              aria-haspopup="true"
+              aria-expanded={menuOpen}
+            >
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={image} alt={name} width={22} height={22} className="h-[22px] w-[22px] rounded-full object-cover" />
+              ) : (
+                <span className="h-[22px] w-[22px] rounded-full bg-white/25 text-white text-xs font-medium flex items-center justify-center">
+                  {initials}
+                </span>
+              )}
+              <span className="text-sm font-medium text-white max-w-[120px] truncate hidden sm:block">{firstName}</span>
+              <svg className={`h-3.5 w-3.5 text-white/70 transition-transform ${menuOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
+              </svg>
+            </button>
+            <AnimatePresence>
+              {menuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute right-0 mt-1.5 w-44 rounded-xl border border-black/[0.1] bg-[rgba(246,248,253,1)] shadow-xl py-1 z-50"
+                  role="menu"
+                >
+                  <div className="px-3 py-2 border-b border-black/[0.08]">
+                    <p className="text-xs font-medium text-slate-900 truncate">{name}</p>
+                    {session.user?.email && (
+                      <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => { setMenuOpen(false); onOpenHistory(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-black/[0.05] transition-colors"
+                    role="menuitem"
+                  >
+                    <svg className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                    </svg>
+                    History
+                  </button>
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-black/[0.05] transition-colors"
+                    role="menuitem"
+                  >
+                    <svg className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
+                      <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
+                    </svg>
+                    Sign out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <button
+            onClick={() => signIn("google")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/40 bg-white/20 hover:bg-white/30 transition-colors text-sm font-medium text-white"
+          >
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
+            </svg>
+            Sign in
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── how to use modal ──────────────────────────────────────────────────────────
 
 function HowToUseModal({ onClose }: { onClose: () => void }) {
@@ -1242,7 +1409,7 @@ export default function Home() {
       {/* ── main page ── */}
       <motion.div
         layout
-        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
+        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 light:pt-[72px] ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
       >
         {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
@@ -1262,7 +1429,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-4 right-4 z-30 flex items-center gap-2"
+              className="fixed top-4 right-4 z-30 flex items-center gap-2 light:hidden"
             >
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
@@ -1322,6 +1489,18 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Light mode blue banner — only visible when html.light is set */}
+        {stage === "app" && ready && (
+          <LightBanner
+            onToggle={toggleTheme}
+            session={session}
+            isPro={isPro}
+            upgrading={upgrading}
+            onShowPlanModal={() => setShowPlanModal(true)}
+            onOpenHistory={openHistory}
+          />
+        )}
 
         <main className="relative z-10 mx-auto w-full max-w-2xl">
           <motion.div
