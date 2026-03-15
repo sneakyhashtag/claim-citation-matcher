@@ -116,18 +116,18 @@ function getTier(score: number): {
 } {
   if (score >= 5) return {
     label: "Direct",
-    cardClass: "bg-green-50 border-green-200",
-    badgeClass: "bg-green-100 text-green-800",
+    cardClass: "bg-green-500/[0.07] border-green-500/25",
+    badgeClass: "bg-green-500/15 text-green-400",
   };
   if (score >= 4) return {
     label: "High",
-    cardClass: "bg-blue-50 border-blue-200",
-    badgeClass: "bg-blue-100 text-blue-800",
+    cardClass: "bg-blue-500/[0.07] border-blue-500/25",
+    badgeClass: "bg-blue-500/15 text-blue-400",
   };
   return {
     label: "Moderate",
-    cardClass: "bg-amber-50 border-amber-200",
-    badgeClass: "bg-amber-100 text-amber-800",
+    cardClass: "bg-amber-500/[0.06] border-amber-500/20",
+    badgeClass: "bg-amber-500/15 text-amber-400",
   };
 }
 
@@ -157,7 +157,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       type="button"
-      className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
+      className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
       title="Copy APA citation"
     >
       {copied ? "✓ Copied" : "Copy APA"}
@@ -169,7 +169,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="mt-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3"
+      className="mt-6 flex items-start gap-3 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3"
     >
       <svg
         className="mt-0.5 h-4 w-4 shrink-0 text-red-500"
@@ -183,7 +183,7 @@ function ErrorBanner({ message }: { message: string }) {
           clipRule="evenodd"
         />
       </svg>
-      <p className="text-sm text-red-700">{message}</p>
+      <p className="text-sm text-red-400">{message}</p>
     </div>
   );
 }
@@ -236,12 +236,12 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
               href={paper.doi}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors leading-snug break-words"
+              className="text-sm font-medium text-slate-100 hover:text-blue-400 transition-colors leading-snug break-words"
             >
               {paper.title ?? "Untitled"}
             </a>
           ) : (
-            <span className="text-sm font-medium text-gray-900 leading-snug break-words">
+            <span className="text-sm font-medium text-slate-100 leading-snug break-words">
               {paper.title ?? "Untitled"}
             </span>
           )}
@@ -250,8 +250,8 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
           {paper.source && (
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               paper.source === "Semantic Scholar"
-                ? "bg-purple-100 text-purple-700"
-                : "bg-gray-100 text-gray-600"
+                ? "bg-purple-500/15 text-purple-400"
+                : "bg-white/10 text-slate-300"
             }`}>
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
@@ -262,12 +262,12 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
 
       {/* authors · year */}
       {authorYearMeta && (
-        <p className="mt-1.5 text-xs text-gray-500 break-words">{authorYearMeta}</p>
+        <p className="mt-1.5 text-xs text-slate-400 break-words">{authorYearMeta}</p>
       )}
 
       {/* journal */}
       {paper.journal && (
-        <p className="mt-0.5 text-xs text-gray-500 italic truncate" title={paper.journal}>
+        <p className="mt-0.5 text-xs text-slate-500 italic truncate" title={paper.journal}>
           {paper.journal}
         </p>
       )}
@@ -279,8 +279,8 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
           <StatBadge
             colorClass={
               paper.citationCount >= 500
-                ? "bg-orange-100 border-orange-400 text-orange-800"
-                : "bg-orange-50 border-orange-200 text-orange-600"
+                ? "bg-orange-500/15 border-orange-500/40 text-orange-400"
+                : "bg-orange-500/10 border-orange-500/20 text-orange-500"
             }
             glowing={paper.citationCount >= 500}
             text={`Cited ${paper.citationCount.toLocaleString()}x`}
@@ -298,7 +298,7 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
           paper.influentialCitationCount != null &&
           paper.influentialCitationCount > 0 && (
           <StatBadge
-            colorClass="bg-violet-50 border-violet-200 text-violet-700"
+            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400"
             text={`Influential: ${paper.influentialCitationCount}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -311,7 +311,7 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
         {/* 📊 blue bars — journal h-index */}
         {paper.journalHIndex != null && (
           <StatBadge
-            colorClass="bg-sky-50 border-sky-200 text-sky-700"
+            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400"
             text={`h-index: ${paper.journalHIndex}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -326,7 +326,7 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
         {/* 📖 green book — field / subject area */}
         {paper.subjectArea && (
           <StatBadge
-            colorClass="bg-emerald-50 border-emerald-200 text-emerald-700"
+            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
             text={paper.subjectArea}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -338,7 +338,7 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
       </div>
 
       {/* relevance explanation */}
-      <p className="mt-2 text-xs text-gray-500 italic leading-relaxed">
+      <p className="mt-2 text-xs text-slate-500 italic leading-relaxed">
         {paper.relevanceExplanation}
       </p>
 
@@ -353,16 +353,16 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
 
 function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
       {/* claim header */}
-      <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
+      <div className="bg-white/[0.04] border-b border-white/10 px-5 py-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-900 text-white text-xs font-medium shrink-0">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 text-white text-xs font-medium shrink-0">
             {index + 1}
           </span>
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Claim</span>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Claim</span>
         </div>
-        <p className="text-sm font-medium text-gray-900 leading-relaxed">
+        <p className="text-sm font-medium text-slate-100 leading-relaxed">
           &ldquo;{result.claim}&rdquo;
         </p>
       </div>
@@ -370,7 +370,7 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       {/* papers */}
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-500">
             No relevant papers found for this claim.
           </p>
         ) : (
@@ -692,7 +692,7 @@ function UserMenu({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 shadow-sm hover:border-gray-300 transition-colors"
+        className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 transition-colors"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -710,7 +710,7 @@ function UserMenu({
             {initials}
           </span>
         )}
-        <span className="text-sm font-medium text-gray-700 max-w-[120px] truncate hidden sm:block">
+        <span className="text-sm font-medium text-slate-200 max-w-[120px] truncate hidden sm:block">
           {firstName}
         </span>
         {isPro && (
@@ -721,7 +721,7 @@ function UserMenu({
             Pro
           </span>
         )}
-        <svg className={`h-3.5 w-3.5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+        <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
         </svg>
       </button>
@@ -1019,7 +1019,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/20 z-40"
+              className="fixed inset-0 bg-black/50 z-40"
               onClick={() => setShowHistory(false)}
             />
             {/* panel */}
@@ -1089,8 +1089,14 @@ export default function Home() {
       {/* ── main page ── */}
       <motion.div
         layout
-        className={`min-h-screen bg-gray-50 px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
+        className={`noise-overlay relative min-h-screen bg-[#080a12] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
       >
+        {/* Ambient gradient orbs — always present, most visible during centered phase */}
+        <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+          <div className="orb-1 absolute top-[20%] left-[15%] w-[480px] h-[480px] rounded-full bg-indigo-600/[0.12] blur-[100px]" />
+          <div className="orb-2 absolute bottom-[20%] right-[10%] w-[420px] h-[420px] rounded-full bg-violet-600/[0.10] blur-[90px]" />
+          <div className="orb-3 absolute top-[55%] left-[55%] w-[300px] h-[300px] rounded-full bg-blue-500/[0.07] blur-[80px]" />
+        </div>
         {/* top-right controls — fixed, only visible in app stage */}
         <AnimatePresence>
           {stage === "app" && ready && (
@@ -1105,7 +1111,7 @@ export default function Home() {
                 <button
                   onClick={() => setShowPlanModal(true)}
                   disabled={upgrading}
-                  className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 shadow-sm hover:bg-amber-100 hover:border-amber-400 transition-colors text-sm font-medium text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 hover:bg-amber-500/15 hover:border-amber-500/40 transition-colors text-sm font-medium text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -1116,7 +1122,7 @@ export default function Home() {
 
               {/* Pro badge — shown when already pro */}
               {isPro && (
-                <span className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-sm font-medium text-amber-700">
+                <span className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-sm font-medium text-amber-400">
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                   </svg>
@@ -1130,7 +1136,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={openHistory}
-                  className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 shadow-sm hover:border-gray-300 transition-colors text-sm font-medium text-gray-600"
+                  className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 transition-colors text-sm font-medium text-slate-300"
                 >
                   <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
@@ -1142,7 +1148,7 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        <main className="mx-auto w-full max-w-2xl">
+        <main className="relative z-10 mx-auto w-full max-w-2xl">
           <motion.div
             layout
             className={`${hasActivity ? "mb-6 text-left" : ready ? "mb-8 text-center" : "mb-0 text-center"}`}
@@ -1152,7 +1158,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-gray-900 sm:text-5xl leading-tight tracking-tight"
+              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white sm:text-5xl leading-tight tracking-tight"
             >
               Reference Finder
             </motion.h1>
@@ -1166,7 +1172,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mt-3 text-lg font-light text-gray-400 tracking-wide sm:text-xl"
+                  className="mt-3 text-lg font-light text-slate-400 tracking-wide sm:text-xl"
                 >
                   Real papers, not hallucinated ones.
                 </motion.p>
@@ -1179,7 +1185,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-gray-500"
+                  className="mt-2 text-sm text-slate-400"
                 >
                   {session?.user?.name
                     ? `Welcome back, ${session.user.name.split(" ")[0]}. Paste a paragraph to find citations.`
@@ -1192,7 +1198,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-gray-500"
+                  className="mt-2 text-sm text-slate-400"
                 >
                   Find academic citations for every factual claim in your writing.
                 </motion.p>
@@ -1215,7 +1221,7 @@ export default function Home() {
                 <button
                   onClick={() => signIn("google")}
                   disabled={sessionStatus === "loading"}
-                  className="flex items-center justify-center gap-3 w-full max-w-xs rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center justify-center gap-3 w-full max-w-xs rounded-xl bg-white px-6 py-3 text-sm font-medium text-gray-900 shadow-md hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden>
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1227,14 +1233,14 @@ export default function Home() {
                 </button>
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400">or</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-xs text-slate-500">or</span>
+                  <div className="flex-1 h-px bg-white/10" />
                 </div>
 
                 <button
                   onClick={() => setStage("app")}
-                  className="w-full max-w-xs rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900 transition-colors"
+                  className="w-full max-w-xs rounded-xl border border-white/15 bg-white/8 px-6 py-3 text-sm font-medium text-slate-300 hover:bg-white/12 hover:text-white transition-colors"
                 >
                   Continue as Guest
                 </button>
@@ -1242,7 +1248,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowHowTo(true)}
-                  className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mt-1"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors mt-1"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
@@ -1267,16 +1273,16 @@ export default function Home() {
                       onChange={(e) => setText(e.target.value.slice(0, CHAR_LIMIT + 50))}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
-                      className={`w-full h-44 sm:h-48 rounded-lg border bg-white px-4 py-3 pb-7 text-sm text-gray-900 placeholder-gray-400 shadow-sm resize-none focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 ${
+                      className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
                         overLimit
-                          ? "border-red-400 focus:ring-red-400"
-                          : "border-gray-200 focus:ring-gray-900"
+                          ? "border-red-500/40 focus:ring-red-500/40"
+                          : "border-white/10 focus:ring-white/20"
                       }`}
                       disabled={loading || extracting}
                     />
                     <span
                       className={`absolute bottom-2 right-3 text-xs tabular-nums ${
-                        overLimit ? "text-red-500 font-medium" : remaining <= 200 ? "text-yellow-600" : "text-gray-400"
+                        overLimit ? "text-red-400 font-medium" : remaining <= 200 ? "text-amber-400" : "text-slate-500"
                       }`}
                     >
                       {remaining < 0 ? `${Math.abs(remaining)} over limit` : `${remaining} remaining`}
@@ -1332,7 +1338,7 @@ export default function Home() {
                               setShowUpgradeHint((v) => !v);
                             }
                           }}
-                          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Upload document"
                         >
                           {extracting ? (
@@ -1385,14 +1391,14 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="text-sm text-slate-500 hover:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
                       {isPro ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-400">
                           <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                           </svg>
@@ -1401,10 +1407,10 @@ export default function Home() {
                       ) : (
                         <span className={`text-xs font-medium tabular-nums px-2 py-1 rounded-md ${
                           usage.remaining === 0
-                            ? "bg-red-100 text-red-600"
+                            ? "bg-red-500/15 text-red-400"
                             : usage.remaining <= 2
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-amber-500/15 text-amber-400"
+                            : "bg-white/8 text-slate-400"
                         }`}>
                           {usage.remaining}/{usage.limit} searches left today
                         </span>
@@ -1412,7 +1418,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!text.trim() || overLimit || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="px-5 py-2 rounded-lg bg-white text-gray-950 text-sm font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {loading ? "Analyzing…" : "Submit"}
                       </button>
@@ -1422,11 +1428,11 @@ export default function Home() {
 
                 {/* Pro success toast */}
                 {proSuccess && (
-                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 bg-green-500/10 px-4 py-3">
                     <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-sm text-green-800">
+                    <p className="text-sm text-green-300">
                       <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
                     </p>
                   </div>
@@ -1434,12 +1440,12 @@ export default function Home() {
 
                 {/* Daily limit banner with upgrade CTA */}
                 {usage?.remaining === 0 && !loading && !isPro && (
-                  <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                  <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/8 px-4 py-3">
                     <div className="flex items-start gap-3">
                       <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                         <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                       </svg>
-                      <p className="text-sm text-amber-800">
+                      <p className="text-sm text-amber-300">
                         You&apos;ve used all {usage.limit} free searches for today.
                       </p>
                     </div>
@@ -1457,7 +1463,7 @@ export default function Home() {
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-sm text-gray-500">
+                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400">
                     <svg className="animate-spin h-4 w-4 shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -1470,9 +1476,10 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div className="mt-8 flex flex-col gap-6">
-                    <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <h2 className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                       {results.length} claim{results.length > 1 ? "s" : ""} found
                     </h2>
+
                     {results.map((result, i) => (
                       <ClaimCard key={i} result={result} index={i} />
                     ))}
