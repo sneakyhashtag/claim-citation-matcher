@@ -1,12 +1,9 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import type { NextRequest, NextResponse } from "next/server";
 
-export const DAILY_LIMIT = 10;
+export const DAILY_LIMIT = 3;
 const COOKIE_NAME = "_rf_usage";
 
-// Set COOKIE_SECRET in your Vercel environment variables.
-// The dev fallback lets local development work without any config, but you
-// should always set a real secret in production.
 function getSecret(): string {
   return (
     process.env.COOKIE_SECRET ??
@@ -17,10 +14,8 @@ function getSecret(): string {
 // ── payload ────────────────────────────────────────────────────────────────────
 
 interface UsagePayload {
-  /** How many searches have been used on `date`. */
   count: number;
-  /** UTC date string "YYYY-MM-DD". When this differs from today the count resets. */
-  date: string;
+  date: string; // "YYYY-MM-DD" UTC
 }
 
 export interface UsageInfo {
@@ -35,14 +30,8 @@ function todayUTC(): string {
 
 // ── signing ────────────────────────────────────────────────────────────────────
 //
-// Cookie value format: base64url(JSON payload) + "." + base64url(HMAC-SHA256)
-//
-// Security properties:
-//   • Users can read the payload (it's base64, not encrypted), but they cannot
-//     modify the count without invalidating the HMAC signature.
-//   • Users CAN delete the cookie or open a private window to reset their count.
-//     Stateless cookies cannot prevent this — the signing only stops tampering.
-//   • timingSafeEqual prevents timing-based signature forgery.
+// Cookie value: base64url(JSON) + "." + base64url(HMAC-SHA256)
+// Users can read the payload but cannot forge a different count.
 
 function sign(data: string): string {
   return createHmac("sha256", getSecret()).update(data).digest("base64url");
@@ -60,13 +49,9 @@ function decode(raw: string): UsagePayload | null {
   const data = raw.slice(0, dot);
   const sig = raw.slice(dot + 1);
 
-  // Both sides are base64url strings (ASCII only); compare them as UTF-8
-  // buffers so we can use the constant-time Node.js primitive.
   const expected = sign(data);
   const aBuf = Buffer.from(sig);
   const bBuf = Buffer.from(expected);
-
-  // timingSafeEqual requires equal-length buffers; length mismatch = invalid.
   if (aBuf.length !== bBuf.length || !timingSafeEqual(aBuf, bBuf)) return null;
 
   let parsed: unknown;
@@ -76,53 +61,64 @@ function decode(raw: string): UsagePayload | null {
     return null;
   }
 
-  // Validate shape — assign to locals so TypeScript can narrow correctly.
   if (typeof parsed !== "object" || parsed === null) return null;
   const p = parsed as Record<string, unknown>;
-  const count = p.count;
-  const date = p.date;
   if (
-    typeof count !== "number" ||
-    !Number.isInteger(count) ||
-    count < 0 ||
-    typeof date !== "string"
+    typeof p.count !== "number" ||
+    !Number.isInteger(p.count) ||
+    p.count < 0 ||
+    typeof p.date !== "string"
   ) {
     return null;
   }
 
-  return { count, date } satisfies UsagePayload;
+  return { count: p.count as number, date: p.date as string };
 }
 
 // ── public API ─────────────────────────────────────────────────────────────────
 
-/** Read current usage from the request cookie without modifying anything. */
+/** Read current usage without modifying anything. */
 export function readUsage(req: NextRequest): UsageInfo {
   const today = todayUTC();
   const raw = req.cookies.get(COOKIE_NAME)?.value ?? "";
   const payload = raw ? decode(raw) : null;
-
-  // Missing, tampered, or stale (yesterday's) cookie → treat as zero usage.
-  if (!payload || payload.date !== today) {
-    return { count: 0, remaining: DAILY_LIMIT, limit: DAILY_LIMIT };
-  }
+  const count = payload?.date === today ? payload.count : 0;
 
   return {
-    count: payload.count,
-    remaining: Math.max(0, DAILY_LIMIT - payload.count),
+    count,
+    remaining: Math.max(0, DAILY_LIMIT - count),
     limit: DAILY_LIMIT,
   };
 }
 
 /**
- * Check whether a search is allowed and prepare the incremented cookie.
- *
- * The caller MUST call `applyToResponse(res)` on EVERY response that exits
- * after this check — including 400 and 500 errors — so the updated count is
- * persisted even when downstream processing fails.
- *
- * When `allowed` is false, `applyToResponse` is a no-op (nothing to update),
- * but callers should still call it for consistency.
+ * Returns the current count for today (0 if cookie is missing, tampered, or
+ * from a previous day).
  */
+export function readCount(req: NextRequest): number {
+  const today = todayUTC();
+  const raw = req.cookies.get(COOKIE_NAME)?.value ?? "";
+  const payload = raw ? decode(raw) : null;
+  return payload?.date === today ? payload.count : 0;
+}
+
+/**
+ * Write a cookie onto a response that records `newCount` for today.
+ * Call this on the final response object before returning it.
+ */
+export function writeCount(res: NextResponse, newCount: number): void {
+  const value = encode({ count: newCount, date: todayUTC() });
+  res.cookies.set(COOKIE_NAME, value, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7, // 7 days; reset logic lives inside the payload
+  });
+}
+
+// Keep the old checkAndIncrement export so the /api/usage route still compiles.
+// New code should use readCount / writeCount directly.
 export function checkAndIncrement(req: NextRequest): {
   allowed: boolean;
   info: UsageInfo;
@@ -131,21 +127,17 @@ export function checkAndIncrement(req: NextRequest): {
   const today = todayUTC();
   const raw = req.cookies.get(COOKIE_NAME)?.value ?? "";
   const payload = raw ? decode(raw) : null;
-
-  // A stale date means a new day — reset the count to zero.
   const currentCount = payload?.date === today ? payload.count : 0;
 
   if (currentCount >= DAILY_LIMIT) {
     return {
       allowed: false,
       info: { count: currentCount, remaining: 0, limit: DAILY_LIMIT },
-      applyToResponse: () => {}, // no-op: nothing to write when already at limit
+      applyToResponse: () => {},
     };
   }
 
   const newCount = currentCount + 1;
-  const cookieValue = encode({ count: newCount, date: today });
-
   return {
     allowed: true,
     info: {
@@ -153,22 +145,6 @@ export function checkAndIncrement(req: NextRequest): {
       remaining: DAILY_LIMIT - newCount,
       limit: DAILY_LIMIT,
     },
-    applyToResponse: (res: NextResponse) => {
-      res.cookies.set(COOKIE_NAME, cookieValue, {
-        httpOnly: true,
-        // "lax" (not "strict") so the cookie is sent on top-level navigations
-        // from external sites (e.g. after an OAuth redirect from Google).
-        // "strict" would withhold the cookie on cross-site navigations and
-        // cause the counter to appear reset after sign-in.
-        sameSite: "lax",
-        // Only sent over HTTPS in production; plain HTTP is fine for local dev.
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        // 7 days — correctness is driven by the `date` field inside the payload,
-        // not by this expiry. The cookie is refreshed on every successful search,
-        // so 7 days is just a cleanup window for users who stop searching.
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    },
+    applyToResponse: (res: NextResponse) => writeCount(res, newCount),
   };
 }

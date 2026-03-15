@@ -880,7 +880,7 @@ export default function Home() {
   const [showHowTo, setShowHowTo] = useState(false);
 
   // Usage counter — default to full allowance so counter is visible immediately
-  const [usage, setUsage] = useState({ count: 0, remaining: 10, limit: 10 });
+  const [usage, setUsage] = useState({ count: 0, remaining: 3, limit: 3 });
   const [isPro, setIsPro] = useState(false);
   const [proSuccess, setProSuccess] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -999,6 +999,8 @@ export default function Home() {
 
       const { data: claimsData, error: claimsError } = await apiFetch<{
         claims: { claim: string; searchQuery: string }[];
+        remaining?: number;
+        limit?: number;
       }>("/api/extract-claims", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1013,6 +1015,12 @@ export default function Home() {
       }
 
       const { claims } = claimsData;
+
+      // Update usage counter from the response so the UI reflects the new count
+      // without a separate network round-trip.
+      if (typeof claimsData.remaining === "number" && typeof claimsData.limit === "number") {
+        setUsage((u) => ({ ...u, remaining: claimsData.remaining!, limit: claimsData.limit!, count: claimsData.limit! - claimsData.remaining! }));
+      }
 
       if (!claims?.length) {
         setError("No factual claims were found in this paragraph. Try a paragraph with specific statistics or scientific statements.");
@@ -1529,7 +1537,7 @@ export default function Home() {
                         <span className={`text-xs font-medium tabular-nums px-2 py-1 rounded-md ${
                           usage.remaining === 0
                             ? "bg-red-500/15 text-red-400"
-                            : usage.remaining <= 2
+                            : usage.remaining <= 1
                             ? "bg-amber-500/15 text-amber-400"
                             : "bg-white/8 light:bg-black/[0.05] text-slate-400 light:text-slate-600"
                         }`}>

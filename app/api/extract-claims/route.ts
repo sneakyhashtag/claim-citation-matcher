@@ -1,49 +1,30 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { checkAndIncrement } from "@/lib/usage-cookie";
+import { readCount, writeCount, DAILY_LIMIT } from "@/lib/usage-cookie";
 import { readPro } from "@/lib/pro-cookie";
 
 const client = new Anthropic();
 
 export async function POST(req: NextRequest) {
-  // ── usage limit (cookie-based, bypassed for pro users) ────────────────────
+  // ── 1. Parse and validate request body ────────────────────────────────────
+  let text: string;
+  try {
+    const body = await req.json();
+    if (!body?.text || typeof body.text !== "string" || !body.text.trim()) {
+      return NextResponse.json({ error: "text is required" }, { status: 400 });
+    }
+    text = body.text;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // ── 2. Pro check ───────────────────────────────────────────────────────────
   const pro = readPro(req);
-  const { allowed, applyToResponse } = pro
-    ? { allowed: true, applyToResponse: () => {} }
-    : checkAndIncrement(req);
 
-  if (!allowed) {
-    // applyToResponse is a no-op when allowed=false, but we call it for
-    // consistency so every exit path after checkAndIncrement looks the same.
-    const res = NextResponse.json(
-      {
-        error:
-          "You've reached your daily limit of 10 free searches. Come back tomorrow!",
-        limitReached: true,
-        remaining: 0,
-      },
-      { status: 429 }
-    );
-    applyToResponse(res);
-    return res;
-  }
-
-  // Parse body after the limit check so the slot is consumed even if the
-  // body is malformed (mirrors the previous DB behaviour).
-  const { text } = await req.json();
-
-  if (!text || typeof text !== "string" || !text.trim()) {
-    const res = NextResponse.json(
-      { error: "text is required" },
-      { status: 400 }
-    );
-    applyToResponse(res);
-    return res;
-  }
-
+  // ── 3. Character limit ─────────────────────────────────────────────────────
   const charLimit = pro ? 10000 : 1000;
   if (text.length > charLimit) {
-    const res = NextResponse.json(
+    return NextResponse.json(
       {
         error: pro
           ? "Text exceeds the 10,000 character limit."
@@ -51,10 +32,36 @@ export async function POST(req: NextRequest) {
       },
       { status: 413 }
     );
-    applyToResponse(res);
-    return res;
   }
 
+  // ── 4. Usage limit — checked BEFORE calling the Anthropic API ─────────────
+  //
+  // Pro users are exempt. Free/guest users get DAILY_LIMIT searches per day,
+  // tracked via a signed HTTP-only cookie. The cookie is written onto the
+  // response AFTER the API call so a count slot is only consumed when we
+  // actually make the call.
+  //
+  // Note: stateless cookies cannot prevent a determined user from deleting
+  // their cookie. This limit is a soft cap, not hard enforcement.
+
+  let currentCount = 0;
+
+  if (!pro) {
+    currentCount = readCount(req);
+
+    if (currentCount >= DAILY_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `You've reached your daily limit of ${DAILY_LIMIT} free searches. Come back tomorrow, or upgrade to Pro for unlimited searches.`,
+          limitReached: true,
+          remaining: 0,
+        },
+        { status: 429 }
+      );
+    }
+  }
+
+  // ── 5. Call the Anthropic API ──────────────────────────────────────────────
   const stream = client.messages.stream({
     model: "claude-opus-4-6",
     max_tokens: 2048,
@@ -83,15 +90,21 @@ Return ONLY a valid JSON array of these objects. No markdown, no explanation, ju
     if (!match) throw new Error("No JSON array found");
     claims = JSON.parse(match[0]);
   } catch {
-    const res = NextResponse.json(
+    return NextResponse.json(
       { error: "Failed to parse claims from model response", raw },
       { status: 500 }
     );
-    applyToResponse(res);
-    return res;
   }
 
-  const res = NextResponse.json({ claims });
-  applyToResponse(res);
+  // ── 6. Build response and increment the usage counter ─────────────────────
+  const newCount = currentCount + 1;
+  const remaining = Math.max(0, DAILY_LIMIT - newCount);
+
+  const res = NextResponse.json({ claims, remaining, limit: DAILY_LIMIT });
+
+  if (!pro) {
+    writeCount(res, newCount);
+  }
+
   return res;
 }
