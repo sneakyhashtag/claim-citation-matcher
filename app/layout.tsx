@@ -17,6 +17,9 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Reference Finder",
   description: "Find academic citations for factual claims in your writing",
+  verification: {
+    google: "v4GUZl9aYCoCzR09ubk-5o5et9cBEbbqgz4cG8Z4A8I",
+  },
 };
 
 export default function RootLayout({
