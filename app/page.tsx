@@ -1134,6 +1134,13 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
+  // Auto-dismiss the Pro success banner after 5 seconds
+  useEffect(() => {
+    if (!proSuccess) return;
+    const t = setTimeout(() => setProSuccess(false), 5000);
+    return () => clearTimeout(t);
+  }, [proSuccess]);
+
   const openHistory = () => {
     setHistory(lsGetHistory());
     setShowHistory(true);
@@ -1820,17 +1827,26 @@ export default function Home() {
                   <p className="mt-2 text-xs text-red-400 light:text-red-600">{uploadError}</p>
                 )}
 
-                {/* Pro success toast */}
-                {proSuccess && (
-                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 bg-green-500/10 px-4 py-3">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
-                    </svg>
-                    <p className="text-sm text-green-300">
-                      <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
-                    </p>
-                  </div>
-                )}
+                {/* Pro success toast — shown once after payment, auto-dismisses after 5 s */}
+                <AnimatePresence>
+                  {proSuccess && (
+                    <motion.div
+                      key="pro-success-banner"
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 light:border-blue-300/60 bg-green-500/10 light:bg-blue-50 px-4 py-3"
+                    >
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500 light:text-blue-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
+                      </svg>
+                      <p className="text-sm text-green-300 light:text-blue-800">
+                        <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Daily limit banner */}
                 {usage.remaining === 0 && !loading && !isPro && (
