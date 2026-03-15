@@ -473,8 +473,13 @@ export default function Home() {
   // Modals
   const [showHowTo, setShowHowTo] = useState(false);
 
-  // Usage counter
-  const [usage, setUsage] = useState<{ count: number; remaining: number; limit: number } | null>(null);
+  // Usage counter — default to full allowance so counter is visible immediately
+  const [usage, setUsage] = useState({ count: 0, remaining: 3, limit: 3 });
+
+  const fetchUsage = async () => {
+    const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
+    if (data) setUsage(data);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 1500);
@@ -489,11 +494,6 @@ export default function Home() {
     if (stage === "app") fetchUsage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
-
-  const fetchUsage = async () => {
-    const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
-    if (data) setUsage(data);
-  };
 
   const fetchHistory = async () => {
     setHistoryLoading(true);
@@ -831,15 +831,19 @@ export default function Home() {
                     >
                       Try an example
                     </button>
-                    <div className="flex items-center gap-2.5">
-                      {usage && (
-                        <span className={`text-xs tabular-nums ${usage.remaining === 0 ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                          {usage.remaining}/{usage.limit} left today
-                        </span>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-medium tabular-nums px-2 py-1 rounded-md ${
+                        usage.remaining === 0
+                          ? "bg-red-100 text-red-600"
+                          : usage.remaining === 1
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}>
+                        {usage.remaining}/{usage.limit} searches left today
+                      </span>
                       <button
                         type="submit"
-                        disabled={!text.trim() || overLimit || loading || usage?.remaining === 0}
+                        disabled={!text.trim() || overLimit || loading || usage.remaining === 0}
                         className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {loading ? "Analyzing…" : "Submit"}
