@@ -7,8 +7,43 @@ import type { RatedPaper } from "@/lib/rate-relevance";
 
 const CHAR_LIMIT = 2000;
 
-const EXAMPLE_TEXT =
-  "Regular physical exercise has been shown to reduce the risk of cardiovascular disease by up to 35%. Sleep deprivation negatively affects cognitive performance and memory consolidation. A Mediterranean diet is associated with lower rates of depression and anxiety. Screen time exceeding two hours per day is linked to increased rates of childhood obesity.";
+const EXAMPLE_TEXTS = [
+  // Climate change
+  "Global average temperatures have risen by approximately 1.1°C above pre-industrial levels, with the past decade being the warmest on record. Arctic sea ice is declining at roughly 13% per decade, while permafrost thaws release stored methane that further amplifies warming. Sea levels are currently rising at about 3.3 millimeters per year, threatening to displace an estimated 280 million people in coastal regions by 2100. Extreme weather events including hurricanes, wildfires, and heat waves have increased in both frequency and intensity due to anthropogenic greenhouse gas emissions.",
+
+  // Sleep and brain health
+  "Adults who regularly sleep fewer than six hours per night face a 20% higher risk of cardiovascular disease compared to those sleeping seven to nine hours. The brain's glymphatic system operates primarily during sleep to clear toxic proteins such as beta-amyloid and tau, which are closely associated with the development of Alzheimer's disease. Chronic sleep deprivation impairs prefrontal cortex function, leading to reduced impulse control, poor decision-making, and heightened emotional reactivity. Adolescents who sleep less than eight hours per night consistently demonstrate lower academic performance and higher rates of anxiety and depression.",
+
+  // Artificial intelligence and machine learning
+  "Large language models require enormous computational resources to train, with some frontier models generating several hundred tons of carbon dioxide during a single training run. AI-assisted diagnostic systems have achieved over 94% accuracy in detecting early-stage lung cancer from CT scans, surpassing the average 65% accuracy rate of experienced radiologists in controlled trials. The global artificial intelligence market is projected to exceed $1.8 trillion by 2030, driven by machine learning applications in healthcare, finance, and autonomous systems. Studies have demonstrated that algorithmic hiring tools can perpetuate racial and gender biases embedded in historical training data.",
+
+  // Economic inequality
+  "The wealthiest 1% of the global population now owns more than 43% of total global wealth, a concentration that has accelerated markedly since the 2008 financial crisis. In the United States, the average income of the top 10% of earners is roughly nine times that of the bottom 90%, contributing to record levels of household debt among lower-income groups. Intergenerational income mobility has declined sharply in many developed economies, with children born into low-income families having less than a 10% chance of reaching the top income quintile as adults. High income inequality is consistently linked to worse outcomes in public health, educational attainment, and democratic participation.",
+
+  // Antibiotic resistance
+  "Antimicrobial resistance is estimated to cause approximately 1.27 million deaths annually worldwide, and the WHO projects this figure could rise to 10 million deaths per year by 2050 if current trends continue. The overuse and misuse of antibiotics in both human medicine and agricultural livestock production are the primary drivers of resistance, with over 70% of medically important antibiotics sold globally administered to food animals. Methicillin-resistant Staphylococcus aureus now accounts for more than 50% of staphylococcal infections in parts of Southeast Asia. The development pipeline for new antibiotics has nearly stalled, with fewer than 50 novel candidates in clinical trials compared to over 500 new cancer drugs.",
+
+  // Ocean acidification
+  "Ocean pH has decreased by approximately 0.1 units since the Industrial Revolution, representing a 26% increase in acidity, as the oceans absorb roughly 25% of all anthropogenic carbon dioxide emissions each year. Coral reef bleaching events have increased in frequency from once every 25 to 30 years in the 1980s to once every five to six years today, threatening ecosystems that support approximately 25% of all marine species. Ocean acidification impairs the ability of shell-forming organisms such as oysters, mussels, and pteropods to build and maintain their calcium carbonate structures. An estimated 1 billion people rely on ocean fisheries as their primary source of dietary protein, making the degradation of marine ecosystems a critical global food security issue.",
+
+  // Childhood education
+  "Children who attend high-quality early childhood education programs are 25% more likely to graduate from high school and 30% more likely to attend college compared to those who do not. The achievement gap between students from low-income and high-income families begins before kindergarten, with affluent children exposed to approximately 30 million more words by age three than children raised in poverty. Class sizes above 25 students are associated with measurably reduced academic outcomes, particularly for students from disadvantaged backgrounds, according to longitudinal studies spanning multiple countries. Teacher quality is the single most important school-based factor influencing student achievement, with highly effective teachers producing learning gains equivalent to several additional months per school year.",
+
+  // Renewable energy
+  "The cost of utility-scale solar photovoltaic electricity has fallen by more than 89% over the past decade, making it the cheapest source of new electricity generation across most of the world. Wind energy now supplies over 20% of electricity generation in Europe, and Denmark regularly generates more than 100% of its national electricity demand from wind on high-wind days. A global transition to 100% renewable energy by 2050 could prevent approximately 3.5 million premature deaths per year currently caused by air pollution from fossil fuel combustion. Investments in renewable energy infrastructure create roughly three times as many jobs per unit of energy produced compared to equivalent investments in fossil fuels.",
+
+  // Mental health and social media
+  "Rates of depression and anxiety among adolescents in the United States have increased by more than 50% since 2010, a period closely corresponding with the mass adoption of smartphones and social media platforms. Experimental studies have found that limiting social media use to 30 minutes per day produces significant reductions in loneliness and depression symptoms among young adults within just three weeks. Social comparison on image-focused platforms is strongly associated with negative body image and lower self-esteem, particularly among girls aged 11 to 17. The average teenager now spends over seven hours per day on screens, with social media algorithms specifically designed to maximize engagement by triggering emotional responses.",
+
+  // Urbanization
+  "More than 55% of the global population currently lives in urban areas, and the United Nations projects this proportion will rise to 68% by 2050, adding approximately 2.5 billion people to cities. Urban heat islands cause city centers to be 1 to 3 degrees Celsius warmer than surrounding rural areas, increasing cooling energy demand and contributing to higher mortality rates during heat waves. Access to urban green spaces is associated with lower rates of obesity, cardiovascular disease, and mental illness, yet low-income urban neighborhoods contain 34% less green space per resident than wealthy neighborhoods in the same cities. Over one billion people currently live in informal urban settlements lacking adequate access to clean water, sanitation, and secure housing.",
+];
+
+function pickExample(current: string): string {
+  const pool = EXAMPLE_TEXTS.filter((e) => e !== current);
+  const candidates = pool.length > 0 ? pool : EXAMPLE_TEXTS;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+};
 
 interface ClaimResult {
   claim: string;
@@ -986,7 +1021,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-3">
                     <button
                       type="button"
-                      onClick={() => setText(EXAMPLE_TEXT)}
+                      onClick={() => setText(pickExample(text))}
                       disabled={loading}
                       className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
