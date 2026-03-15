@@ -4,9 +4,12 @@ import { auth } from "@/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+// NEXTAUTH_URL is the authoritative base URL for this app — it's already
+// required for NextAuth to work, so it's always set in production.
+// Strip any trailing slash so we can safely append paths.
+const BASE_URL = (
+  process.env.NEXTAUTH_URL ?? "http://localhost:3000"
+).replace(/\/$/, "");
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -30,7 +33,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     // {CHECKOUT_SESSION_ID} is a Stripe template variable replaced at redirect time.
-    success_url: `${BASE_URL}/?success=1&session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${BASE_URL}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
   };
 

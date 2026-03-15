@@ -874,10 +874,10 @@ export default function Home() {
     apiFetch<{ pro: boolean }>("/api/pro-status").then(({ data }) => {
       if (data?.pro) setIsPro(true);
     });
-    // Handle post-checkout success redirect: /?success=1&session_id=cs_xxx
+    // Handle post-checkout success redirect: /?payment=success&session_id=cs_xxx
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
-    if (params.get("success") === "1" && sessionId) {
+    if (params.get("payment") === "success" && sessionId) {
       window.history.replaceState({}, "", "/");
       apiFetch<{ pro: boolean }>(`/api/activate-pro?session_id=${sessionId}`).then(({ data }) => {
         if (data?.pro) {
