@@ -837,6 +837,9 @@ export default function Home() {
   const [proSuccess, setProSuccess] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [showUpgradeHint, setShowUpgradeHint] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadBtnRef = useRef<HTMLButtonElement>(null);
 
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
@@ -1279,15 +1282,90 @@ export default function Home() {
                     </span>
                   </div>
 
+                  {/* Hidden file input for Pro users */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      // File parsing will be handled in a future update.
+                      // For now the picker opens and the selection is acknowledged.
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Reset so the same file can be re-selected if needed.
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
                   <div className="flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setText(pickExample(text))}
-                      disabled={loading}
-                      className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Try an example
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {/* Upload button */}
+                      <div className="relative">
+                        <button
+                          ref={uploadBtnRef}
+                          type="button"
+                          disabled={loading}
+                          onClick={() => {
+                            if (isPro) {
+                              setShowUpgradeHint(false);
+                              fileInputRef.current?.click();
+                            } else {
+                              setShowUpgradeHint((v) => !v);
+                            }
+                          }}
+                          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          aria-label="Upload document"
+                        >
+                          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v1A1.5 1.5 0 004.5 19h11A1.5 1.5 0 0017 17.5v-1M10 3v10m0-10L7 6m3-3l3 3"/>
+                          </svg>
+                          Upload
+                        </button>
+
+                        {/* Upgrade hint popover for free users */}
+                        <AnimatePresence>
+                          {showUpgradeHint && (
+                            <>
+                              {/* invisible overlay to close on outside click */}
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setShowUpgradeHint(false)}
+                              />
+                              <motion.div
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-gray-200 bg-white shadow-lg px-4 py-3"
+                              >
+                                <p className="text-xs text-gray-700 leading-relaxed">
+                                  Uploading documents is a Pro feature.{" "}
+                                  <button
+                                    type="button"
+                                    onClick={() => { setShowUpgradeHint(false); setShowPlanModal(true); }}
+                                    className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                  >
+                                    Upgrade to Pro
+                                  </button>{" "}
+                                  to upload PDFs, Word docs, and images.
+                                </p>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setText(pickExample(text))}
+                        disabled={loading}
+                        className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Try an example
+                      </button>
+                    </div>
                     <div className="flex items-center gap-3">
                       {isPro ? (
                         <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
