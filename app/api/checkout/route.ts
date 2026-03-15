@@ -11,29 +11,29 @@ const BASE_URL =
 export async function POST(req: NextRequest) {
   const session = await auth();
 
-  // Build the Checkout session params
+  const body = await req.json().catch(() => ({}));
+  const plan: string = body.plan === "yearly" ? "yearly" : "monthly";
+
+  const priceId =
+    plan === "yearly"
+      ? process.env.STRIPE_YEARLY_PRICE_ID
+      : process.env.STRIPE_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    return NextResponse.json(
+      { error: `STRIPE_${plan.toUpperCase()}_PRICE_ID is not configured` },
+      { status: 500 }
+    );
+  }
+
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
-    line_items: [
-      {
-        price_data: {
-          currency: "jpy",
-          product_data: {
-            name: "Reference Finder Pro",
-            description: "Unlimited searches per day",
-          },
-          unit_amount: 699,
-          recurring: { interval: "month" },
-        },
-        quantity: 1,
-      },
-    ],
+    line_items: [{ price: priceId, quantity: 1 }],
     // {CHECKOUT_SESSION_ID} is a Stripe template variable replaced at redirect time.
     success_url: `${BASE_URL}/?success=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
   };
 
-  // Pre-fill email if the user is signed in
   if (session?.user?.email) {
     params.customer_email = session.user.email;
   }

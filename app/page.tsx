@@ -544,6 +544,118 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── plan picker modal ────────────────────────────────────────────────────────
+
+function PlanModal({
+  onClose,
+  onSelectPlan,
+  upgrading,
+}: {
+  onClose: () => void;
+  onSelectPlan: (plan: "monthly" | "yearly") => void;
+  upgrading: boolean;
+}) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  return (
+    <AnimatePresence>
+      <>
+        <motion.div
+          key="plan-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-black/30 z-50 backdrop-blur-[2px]"
+          onClick={onClose}
+        />
+        <motion.div
+          key="plan-modal"
+          initial={{ opacity: 0, scale: 0.96, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 8 }}
+          transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm mx-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="plan-modal-title"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+            {/* header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 id="plan-modal-title" className="font-semibold text-gray-900 text-base">
+                  Upgrade to Pro
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Unlimited searches, forever.</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* plan cards */}
+            <div className="px-6 py-5 flex flex-col gap-3">
+              {/* Monthly */}
+              <button
+                onClick={() => onSelectPlan("monthly")}
+                disabled={upgrading}
+                className="w-full text-left rounded-xl border-2 border-gray-200 px-4 py-4 hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Monthly</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Billed every month</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">¥299</p>
+                    <p className="text-xs text-gray-400">/ month</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Yearly */}
+              <button
+                onClick={() => onSelectPlan("yearly")}
+                disabled={upgrading}
+                className="w-full text-left rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-4 hover:bg-amber-100 hover:border-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+              >
+                <span className="absolute -top-2.5 right-3 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide">
+                  Save 2 months
+                </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">Yearly</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Billed once per year</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-amber-900">¥2,990</p>
+                    <p className="text-xs text-amber-600">/ year</p>
+                  </div>
+                </div>
+              </button>
+
+              {upgrading && (
+                <p className="text-center text-xs text-gray-400 pt-1">Redirecting to checkout…</p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </>
+    </AnimatePresence>
+  );
+}
+
 // ── user menu ─────────────────────────────────────────────────────────────────
 
 function UserMenu({
@@ -723,6 +835,7 @@ export default function Home() {
   const [usage, setUsage] = useState({ count: 0, remaining: 10, limit: 10 });
   const [isPro, setIsPro] = useState(false);
   const [proSuccess, setProSuccess] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
 
   const fetchUsage = async () => {
@@ -730,14 +843,19 @@ export default function Home() {
     if (data) setUsage(data);
   };
 
-  const upgradeToPro = async () => {
+  const upgradeToPro = async (plan: "monthly" | "yearly") => {
     setUpgrading(true);
-    const { data, error: err } = await apiFetch<{ url: string }>("/api/checkout", { method: "POST" });
+    const { data, error: err } = await apiFetch<{ url: string }>("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
     if (data?.url) {
       window.location.href = data.url;
     } else {
       setError(err ?? "Failed to start checkout");
       setUpgrading(false);
+      setShowPlanModal(false);
     }
   };
 
@@ -875,6 +993,15 @@ export default function Home() {
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
 
+      {/* ── plan picker modal ── */}
+      {showPlanModal && (
+        <PlanModal
+          onClose={() => setShowPlanModal(false)}
+          onSelectPlan={(plan) => upgradeToPro(plan)}
+          upgrading={upgrading}
+        />
+      )}
+
       {/* ── history sidebar ── */}
       <AnimatePresence>
         {showHistory && (
@@ -970,7 +1097,7 @@ export default function Home() {
               {/* Upgrade to Pro button — shown when not already pro */}
               {!isPro && (
                 <button
-                  onClick={upgradeToPro}
+                  onClick={() => setShowPlanModal(true)}
                   disabled={upgrading}
                   className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 shadow-sm hover:bg-amber-100 hover:border-amber-400 transition-colors text-sm font-medium text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -1196,7 +1323,7 @@ export default function Home() {
                       </p>
                     </div>
                     <button
-                      onClick={upgradeToPro}
+                      onClick={() => setShowPlanModal(true)}
                       disabled={upgrading}
                       className="shrink-0 flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
