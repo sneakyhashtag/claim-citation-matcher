@@ -15,6 +15,14 @@ interface ClaimResult {
   papers: RatedPaper[];
 }
 
+interface HistoryEntry {
+  id: string;
+  paragraph: string;
+  claims: { claim: string; searchQuery: string }[];
+  results: ClaimResult[];
+  createdAt: string;
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function formatAPA(paper: RatedPaper): string {
@@ -545,15 +553,48 @@ function UserMenu({
   );
 }
 
-// ── page ──────────────────────────────────────────────────────────────────────
+// ── localStorage history ──────────────────────────────────────────────────────
 
-interface HistoryEntry {
-  id: number;
-  paragraph: string;
-  claims: { claim: string; searchQuery: string }[];
-  results: ClaimResult[];
-  createdAt: string;
+const LS_HISTORY_KEY = "rf_history";
+const MAX_HISTORY_ENTRIES = 50;
+
+function lsGetHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(
+      localStorage.getItem(LS_HISTORY_KEY) ?? "[]"
+    ) as HistoryEntry[];
+  } catch {
+    return [];
+  }
 }
+
+function lsAddHistory(
+  entry: Omit<HistoryEntry, "id" | "createdAt">
+): void {
+  try {
+    const next: HistoryEntry = {
+      ...entry,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+    localStorage.setItem(
+      LS_HISTORY_KEY,
+      JSON.stringify([next, ...lsGetHistory()].slice(0, MAX_HISTORY_ENTRIES))
+    );
+  } catch {
+    // localStorage unavailable (e.g. private browsing with storage blocked)
+  }
+}
+
+function lsClearHistory(): void {
+  try {
+    localStorage.removeItem(LS_HISTORY_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+// ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const { data: session, status: sessionStatus } = useSession();
@@ -569,7 +610,6 @@ export default function Home() {
   // History sidebar
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Modals
   const [showHowTo, setShowHowTo] = useState(false);
@@ -596,16 +636,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  const fetchHistory = async () => {
-    setHistoryLoading(true);
-    const { data } = await apiFetch<{ searches: HistoryEntry[] }>("/api/history");
-    if (data) setHistory(data.searches);
-    setHistoryLoading(false);
+  const openHistory = () => {
+    setHistory(lsGetHistory());
+    setShowHistory(true);
   };
 
-  const openHistory = () => {
-    setShowHistory(true);
-    fetchHistory();
+  const clearHistory = () => {
+    lsClearHistory();
+    setHistory([]);
   };
 
   const loadHistoryEntry = (entry: HistoryEntry) => {
@@ -684,14 +722,8 @@ export default function Home() {
       setStatus("");
       await fetchUsage();
 
-      // Save to history if signed in
-      if (session?.user?.email) {
-        await apiFetch("/api/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paragraph: text, claims, results: claimResults }),
-        });
-      }
+      // Save to browser history (works for all users, no account needed)
+      lsAddHistory({ paragraph: text, claims, results: claimResults });
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setStatus("");
@@ -733,23 +765,29 @@ export default function Home() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 className="font-semibold text-gray-900">Search History</h2>
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                  aria-label="Close history"
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
-                  </svg>
-                </button>
+                <div className="flex items-center gap-1">
+                  {history.length > 0 && (
+                    <button
+                      onClick={clearHistory}
+                      className="px-2 py-1 rounded-md text-xs text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowHistory(false)}
+                    className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    aria-label="Close history"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-4">
-                {historyLoading ? (
-                  <div className="flex items-center justify-center py-12 text-sm text-gray-400">
-                    Loading…
-                  </div>
-                ) : history.length === 0 ? (
+                {history.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-12">
                     No searches yet. Run your first analysis to see it here.
                   </p>
@@ -795,6 +833,28 @@ export default function Home() {
               className="fixed top-4 right-4 z-30"
             >
               <UserMenu session={session} onOpenHistory={openHistory} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* history button for guests in app stage */}
+        <AnimatePresence>
+          {!session && ready && stage === "app" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed top-4 right-4 z-30"
+            >
+              <button
+                onClick={openHistory}
+                className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 shadow-sm hover:border-gray-300 transition-colors text-sm font-medium text-gray-600"
+              >
+                <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                </svg>
+                History
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
