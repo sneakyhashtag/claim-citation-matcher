@@ -47,3 +47,81 @@ body {
   background-repeat: repeat;
   background-size: 200px 200px;
 }
+
+/* ── Submit button shimmer ───────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.btn-submit {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-submit:not(:disabled):hover {
+  box-shadow: 0 0 18px 3px rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn-submit:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* ── Upgrade to Pro shimmer ──────────────────────────────────────────────── */
+
+@keyframes goldShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.btn-upgrade {
+  background-size: 200% auto;
+  background-image: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(251, 191, 36, 0.18) 50%,
+    transparent 70%
+  );
+  animation: goldShimmer 3s linear infinite;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-upgrade:not(:disabled):hover {
+  box-shadow: 0 0 14px 2px rgba(251, 191, 36, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ── "Try an example" underline slide ────────────────────────────────────── */
+
+.link-example {
+  position: relative;
+}
+
+.link-example::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.25s ease;
+}
+
+.link-example:hover::after {
+  width: 100%;
+}
+
+/* ── Paper card hover lift ───────────────────────────────────────────────── */
+
+.paper-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.paper-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}

@@ -214,7 +214,7 @@ function StatBadge({
 
 // ── paper card ────────────────────────────────────────────────────────────────
 
-function PaperCard({ paper }: { paper: RatedPaper }) {
+function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) {
   const authorLine =
     paper.authors.length === 0
       ? null
@@ -227,7 +227,12 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
   const { cardClass } = getTier(paper.relevanceScore);
 
   return (
-    <div className={`rounded-md border p-4 shadow-sm ${cardClass}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
+      className={`paper-card rounded-md border p-4 ${cardClass}`}
+    >
       {/* title row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -345,7 +350,7 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
       <div className="mt-2">
         <CopyButton text={formatAPA(paper)} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -353,7 +358,12 @@ function PaperCard({ paper }: { paper: RatedPaper }) {
 
 function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+      className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden"
+    >
       {/* claim header */}
       <div className="bg-white/[0.04] border-b border-white/10 px-5 py-4">
         <div className="flex items-center gap-2 mb-2">
@@ -376,12 +386,12 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
         ) : (
           <div className="flex flex-col gap-3">
             {result.papers.map((paper, i) => (
-              <PaperCard key={paper.doi ?? i} paper={paper} />
+              <PaperCard key={paper.doi ?? i} paper={paper} index={i} />
             ))}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -1111,7 +1121,7 @@ export default function Home() {
                 <button
                   onClick={() => setShowPlanModal(true)}
                   disabled={upgrading}
-                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 hover:bg-amber-500/15 hover:border-amber-500/40 transition-colors text-sm font-medium text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-upgrade flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 hover:bg-amber-500/15 hover:border-amber-500/40 text-sm font-medium text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -1391,7 +1401,7 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="text-sm text-slate-500 hover:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 hover:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
@@ -1418,7 +1428,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!text.trim() || overLimit || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="px-5 py-2 rounded-lg bg-white text-gray-950 text-sm font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="btn-submit px-5 py-2 rounded-lg bg-white text-gray-950 text-sm font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
                       </button>
@@ -1452,7 +1462,7 @@ export default function Home() {
                     <button
                       onClick={() => setShowPlanModal(true)}
                       disabled={upgrading}
-                      className="shrink-0 flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="btn-upgrade shrink-0 flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
