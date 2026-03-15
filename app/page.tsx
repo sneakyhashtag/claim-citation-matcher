@@ -887,7 +887,7 @@ export default function Home() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Load saved theme on mount
   useEffect(() => {
