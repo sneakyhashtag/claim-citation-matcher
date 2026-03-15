@@ -711,10 +711,24 @@ export default function Home() {
 
   // Usage counter — default to full allowance so counter is visible immediately
   const [usage, setUsage] = useState({ count: 0, remaining: 10, limit: 10 });
+  const [isPro, setIsPro] = useState(false);
+  const [proSuccess, setProSuccess] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
 
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
     if (data) setUsage(data);
+  };
+
+  const upgradeToPro = async () => {
+    setUpgrading(true);
+    const { data, error: err } = await apiFetch<{ url: string }>("/api/checkout", { method: "POST" });
+    if (data?.url) {
+      window.location.href = data.url;
+    } else {
+      setError(err ?? "Failed to start checkout");
+      setUpgrading(false);
+    }
   };
 
   useEffect(() => {
@@ -727,7 +741,23 @@ export default function Home() {
   }, [session]);
 
   useEffect(() => {
-    if (stage === "app") fetchUsage();
+    if (stage !== "app") return;
+    fetchUsage();
+    apiFetch<{ pro: boolean }>("/api/pro-status").then(({ data }) => {
+      if (data?.pro) setIsPro(true);
+    });
+    // Handle post-checkout success redirect: /?success=1&session_id=cs_xxx
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    if (params.get("success") === "1" && sessionId) {
+      window.history.replaceState({}, "", "/");
+      apiFetch<{ pro: boolean }>(`/api/activate-pro?session_id=${sessionId}`).then(({ data }) => {
+        if (data?.pro) {
+          setIsPro(true);
+          setProSuccess(true);
+        }
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
@@ -918,38 +948,53 @@ export default function Home() {
         layout
         className={`min-h-screen bg-gray-50 px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
       >
-        {/* user menu — fixed top-right, only for signed-in users in app stage */}
+        {/* top-right controls — fixed, only visible in app stage */}
         <AnimatePresence>
-          {session && stage === "app" && (
+          {stage === "app" && ready && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-4 right-4 z-30"
+              className="fixed top-4 right-4 z-30 flex items-center gap-2"
             >
-              <UserMenu session={session} onOpenHistory={openHistory} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {/* Upgrade to Pro button — shown when not already pro */}
+              {!isPro && (
+                <button
+                  onClick={upgradeToPro}
+                  disabled={upgrading}
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 shadow-sm hover:bg-amber-100 hover:border-amber-400 transition-colors text-sm font-medium text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                </button>
+              )}
 
-        {/* history button for guests in app stage */}
-        <AnimatePresence>
-          {!session && ready && stage === "app" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed top-4 right-4 z-30"
-            >
-              <button
-                onClick={openHistory}
-                className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 shadow-sm hover:border-gray-300 transition-colors text-sm font-medium text-gray-600"
-              >
-                <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-                </svg>
-                History
-              </button>
+              {/* Pro badge — shown when already pro */}
+              {isPro && (
+                <span className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-sm font-medium text-amber-700">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  Pro
+                </span>
+              )}
+
+              {/* User menu (signed-in) or History button (guest) */}
+              {session ? (
+                <UserMenu session={session} onOpenHistory={openHistory} />
+              ) : (
+                <button
+                  onClick={openHistory}
+                  className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 shadow-sm hover:border-gray-300 transition-colors text-sm font-medium text-gray-600"
+                >
+                  <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                  </svg>
+                  History
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1108,14 +1153,39 @@ export default function Home() {
                   </div>
                 </form>
 
-                {usage?.remaining === 0 && !loading && (
-                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                {/* Pro success toast */}
+                {proSuccess && (
+                  <div className="mt-3 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-sm text-amber-800">
-                      You&apos;ve reached your daily limit of {usage.limit} free searches. Upgrade to Pro for unlimited access.
+                    <p className="text-sm text-green-800">
+                      <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
                     </p>
+                  </div>
+                )}
+
+                {/* Daily limit banner with upgrade CTA */}
+                {usage?.remaining === 0 && !loading && !isPro && (
+                  <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                    <div className="flex items-start gap-3">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                        <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                      </svg>
+                      <p className="text-sm text-amber-800">
+                        You&apos;ve used all {usage.limit} free searches for today.
+                      </p>
+                    </div>
+                    <button
+                      onClick={upgradeToPro}
+                      disabled={upgrading}
+                      className="shrink-0 flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      </svg>
+                      {upgrading ? "Redirecting…" : "Upgrade to Pro — ¥699/mo"}
+                    </button>
                   </div>
                 )}
 

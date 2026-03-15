@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
         quantity: 1,
       },
     ],
-    success_url: `${BASE_URL}/?success=1`,
+    // {CHECKOUT_SESSION_ID} is a Stripe template variable replaced at redirect time.
+    success_url: `${BASE_URL}/?success=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
   };
 

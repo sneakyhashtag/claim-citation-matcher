@@ -1,12 +1,16 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { checkAndIncrement } from "@/lib/usage-cookie";
+import { readPro } from "@/lib/pro-cookie";
 
 const client = new Anthropic();
 
 export async function POST(req: NextRequest) {
-  // ── usage limit (cookie-based) ─────────────────────────────────────────────
-  const { allowed, applyToResponse } = checkAndIncrement(req);
+  // ── usage limit (cookie-based, bypassed for pro users) ────────────────────
+  const pro = readPro(req);
+  const { allowed, applyToResponse } = pro
+    ? { allowed: true, applyToResponse: () => {} }
+    : checkAndIncrement(req);
 
   if (!allowed) {
     // applyToResponse is a no-op when allowed=false, but we call it for
