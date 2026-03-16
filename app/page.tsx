@@ -2627,6 +2627,29 @@ export default function Home() {
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
 
+      {/* ── help button — top-left, symmetrical to top-right nav ── */}
+      <AnimatePresence>
+        {ready && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed top-4 left-4 z-30"
+          >
+            <button
+              type="button"
+              onClick={() => setShowHowTo(true)}
+              aria-label="How to use"
+              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── omakase citation style picker ── */}
       <AnimatePresence>
         {showOmakasePicker && (
