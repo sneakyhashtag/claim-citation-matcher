@@ -1554,7 +1554,7 @@ export default function Home() {
       {/* ── main page ── */}
       <motion.div
         layout
-        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "py-12"}`}
+        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
       >
         {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
@@ -1632,7 +1632,7 @@ export default function Home() {
         <main className="relative z-10 mx-auto w-full max-w-2xl">
           <motion.div
             layout
-            className={`${hasActivity ? "mb-6 text-left" : ready ? "mb-8 text-center" : "mb-0 text-center"}`}
+            className={`${hasActivity ? "mb-5 text-left" : ready ? "mb-5 text-center" : "mb-0 text-center"}`}
           >
             <motion.h1
               layout
@@ -1666,7 +1666,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
+                  className="mt-5 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
                   {greeting ?? "Paste a paragraph to find academic citations for each factual claim."}
                 </motion.p>
@@ -1677,7 +1677,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
+                  className="mt-5 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
                   Find academic citations for every factual claim in your writing.
                 </motion.p>
