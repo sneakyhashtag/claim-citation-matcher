@@ -178,6 +178,7 @@ async function fetchSemanticScholar(query: string): Promise<Paper[]> {
     doi: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null,
     abstract: p.abstract ?? null,
     source: "Semantic Scholar" as const,
+    s2PaperId: p.paperId ?? null,
   }));
 }
 

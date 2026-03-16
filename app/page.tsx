@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { RatedPaper } from "@/lib/rate-relevance";
+import type { Paper, RatedPaper } from "@/lib/rate-relevance";
 
 const FREE_CHAR_LIMIT = 1000;
 const PRO_CHAR_LIMIT = 10000;
@@ -84,6 +84,29 @@ interface HistoryEntry {
   createdAt: string;
 }
 
+// ── recency filter ────────────────────────────────────────────────────────────
+
+type YearFilter = "all" | "5yr" | "3yr" | "1yr" | "2020-2025";
+
+const YEAR_FILTERS: { id: YearFilter; label: string }[] = [
+  { id: "all",       label: "All time" },
+  { id: "5yr",       label: "Last 5 years" },
+  { id: "3yr",       label: "Last 3 years" },
+  { id: "1yr",       label: "Last year" },
+  { id: "2020-2025", label: "2020–2025" },
+];
+
+function paperInRange(year: number | null, filter: YearFilter): boolean {
+  if (filter === "all") return true;
+  if (year == null) return false; // undated papers hidden by any non-"all" filter
+  const now = new Date().getFullYear();
+  if (filter === "5yr") return year >= now - 5;
+  if (filter === "3yr") return year >= now - 3;
+  if (filter === "1yr") return year >= now - 1;
+  if (filter === "2020-2025") return year >= 2020 && year <= 2025;
+  return true;
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function cleanDoi(doi: string | null): string | null {
@@ -122,7 +145,7 @@ function authorLabel(a: ParsedAuthor): string {
 
 // ── citation formatters ───────────────────────────────────────────────────────
 
-function formatCitationAPA(paper: RatedPaper): string {
+function formatCitationAPA(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   let authorStr: string;
   if (parsed.length === 0) {
@@ -155,7 +178,7 @@ function formatCitationAPA(paper: RatedPaper): string {
   return parts.join(" ");
 }
 
-function formatCitationMLA(paper: RatedPaper): string {
+function formatCitationMLA(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   let authorStr = "";
   if (parsed.length === 1) {
@@ -184,7 +207,7 @@ function formatCitationMLA(paper: RatedPaper): string {
   return [authorStr, title, (sourcePart + (url ? " " + url + "." : "")).trim()].filter(Boolean).join(" ");
 }
 
-function formatCitationChicago(paper: RatedPaper): string {
+function formatCitationChicago(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   let authorStr = "";
   if (parsed.length === 1) {
@@ -217,7 +240,7 @@ function formatCitationChicago(paper: RatedPaper): string {
   return [authorStr, year, title, (sourcePart + (url ? " " + url + "." : "")).trim()].filter(Boolean).join(" ");
 }
 
-function formatCitationHarvard(paper: RatedPaper): string {
+function formatCitationHarvard(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   let authorStr: string;
   if (parsed.length === 0) {
@@ -249,7 +272,7 @@ function formatCitationHarvard(paper: RatedPaper): string {
   return result;
 }
 
-function formatCitationIEEE(paper: RatedPaper): string {
+function formatCitationIEEE(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   const ieeeA = (a: ParsedAuthor) => `${a.initials ? a.initials + " " : ""}${a.last}`;
   let authorStr = "";
@@ -282,7 +305,7 @@ function formatCitationIEEE(paper: RatedPaper): string {
   return pieces.join("");
 }
 
-function formatCitationVancouver(paper: RatedPaper): string {
+function formatCitationVancouver(paper: Paper): string {
   const parsed = parseAuthors(paper.authors);
   const vanA = (a: ParsedAuthor) => {
     const inits = a.initials.replace(/\.\s*/g, "");
@@ -315,6 +338,284 @@ function formatCitationVancouver(paper: RatedPaper): string {
   const raw = cleanDoi(paper.doi);
   const doiPart = raw ? ` doi: ${raw}` : "";
   return [authorStr, title, (source + doiPart).trim()].filter(Boolean).join(" ");
+}
+
+// ── export generators ─────────────────────────────────────────────────────────
+
+// Tracks the citation format most recently used in any CitationMenu so the
+// plain-text export can match what the user has been copying.
+let _lastCitFmtId: (typeof CITATION_FORMATS)[number]["id"] = "apa";
+
+function bibTexEscape(s: string): string {
+  // Minimal escaping: protect literal braces and ampersands.
+  return s.replace(/\\/g, "\\textbackslash{}").replace(/[{}]/g, (c) => `\\${c}`).replace(/&/g, "\\&");
+}
+
+function makeBibKey(paper: Paper, index: number): string {
+  const authorPart = paper.authors[0]
+    ? (paper.authors[0].trim().split(/\s+/).pop() ?? "unknown")
+    : `ref${index}`;
+  const yearPart = paper.year ?? "nd";
+  const titleWord = (paper.title ?? "")
+    .split(/\s+/)
+    .find((w) => w.length > 3 && /^[a-zA-Z]/.test(w)) ?? "untitled";
+  return `${authorPart}${yearPart}${titleWord}`
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase()
+    .slice(0, 40);
+}
+
+function generateBibTeX(papers: Paper[]): string {
+  const usedKeys = new Map<string, number>();
+  return papers
+    .map((p, idx) => {
+      let key = makeBibKey(p, idx);
+      const count = usedKeys.get(key) ?? 0;
+      usedKeys.set(key, count + 1);
+      if (count > 0) key = `${key}${String.fromCharCode(96 + count)}`; // append a, b, c…
+
+      const authorsBib = p.authors
+        .map((name) => {
+          const parts = name.trim().split(/\s+/);
+          if (parts.length === 1) return parts[0];
+          const last = parts[parts.length - 1];
+          const first = parts.slice(0, -1).join(" ");
+          return `${last}, ${first}`;
+        })
+        .join(" and ");
+
+      const rawDoi = cleanDoi(p.doi);
+      const lines: string[] = [
+        `@article{${key},`,
+        authorsBib ? `  author    = {${bibTexEscape(authorsBib)}},` : null,
+        p.title    ? `  title     = {${bibTexEscape(p.title)}},`        : null,
+        p.journal  ? `  journal   = {${bibTexEscape(p.journal)}},`       : null,
+        p.year     ? `  year      = {${p.year}},`                        : null,
+        p.volume   ? `  volume    = {${p.volume}},`                      : null,
+        p.issue    ? `  number    = {${p.issue}},`                       : null,
+        p.pages    ? `  pages     = {${p.pages.replace(/[–—]/, "--")}},` : null,
+        rawDoi     ? `  doi       = {${rawDoi}},`                        : null,
+        `}`,
+      ].filter((l): l is string => l !== null);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
+function generateRIS(papers: Paper[]): string {
+  return papers
+    .map((p) => {
+      const lines: string[] = ["TY  - JOUR"];
+      for (const name of p.authors) {
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) {
+          lines.push(`AU  - ${parts[0]}`);
+        } else {
+          const last = parts[parts.length - 1];
+          const first = parts.slice(0, -1).join(" ");
+          lines.push(`AU  - ${last}, ${first}`);
+        }
+      }
+      if (p.title)   lines.push(`TI  - ${p.title}`);
+      if (p.journal) lines.push(`JO  - ${p.journal}`);
+      if (p.year)    lines.push(`PY  - ${p.year}`);
+      if (p.volume)  lines.push(`VL  - ${p.volume}`);
+      if (p.issue)   lines.push(`IS  - ${p.issue}`);
+      if (p.pages) {
+        const [sp, ep] = p.pages.split(/[-–—]/);
+        if (sp?.trim()) lines.push(`SP  - ${sp.trim()}`);
+        if (ep?.trim()) lines.push(`EP  - ${ep.trim()}`);
+      }
+      const rawDoi = cleanDoi(p.doi);
+      if (rawDoi) lines.push(`DO  - ${rawDoi}`);
+      lines.push("ER  - ");
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
+function generatePlainText(papers: Paper[], formatFn: (p: Paper) => string): string {
+  return papers.map((p, i) => `${i + 1}. ${formatFn(p)}`).join("\n\n");
+}
+
+function triggerDownload(content: string, filename: string): void {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── export menu ───────────────────────────────────────────────────────────────
+
+function ExportMenu({
+  papers,
+  isPro,
+  isSignedIn,
+  onUpgrade,
+}: {
+  papers: Paper[];
+  isPro: boolean;
+  isSignedIn: boolean;
+  onUpgrade: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", down);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("mousedown", down);
+      document.removeEventListener("keydown", key);
+    };
+  }, []);
+
+  const handleExport = (type: "bibtex" | "ris" | "plaintext") => {
+    if (papers.length === 0) return;
+    if (type === "bibtex") {
+      triggerDownload(generateBibTeX(papers), "references.bib");
+    } else if (type === "ris") {
+      triggerDownload(generateRIS(papers), "references.ris");
+    } else {
+      const fmt = CITATION_FORMATS.find((f) => f.id === _lastCitFmtId) ?? CITATION_FORMATS[0];
+      triggerDownload(generatePlainText(papers, fmt.fn), `references-${fmt.id}.txt`);
+    }
+    setOpen(false);
+  };
+
+  // Read last-used format at open time so the label is fresh
+  const plainLabel = open
+    ? (CITATION_FORMATS.find((f) => f.id === _lastCitFmtId)?.label ?? "APA 7th")
+    : "Plain text";
+
+  const EXPORT_OPTIONS = [
+    {
+      type: "bibtex" as const,
+      label: "BibTeX",
+      ext: ".bib",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      ),
+    },
+    {
+      type: "ris" as const,
+      label: "RIS",
+      ext: ".ris",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+      ),
+    },
+    {
+      type: "plaintext" as const,
+      label: open ? plainLabel : "Plain text",
+      ext: ".txt",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <line x1="17" y1="10" x2="3" y2="10"/>
+          <line x1="21" y1="6" x2="3" y2="6"/>
+          <line x1="21" y1="14" x2="3" y2="14"/>
+          <line x1="17" y1="18" x2="3" y2="18"/>
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => isPro ? setOpen((o) => !o) : setShowProGate((v) => !v)}
+        disabled={papers.length === 0}
+        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 light:border-[rgba(44,24,16,0.14)] bg-white/[0.05] light:bg-[rgba(44,24,16,0.04)] px-2.5 py-1 text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+          isPro
+            ? "text-slate-400 light:text-[#6B4226] hover:bg-white/[0.09] light:hover:bg-[rgba(44,24,16,0.08)] hover:text-slate-200 light:hover:text-[#2C1810]"
+            : "text-slate-600 light:text-[#A67856] opacity-60"
+        }`}
+      >
+        {isPro ? (
+          <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M3 16.5v1.25C3 18.99 4.01 20 5.25 20h9.5C15.99 20 17 18.99 17 17.75V16.5"/>
+            <path d="M10 3.5v9M6.5 9l3.5 3.5 3.5-3.5"/>
+          </svg>
+        ) : (
+          <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        )}
+        Export
+        {isPro ? (
+          <svg className={`h-2.5 w-2.5 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
+          </svg>
+        ) : (
+          <ProBadge />
+        )}
+      </button>
+
+      {/* Pro gate popover */}
+      <AnimatePresence>
+        {showProGate && !isPro && (
+          <ProGatePopover
+            isSignedIn={isSignedIn}
+            onUpgrade={onUpgrade}
+            onClose={() => setShowProGate(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {open && isPro && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 4 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="absolute top-full left-0 mt-1.5 z-30 w-52 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
+            role="menu"
+          >
+            <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+              Download as
+            </p>
+            {EXPORT_OPTIONS.map(({ type, label, ext, icon }) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => handleExport(type)}
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-300 light:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors text-left"
+                role="menuitem"
+              >
+                <span className="text-slate-500 light:text-[#8B5E3C] shrink-0">{icon}</span>
+                <span className="flex-1 truncate">{label}</span>
+                <span className="text-slate-600 light:text-[#A67856] font-mono text-[10px] shrink-0">{ext}</span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 async function apiFetch<T>(
@@ -360,6 +661,74 @@ function getTier(score: number): {
   };
 }
 
+// ── pro gate primitives ───────────────────────────────────────────────────────
+//
+// POLICY: All new features default to Pro-only. Add isPro gating with
+// ProGatePopover when building anything new, unless explicitly told otherwise.
+
+function ProBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 rounded-full border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 border-amber-500/30 text-amber-400 light:bg-amber-700/[0.08] light:border-amber-700/20 light:text-amber-700">
+      <svg className="h-2 w-2 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+      </svg>
+      Pro
+    </span>
+  );
+}
+
+/** Inline upgrade popover. Wrap in a `relative` container and position as needed. */
+function ProGatePopover({
+  isSignedIn,
+  onUpgrade,
+  onClose,
+}: {
+  isSignedIn: boolean;
+  onUpgrade: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* invisible full-screen layer — click anywhere outside to close */}
+      <div className="fixed inset-0 z-10" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 4 }}
+        transition={{ duration: 0.15 }}
+        className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.16)] glass-panel shadow-xl px-4 py-3"
+      >
+        <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
+          {isSignedIn ? (
+            <>
+              <button
+                type="button"
+                onClick={() => { onClose(); onUpgrade(); }}
+                className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+              >
+                Upgrade to Pro
+              </button>
+              {" "}to unlock this feature.
+            </>
+          ) : (
+            <>
+              This is a Pro feature.{" "}
+              <button
+                type="button"
+                onClick={() => { onClose(); onUpgrade(); }}
+                className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+              >
+                Sign in
+              </button>
+              {" "}and upgrade to Pro to unlock.
+            </>
+          )}
+        </p>
+      </motion.div>
+    </>
+  );
+}
+
 // ── small components ──────────────────────────────────────────────────────────
 
 function ScoreBadge({ score }: { score: number }) {
@@ -380,7 +749,7 @@ const CITATION_FORMATS = [
   { id: "vancouver", label: "Vancouver",    fn: formatCitationVancouver },
 ] as const;
 
-function CitationMenu({ paper }: { paper: RatedPaper }) {
+function CitationMenu({ paper }: { paper: Paper }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -396,6 +765,7 @@ function CitationMenu({ paper }: { paper: RatedPaper }) {
   const handleCopy = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      _lastCitFmtId = id as (typeof CITATION_FORMATS)[number]["id"];
       setCopied(id);
       setTimeout(() => { setCopied(null); setOpen(false); }, 1400);
     } catch { /* clipboard access denied */ }
@@ -508,9 +878,107 @@ function StatBadge({
   );
 }
 
+// ── shared paper stats row ────────────────────────────────────────────────────
+
+function PaperStatBadges({ paper }: { paper: Paper }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {paper.citationCount != null && paper.citationCount > 0 && (
+        <StatBadge
+          colorClass={
+            paper.citationCount >= 500
+              ? "bg-orange-500/15 border-orange-500/40 text-orange-400 light:bg-[rgba(139,37,0,0.10)] light:border-[rgba(139,37,0,0.32)] light:text-[#7A2000]"
+              : "bg-orange-500/10 border-orange-500/20 text-orange-500 light:bg-[rgba(139,37,0,0.07)] light:border-[rgba(139,37,0,0.22)] light:text-[#7A2000]"
+          }
+          glowing={paper.citationCount >= 500}
+          text={`Cited ${paper.citationCount.toLocaleString()}x`}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+              <path d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+            </svg>
+          }
+        />
+      )}
+      {paper.source === "Semantic Scholar" &&
+        paper.influentialCitationCount != null &&
+        paper.influentialCitationCount > 0 && (
+        <StatBadge
+          colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400 light:bg-[rgba(75,20,95,0.08)] light:border-[rgba(75,20,95,0.24)] light:text-[#4B1460]"
+          text={`Influential: ${paper.influentialCitationCount}`}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
+            </svg>
+          }
+        />
+      )}
+      {paper.journalHIndex != null && (
+        <StatBadge
+          colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400 light:bg-[rgba(15,50,100,0.08)] light:border-[rgba(15,50,100,0.24)] light:text-[#0F3264]"
+          text={`h-index: ${paper.journalHIndex}`}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
+              <path d="M9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625z"/>
+              <path d="M16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+            </svg>
+          }
+        />
+      )}
+      {paper.impactFactor != null && (
+        <StatBadge
+          colorClass="bg-teal-500/10 border-teal-500/20 text-teal-400 light:bg-[rgba(0,75,70,0.08)] light:border-[rgba(0,75,70,0.24)] light:text-[#004B46]"
+          text={`IF ${paper.impactFactor.toFixed(1)}`}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/>
+            </svg>
+          }
+        />
+      )}
+      {paper.subjectArea && (
+        <StatBadge
+          colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:bg-[rgba(10,60,25,0.08)] light:border-[rgba(10,60,25,0.24)] light:text-[#0A3C19]"
+          text={paper.subjectArea}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+            </svg>
+          }
+        />
+      )}
+    </div>
+  );
+}
+
 // ── paper card ────────────────────────────────────────────────────────────────
 
-function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) {
+function PaperCard({
+  paper,
+  index = 0,
+  knownPaperKeys,
+  onUsageUpdate,
+  yearFilter = "all",
+  isPro = false,
+  isSignedIn = false,
+  onUpgrade,
+}: {
+  paper: RatedPaper;
+  index?: number;
+  knownPaperKeys?: Set<string>;
+  onUsageUpdate?: (remaining: number) => void;
+  yearFilter?: YearFilter;
+  isPro?: boolean;
+  isSignedIn?: boolean;
+  onUpgrade?: () => void;
+}) {
+  const [relatedOpen, setRelatedOpen] = useState(false);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedPapers, setRelatedPapers] = useState<Paper[] | null>(null);
+  const [relatedError, setRelatedError] = useState<string | null>(null);
+  const [showProGate, setShowProGate] = useState(false);
+
   const authorLine =
     paper.authors.length === 0
       ? null
@@ -519,22 +987,252 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         : `${paper.authors[0]}, et al.`;
 
   const authorYearMeta = [authorLine, paper.year].filter(Boolean).join(" · ");
-
   const { cardClass } = getTier(paper.relevanceScore);
+
+  const handleFindRelated = async () => {
+    if (relatedPapers !== null) {
+      setRelatedOpen((o) => !o);
+      return;
+    }
+    setRelatedOpen(true);
+    setRelatedLoading(true);
+    setRelatedError(null);
+    try {
+      const res = await fetch("/api/related-papers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: paper.title, abstract: paper.abstract, doi: paper.doi, s2PaperId: paper.s2PaperId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRelatedError(data?.error ?? "Failed to load related papers.");
+        if (res.status === 429) setRelatedOpen(false);
+        return;
+      }
+      if (typeof data.remaining === "number") onUsageUpdate?.(data.remaining);
+      // Filter out papers already shown in main results
+      const fetched: Paper[] = data.papers ?? [];
+      const filtered = knownPaperKeys
+        ? fetched.filter((p) => {
+            const doiKey = p.doi ? p.doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+            const titleKey = p.title?.toLowerCase().trim() ?? null;
+            return !(doiKey && knownPaperKeys.has(doiKey)) && !(titleKey && knownPaperKeys.has(titleKey));
+          })
+        : fetched;
+      setRelatedPapers(filtered);
+    } catch {
+      setRelatedError("Failed to load related papers.");
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: index * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
+        className={`paper-card rounded-md border p-4 ${cardClass}`}
+      >
+        {/* title row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            {paper.doi ? (
+              <a
+                href={paper.doi}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-[#8B2500] transition-colors leading-snug break-words"
+              >
+                {paper.title ?? "Untitled"}
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-snug break-words">
+                {paper.title ?? "Untitled"}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {paper.source && (
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                paper.source === "Semantic Scholar"
+                  ? "bg-purple-500/15 text-purple-400 light:bg-[rgba(75,20,95,0.10)] light:text-[#4B1460]"
+                  : "bg-white/10 light:bg-[rgba(44,24,16,0.08)] text-slate-300 light:text-[#4A2E1A]"
+              }`}>
+                {paper.source === "Semantic Scholar" ? "S2" : "OA"}
+              </span>
+            )}
+            <ScoreBadge score={paper.relevanceScore} />
+          </div>
+        </div>
+
+        {/* authors · year */}
+        {authorYearMeta && (
+          <p className="mt-1.5 text-xs text-slate-400 light:text-[#6B4226] break-words">{authorYearMeta}</p>
+        )}
+
+        {/* journal */}
+        {paper.journal && (
+          <p className="mt-0.5 text-xs text-slate-500 light:text-[#6B4226] italic truncate" title={paper.journal}>
+            {paper.journal}
+          </p>
+        )}
+
+        {/* stat badges */}
+        <PaperStatBadges paper={paper} />
+
+        {/* relevance explanation */}
+        <p className="mt-2 text-xs text-slate-500 light:text-[#6B4226] italic leading-relaxed">
+          {paper.relevanceExplanation}
+        </p>
+
+        <div className="mt-2 flex items-center gap-3">
+          <CitationMenu paper={paper} />
+          <div className="relative">
+            <button
+              type="button"
+              onClick={isPro ? handleFindRelated : () => setShowProGate((v) => !v)}
+              disabled={isPro && relatedLoading}
+              className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+                isPro
+                  ? "text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00]"
+                  : "text-slate-600 light:text-[#A67856] opacity-60"
+              }`}
+            >
+              {isPro ? (
+                relatedLoading ? (
+                  <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                ) : (
+                  <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                    <circle cx="8" cy="8" r="5"/>
+                    <path strokeLinecap="round" d="M13 13l3 3"/>
+                    <path strokeLinecap="round" d="M8 6v4M6 8h4"/>
+                  </svg>
+                )
+              ) : (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+              )}
+              {isPro
+                ? (relatedLoading ? "Searching…" : relatedOpen && relatedPapers !== null ? "Hide related" : "Find more like this")
+                : "Find more like this"}
+              {!isPro && <ProBadge />}
+            </button>
+            <AnimatePresence>
+              {showProGate && !isPro && (
+                <ProGatePopover
+                  isSignedIn={isSignedIn}
+                  onUpgrade={onUpgrade ?? (() => {})}
+                  onClose={() => setShowProGate(false)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* related papers expandable section */}
+      <AnimatePresence>
+        {relatedOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1 ml-3 border-l-2 border-white/[0.08] light:border-[rgba(44,24,16,0.12)] pl-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+                  Related papers
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setRelatedOpen(false)}
+                  className="inline-flex items-center gap-0.5 text-[10px] text-slate-600 light:text-[#A67856] hover:text-slate-400 light:hover:text-[#8B5E3C] transition-colors"
+                  aria-label="Collapse related papers"
+                >
+                  <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.5l11-11M15.5 15.5l-11-11" />
+                  </svg>
+                  Collapse
+                </button>
+              </div>
+              {relatedLoading && (
+                <div className="flex items-center gap-2 py-2">
+                  <svg className="h-3.5 w-3.5 animate-spin text-slate-500 light:text-[#8B5E3C] shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  <span className="text-xs text-slate-500 light:text-[#8B5E3C]">Searching for related papers…</span>
+                </div>
+              )}
+              {relatedError && (
+                <p className="text-xs text-red-400 py-2">{relatedError}</p>
+              )}
+              {!relatedLoading && relatedPapers !== null && (() => {
+                const visible = relatedPapers.filter((p) => paperInRange(p.year, yearFilter));
+                const hidden = relatedPapers.length - visible.length;
+                if (relatedPapers.length === 0) return (
+                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">No related papers found.</p>
+                );
+                if (visible.length === 0) return (
+                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">
+                    No related papers match the selected date filter.
+                    {hidden > 0 && <span className="ml-1 text-slate-600 light:text-[#A67856]">({hidden} hidden)</span>}
+                  </p>
+                );
+                return (
+                  <div className="flex flex-col gap-2">
+                    {visible.map((rp, i) => (
+                      <RelatedPaperCard key={rp.doi ?? rp.title ?? i} paper={rp} index={i} />
+                    ))}
+                    {hidden > 0 && (
+                      <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
+                        {hidden} older paper{hidden !== 1 ? "s" : ""} hidden by date filter.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── related paper card (no relevance score, no nested find-more) ──────────────
+
+function RelatedPaperCard({ paper, index = 0 }: { paper: Paper; index?: number }) {
+  const authorLine =
+    paper.authors.length === 0
+      ? null
+      : paper.authors.length <= 3
+        ? paper.authors.join(", ")
+        : `${paper.authors[0]}, et al.`;
+  const authorYearMeta = [authorLine, paper.year].filter(Boolean).join(" · ");
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`paper-card rounded-md border p-4 ${cardClass}`}
+      transition={{ duration: 0.28, delay: index * 0.06, ease: [0.25, 0.1, 0.25, 1] }}
+      className="paper-card rounded-md border p-3 bg-white/[0.03] light:bg-[rgba(44,24,16,0.03)] border-white/[0.08] light:border-[rgba(44,24,16,0.12)]"
     >
       {/* title row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {paper.doi ? (
             <a
-              href={paper.doi}
+              href={doiUrl(paper.doi) ?? paper.doi}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-[#8B2500] transition-colors leading-snug break-words"
@@ -557,7 +1255,9 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
           )}
-          <ScoreBadge score={paper.relevanceScore} />
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-slate-500/15 text-slate-400 light:bg-[rgba(44,24,16,0.08)] light:text-[#5A3820]">
+            Related
+          </span>
         </div>
       </div>
 
@@ -573,88 +1273,8 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         </p>
       )}
 
-      {/* stat badges row */}
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {/* 🔥 orange flame — total citation count */}
-        {paper.citationCount != null && paper.citationCount > 0 && (
-          <StatBadge
-            colorClass={
-              paper.citationCount >= 500
-                ? "bg-orange-500/15 border-orange-500/40 text-orange-400 light:bg-[rgba(139,37,0,0.10)] light:border-[rgba(139,37,0,0.32)] light:text-[#7A2000]"
-                : "bg-orange-500/10 border-orange-500/20 text-orange-500 light:bg-[rgba(139,37,0,0.07)] light:border-[rgba(139,37,0,0.22)] light:text-[#7A2000]"
-            }
-            glowing={paper.citationCount >= 500}
-            text={`Cited ${paper.citationCount.toLocaleString()}x`}
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
-                <path d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
-              </svg>
-            }
-          />
-        )}
-
-        {/* ★ purple star — influential citation count (Semantic Scholar only) */}
-        {paper.source === "Semantic Scholar" &&
-          paper.influentialCitationCount != null &&
-          paper.influentialCitationCount > 0 && (
-          <StatBadge
-            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400 light:bg-[rgba(75,20,95,0.08)] light:border-[rgba(75,20,95,0.24)] light:text-[#4B1460]"
-            text={`Influential: ${paper.influentialCitationCount}`}
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
-              </svg>
-            }
-          />
-        )}
-
-        {/* 📊 blue bars — journal h-index */}
-        {paper.journalHIndex != null && (
-          <StatBadge
-            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400 light:bg-[rgba(15,50,100,0.08)] light:border-[rgba(15,50,100,0.24)] light:text-[#0F3264]"
-            text={`h-index: ${paper.journalHIndex}`}
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
-                <path d="M9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625z"/>
-                <path d="M16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
-              </svg>
-            }
-          />
-        )}
-
-        {/* 🔵 teal pill — 2-year mean citedness (≈ Impact Factor, OpenAlex) */}
-        {paper.impactFactor != null && (
-          <StatBadge
-            colorClass="bg-teal-500/10 border-teal-500/20 text-teal-400 light:bg-[rgba(0,75,70,0.08)] light:border-[rgba(0,75,70,0.24)] light:text-[#004B46]"
-            text={`IF ${paper.impactFactor.toFixed(1)}`}
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/>
-              </svg>
-            }
-          />
-        )}
-
-        {/* 📖 green book — field / subject area */}
-        {paper.subjectArea && (
-          <StatBadge
-            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:bg-[rgba(10,60,25,0.08)] light:border-[rgba(10,60,25,0.24)] light:text-[#0A3C19]"
-            text={paper.subjectArea}
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
-              </svg>
-            }
-          />
-        )}
-      </div>
-
-      {/* relevance explanation */}
-      <p className="mt-2 text-xs text-slate-500 light:text-[#6B4226] italic leading-relaxed">
-        {paper.relevanceExplanation}
-      </p>
+      {/* stat badges */}
+      <PaperStatBadges paper={paper} />
 
       <div className="mt-2">
         <CitationMenu paper={paper} />
@@ -663,16 +1283,97 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
   );
 }
 
+// ── recency filter bar ────────────────────────────────────────────────────────
+
+function RecencyFilter({
+  value,
+  onChange,
+  isPro = false,
+  isSignedIn = false,
+  onUpgrade,
+}: {
+  value: YearFilter;
+  onChange: (f: YearFilter) => void;
+  isPro?: boolean;
+  isSignedIn?: boolean;
+  onUpgrade?: () => void;
+}) {
+  const [showProGate, setShowProGate] = useState(false);
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <rect x="3" y="4" width="14" height="13" rx="2"/>
+          <path strokeLinecap="round" d="M3 8h14M7 2v4M13 2v4"/>
+        </svg>
+        Published
+        {!isPro && <ProBadge />}
+      </span>
+      <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-60" : ""}`} role="group" aria-label="Filter papers by publication date">
+        {YEAR_FILTERS.map(({ id, label }) => {
+          const active = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => isPro ? onChange(id) : setShowProGate((v) => !v)}
+              aria-pressed={active}
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                active && isPro
+                  ? "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]"
+                  : "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+        <AnimatePresence>
+          {showProGate && !isPro && (
+            <ProGatePopover
+              isSignedIn={isSignedIn}
+              onUpgrade={onUpgrade ?? (() => {})}
+              onClose={() => setShowProGate(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 // ── claim card ────────────────────────────────────────────────────────────────
 
-function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
-  const topScore = result.papers.length > 0
-    ? Math.max(...result.papers.map((p) => p.relevanceScore))
+function ClaimCard({
+  result,
+  index,
+  knownPaperKeys,
+  onUsageUpdate,
+  yearFilter = "all",
+  isPro = false,
+  isSignedIn = false,
+  onUpgrade,
+}: {
+  result: ClaimResult;
+  index: number;
+  knownPaperKeys?: Set<string>;
+  onUsageUpdate?: (remaining: number) => void;
+  yearFilter?: YearFilter;
+  isPro?: boolean;
+  isSignedIn?: boolean;
+  onUpgrade?: () => void;
+}) {
+  const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter));
+  const hiddenCount = result.papers.length - visiblePapers.length;
+
+  const topScore = visiblePapers.length > 0
+    ? Math.max(...visiblePapers.map((p) => p.relevanceScore))
     : 0;
   const accentClass =
     topScore >= 5 ? "border-l-green-500/60 light:border-l-[rgba(30,70,32,0.55)]" :
     topScore >= 4 ? "border-l-blue-500/55 light:border-l-[rgba(42,48,112,0.50)]" :
-    result.papers.length > 0 ? "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.45)]" :
+    visiblePapers.length > 0 ? "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.45)]" :
     "border-l-white/15 light:border-l-[rgba(44,24,16,0.2)]";
 
   return (
@@ -701,11 +1402,25 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
           <p className="text-xs text-slate-500 light:text-[#6B4226]">
             No relevant papers found for this claim.
           </p>
+        ) : visiblePapers.length === 0 ? (
+          <p className="text-xs text-slate-500 light:text-[#6B4226]">
+            No papers match the selected date filter.
+            {hiddenCount > 0 && (
+              <span className="ml-1 text-slate-600 light:text-[#A67856]">
+                ({hiddenCount} paper{hiddenCount !== 1 ? "s" : ""} hidden)
+              </span>
+            )}
+          </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {result.papers.map((paper, i) => (
-              <PaperCard key={paper.doi ?? i} paper={paper} index={i} />
+            {visiblePapers.map((paper, i) => (
+              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} />
             ))}
+            {hiddenCount > 0 && (
+              <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
+                {hiddenCount} older paper{hiddenCount !== 1 ? "s" : ""} hidden by date filter.
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -1166,6 +1881,36 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [results, setResults] = useState<ClaimResult[]>([]);
   const [currentClaims, setCurrentClaims] = useState<{ claim: string; searchQuery: string }[]>([]);
+  const [yearFilter, setYearFilter] = useState<YearFilter>("all");
+
+  // Keys of all papers already shown in the main results — used to deduplicate related papers
+  const knownPaperKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const r of results) {
+      for (const p of r.papers) {
+        const doi = p.doi ? p.doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+        if (doi) keys.add(doi);
+        if (p.title) keys.add(p.title.toLowerCase().trim());
+      }
+    }
+    return keys;
+  }, [results]);
+
+  // Flat deduplicated list of all papers across claims — used for bulk export
+  const allPapers = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Paper[] = [];
+    for (const r of results) {
+      for (const p of r.papers) {
+        const doi = p.doi ? p.doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+        const key = doi ?? p.title?.toLowerCase().trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push(p);
+      }
+    }
+    return out;
+  }, [results]);
   const [error, setError] = useState("");
 
   // History sidebar
@@ -1292,6 +2037,12 @@ export default function Home() {
     setShowHistory(false);
   };
 
+  const isSignedIn = !!session?.user;
+  const handleUpgradeClick = () => {
+    if (isSignedIn) setShowPlanModal(true);
+    else signIn();
+  };
+
   const charLimit = isPro ? PRO_CHAR_LIMIT : FREE_CHAR_LIMIT;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1301,6 +2052,7 @@ export default function Home() {
     setError("");
     setResults([]);
     setCurrentClaims([]);
+    setYearFilter("all");
 
     try {
       setStatus("Extracting claims…");
@@ -2036,12 +2788,30 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
-                      {results.length} claim{results.length > 1 ? "s" : ""} found
-                    </h2>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
+                          {results.length} claim{results.length > 1 ? "s" : ""} found
+                        </h2>
+                        <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                      </div>
+                      <RecencyFilter value={yearFilter} onChange={setYearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                    </div>
 
                     {results.map((result, i) => (
-                      <ClaimCard key={i} result={result} index={i} />
+                      <ClaimCard
+                        key={i}
+                        result={result}
+                        index={i}
+                        knownPaperKeys={knownPaperKeys}
+                        yearFilter={yearFilter}
+                        isPro={isPro}
+                        isSignedIn={isSignedIn}
+                        onUpgrade={handleUpgradeClick}
+                        onUsageUpdate={(remaining) =>
+                          setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
+                        }
+                      />
                     ))}
                   </div>
                 )}
