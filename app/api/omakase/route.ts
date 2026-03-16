@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   const papersBlock = buildPapersBlock(papers);
 
   const response = await client.messages.parse({
-    model: "claude-opus-4-6",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 2048,
     system: `You are an academic writing assistant. Rewrite the following paragraph with proper in-text citations using the citation style specified. Only use papers from the provided list. Prefer papers categorized as Direct or High relevance with higher citation counts and h-index. Do not use Moderate papers unless no better option exists.`,
     messages: [
