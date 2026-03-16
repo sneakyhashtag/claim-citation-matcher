@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { RatedPaper } from "@/lib/rate-relevance";
@@ -39,6 +39,31 @@ const EXAMPLE_TEXTS = [
   // Urbanization
   "More than 55% of the global population currently lives in urban areas, and the United Nations projects this proportion will rise to 68% by 2050, adding approximately 2.5 billion people to cities. Urban heat islands cause city centers to be 1 to 3 degrees Celsius warmer than surrounding rural areas, increasing cooling energy demand and contributing to higher mortality rates during heat waves. Access to urban green spaces is associated with lower rates of obesity, cardiovascular disease, and mental illness, yet low-income urban neighborhoods contain 34% less green space per resident than wealthy neighborhoods in the same cities. Over one billion people currently live in informal urban settlements lacking adequate access to clean water, sanitation, and secure housing.",
 ];
+
+function pickGreeting(firstName: string): string {
+  const hour = new Date().getHours();
+  const timeGreeting =
+    hour >= 5 && hour < 12 ? `Good morning, ${firstName}.` :
+    hour >= 12 && hour < 17 ? `Good afternoon, ${firstName}.` :
+    hour >= 17 && hour < 21 ? `Good evening, ${firstName}.` :
+    `Working late, ${firstName}?`;
+
+  const pool = [
+    `Welcome back, ${firstName}.`,
+    `Good to see you, ${firstName}.`,
+    `Hey ${firstName}, ready to research?`,
+    `What are we citing today, ${firstName}?`,
+    `Back for more papers, ${firstName}?`,
+    `Let's find some references, ${firstName}.`,
+    `Hi ${firstName}, what's the topic today?`,
+    `Research time, ${firstName}.`,
+    `${firstName}, let's get citing.`,
+    `What are we working on, ${firstName}?`,
+    timeGreeting,
+    timeGreeting, // weighted slightly higher
+  ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 function pickExample(current: string): string {
   const pool = EXAMPLE_TEXTS.filter((e) => e !== current);
@@ -1361,6 +1386,12 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.length > 0 ? results[0]?.claim : null]);
 
+  const greeting = useMemo(
+    () => session?.user?.name ? pickGreeting(session.user.name.split(" ")[0]) : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [session?.user?.name]
+  );
+
   const hasActivity = loading || error !== "" || results.length > 0;
   const isCentered = !ready && !hasActivity;
 
@@ -1637,9 +1668,7 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
-                  {session?.user?.name
-                    ? `Welcome back, ${session.user.name.split(" ")[0]}.`
-                    : "Paste a paragraph to find academic citations for each factual claim."}
+                  {greeting ?? "Paste a paragraph to find academic citations for each factual claim."}
                 </motion.p>
               )}
               {ready && stage === "auth" && (
