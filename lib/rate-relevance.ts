@@ -9,6 +9,9 @@ export interface Paper {
   authors: string[];
   year: number | null;
   journal: string | null;
+  volume?: string | null;
+  issue?: string | null;
+  pages?: string | null;
   citationCount: number;
   influentialCitationCount?: number;
   journalHIndex?: number | null;

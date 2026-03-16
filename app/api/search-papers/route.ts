@@ -17,6 +17,12 @@ interface OpenAlexWork {
   primary_topic: {
     field: { display_name: string };
   } | null;
+  biblio: {
+    volume: string | null;
+    issue: string | null;
+    first_page: string | null;
+    last_page: string | null;
+  } | null;
 }
 
 interface SemanticScholarPaper {
@@ -28,7 +34,7 @@ interface SemanticScholarPaper {
   externalIds: { DOI?: string } | null;
   citationCount: number;
   influentialCitationCount: number;
-  journal: { name: string } | null;
+  journal: { name: string; volume?: string; pages?: string } | null;
   fieldsOfStudy: string[] | null;
 }
 
@@ -57,7 +63,7 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
   url.searchParams.set("per_page", "5");
   url.searchParams.set(
     "select",
-    "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location,primary_topic"
+    "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location,primary_topic,biblio"
   );
 
   const res = await fetch(url.toString(), {
@@ -125,6 +131,13 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
       authors: work.authorships.map((a) => a.author.display_name),
       year: work.publication_year ?? null,
       journal: work.primary_location?.source?.display_name ?? null,
+      volume: work.biblio?.volume ?? null,
+      issue: work.biblio?.issue ?? null,
+      pages: work.biblio?.first_page
+        ? work.biblio.last_page
+          ? `${work.biblio.first_page}–${work.biblio.last_page}`
+          : work.biblio.first_page
+        : null,
       citationCount: work.cited_by_count,
       journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
       impactFactor: sid != null ? (ifMap[sid] ?? null) : null,
@@ -156,6 +169,9 @@ async function fetchSemanticScholar(query: string): Promise<Paper[]> {
     authors: p.authors.map((a) => a.name),
     year: p.year ?? null,
     journal: p.journal?.name ?? null,
+    volume: p.journal?.volume ?? null,
+    issue: null,
+    pages: p.journal?.pages ?? null,
     citationCount: p.citationCount ?? 0,
     influentialCitationCount: p.influentialCitationCount ?? 0,
     subjectArea: p.fieldsOfStudy?.[0] ?? null,

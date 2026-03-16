@@ -61,32 +61,235 @@ interface HistoryEntry {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function formatAPA(paper: RatedPaper): string {
-  const fmt = (name: string) => {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0];
-    const last = parts[parts.length - 1];
-    const initials = parts
-      .slice(0, -1)
-      .map((p) => p[0] + ".")
-      .join(" ");
-    return `${last}, ${initials}`;
-  };
+function cleanDoi(doi: string | null): string | null {
+  if (!doi) return null;
+  return doi.replace(/^https?:\/\/doi\.org\//i, "");
+}
 
-  const authorStr =
-    paper.authors.length === 0
-      ? "Unknown Author"
-      : paper.authors.length === 1
-        ? fmt(paper.authors[0])
-        : paper.authors.length === 2
-          ? `${fmt(paper.authors[0])}, & ${fmt(paper.authors[1])}`
-          : `${fmt(paper.authors[0])}, et al.`;
+function doiUrl(doi: string | null): string | null {
+  if (!doi) return null;
+  if (/^https?:\/\//i.test(doi)) return doi;
+  return `https://doi.org/${doi}`;
+}
+
+interface ParsedAuthor {
+  first: string;
+  last: string;
+  initials: string; // e.g. "J. M."
+}
+
+function parseAuthors(names: string[]): ParsedAuthor[] {
+  return names.map((name) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return { first: "", last: name, initials: "" };
+    if (parts.length === 1) return { first: "", last: parts[0], initials: "" };
+    const last = parts[parts.length - 1];
+    const firstParts = parts.slice(0, -1);
+    const first = firstParts.join(" ");
+    const initials = firstParts.map((p) => (p[0] ?? "").toUpperCase() + ".").join(" ");
+    return { first, last, initials };
+  });
+}
+
+function authorLabel(a: ParsedAuthor): string {
+  return `${a.last}${a.initials ? ", " + a.initials : ""}`;
+}
+
+// ── citation formatters ───────────────────────────────────────────────────────
+
+function formatCitationAPA(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  let authorStr: string;
+  if (parsed.length === 0) {
+    authorStr = "Unknown Author";
+  } else if (parsed.length === 1) {
+    authorStr = authorLabel(parsed[0]);
+  } else if (parsed.length === 2) {
+    authorStr = `${authorLabel(parsed[0])}, & ${authorLabel(parsed[1])}`;
+  } else if (parsed.length <= 20) {
+    const all = parsed.map(authorLabel);
+    const last = all.pop()!;
+    authorStr = all.join(", ") + ", & " + last;
+  } else {
+    const first19 = parsed.slice(0, 19).map(authorLabel);
+    const lastA = parsed[parsed.length - 1];
+    authorStr = first19.join(", ") + ", \u2026 " + authorLabel(lastA);
+  }
 
   const year = paper.year ? `(${paper.year})` : "(n.d.)";
-  const journal = paper.journal ? ` ${paper.journal}.` : "";
-  const doi = paper.doi ? ` ${paper.doi}` : "";
+  const parts: string[] = [`${authorStr} ${year}. ${paper.title ?? "Untitled"}.`];
 
-  return `${authorStr} ${year}. ${paper.title ?? "Untitled"}.${journal}${doi}`;
+  if (paper.journal) {
+    let j = paper.journal;
+    if (paper.volume) { j += `, ${paper.volume}`; if (paper.issue) j += `(${paper.issue})`; }
+    if (paper.pages) j += `, ${paper.pages}`;
+    parts.push(j + ".");
+  }
+  const url = doiUrl(paper.doi);
+  if (url) parts.push(url);
+  return parts.join(" ");
+}
+
+function formatCitationMLA(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  let authorStr = "";
+  if (parsed.length === 1) {
+    const a = parsed[0];
+    authorStr = `${a.last}, ${a.first || a.initials}.`;
+  } else if (parsed.length === 2) {
+    const [a, b] = parsed;
+    authorStr = `${a.last}, ${a.first || a.initials}, and ${b.first || b.initials} ${b.last}.`;
+  } else if (parsed.length > 2) {
+    const a = parsed[0];
+    authorStr = `${a.last}, ${a.first || a.initials}, et al.`;
+  }
+
+  const title = paper.title ? `"${paper.title}."` : '"Untitled."';
+  const year = paper.year ? String(paper.year) : "n.d.";
+  let sourcePart = "";
+  if (paper.journal) {
+    sourcePart = paper.journal;
+    if (paper.volume) sourcePart += `, vol. ${paper.volume}`;
+    if (paper.issue) sourcePart += `, no. ${paper.issue}`;
+    sourcePart += `, ${year}`;
+    if (paper.pages) sourcePart += `, pp. ${paper.pages}`;
+    sourcePart += ".";
+  }
+  const url = doiUrl(paper.doi);
+  return [authorStr, title, (sourcePart + (url ? " " + url + "." : "")).trim()].filter(Boolean).join(" ");
+}
+
+function formatCitationChicago(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  let authorStr = "";
+  if (parsed.length === 1) {
+    const a = parsed[0];
+    authorStr = `${a.last}, ${a.first || a.initials}.`;
+  } else if (parsed.length === 2) {
+    const [a, b] = parsed;
+    authorStr = `${a.last}, ${a.first || a.initials}, and ${b.first || b.initials} ${b.last}.`;
+  } else if (parsed.length === 3) {
+    const [a, b, c] = parsed;
+    authorStr = `${a.last}, ${a.first || a.initials}, ${b.first || b.initials} ${b.last}, and ${c.first || c.initials} ${c.last}.`;
+  } else if (parsed.length > 3) {
+    const a = parsed[0];
+    authorStr = `${a.last}, ${a.first || a.initials}, et al.`;
+  }
+
+  const year = paper.year ? `${paper.year}.` : "n.d.";
+  const title = paper.title ? `"${paper.title}."` : '"Untitled."';
+  let sourcePart = "";
+  if (paper.journal) {
+    sourcePart = paper.journal;
+    if (paper.volume) {
+      sourcePart += ` ${paper.volume}`;
+      if (paper.issue) sourcePart += `, no. ${paper.issue}`;
+    }
+    if (paper.pages) sourcePart += `: ${paper.pages}`;
+    sourcePart += ".";
+  }
+  const url = doiUrl(paper.doi);
+  return [authorStr, year, title, (sourcePart + (url ? " " + url + "." : "")).trim()].filter(Boolean).join(" ");
+}
+
+function formatCitationHarvard(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  let authorStr: string;
+  if (parsed.length === 0) {
+    authorStr = "Unknown Author";
+  } else if (parsed.length === 1) {
+    authorStr = authorLabel(parsed[0]);
+  } else if (parsed.length <= 3) {
+    const all = parsed.map(authorLabel);
+    const last = all.pop()!;
+    authorStr = all.join(", ") + " and " + last;
+  } else {
+    authorStr = authorLabel(parsed[0]) + " et al.";
+  }
+
+  const year = paper.year ? `(${paper.year})` : "(n.d.)";
+  const title = paper.title ? `'${paper.title}'` : "'Untitled'";
+  let result = `${authorStr} ${year} ${title}`;
+
+  if (paper.journal) {
+    result += `, ${paper.journal}`;
+    if (paper.volume) { result += `, vol. ${paper.volume}`; if (paper.issue) result += `, no. ${paper.issue}`; }
+    if (paper.pages) result += `, pp. ${paper.pages}`;
+    result += ".";
+  } else {
+    result += ".";
+  }
+  const raw = cleanDoi(paper.doi);
+  if (raw) result += ` Available at: doi:${raw}.`;
+  return result;
+}
+
+function formatCitationIEEE(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  const ieeeA = (a: ParsedAuthor) => `${a.initials ? a.initials + " " : ""}${a.last}`;
+  let authorStr = "";
+  if (parsed.length === 1) {
+    authorStr = ieeeA(parsed[0]);
+  } else if (parsed.length === 2) {
+    authorStr = `${ieeeA(parsed[0])} and ${ieeeA(parsed[1])}`;
+  } else if (parsed.length > 2) {
+    const all = parsed.map(ieeeA);
+    const last = all.pop()!;
+    authorStr = all.join(", ") + ", and " + last;
+  }
+
+  const title = paper.title ? `"${paper.title},"` : '"Untitled,"';
+  let source = "";
+  if (paper.journal) {
+    source = paper.journal;
+    if (paper.volume) source += `, vol. ${paper.volume}`;
+    if (paper.issue) source += `, no. ${paper.issue}`;
+    if (paper.pages) source += `, pp. ${paper.pages}`;
+    if (paper.year) source += `, ${paper.year}`;
+  }
+  const raw = cleanDoi(paper.doi);
+  const doiPart = raw ? `, doi: ${raw}` : "";
+
+  const pieces: string[] = [];
+  if (authorStr) pieces.push(authorStr + ", ");
+  pieces.push(title);
+  pieces.push(source ? ` ${source}${doiPart}.` : ".");
+  return pieces.join("");
+}
+
+function formatCitationVancouver(paper: RatedPaper): string {
+  const parsed = parseAuthors(paper.authors);
+  const vanA = (a: ParsedAuthor) => {
+    const inits = a.initials.replace(/\.\s*/g, "");
+    return `${a.last}${inits ? " " + inits : ""}`;
+  };
+  let authorStr = "";
+  if (parsed.length <= 6) {
+    authorStr = parsed.map(vanA).join(", ");
+  } else {
+    authorStr = parsed.slice(0, 6).map(vanA).join(", ") + ", et al";
+  }
+  if (authorStr) authorStr += ".";
+
+  const title = (paper.title ?? "Untitled") + ".";
+  let source = "";
+  if (paper.journal) {
+    source = paper.journal + ".";
+    if (paper.year) {
+      source += ` ${paper.year}`;
+      if (paper.volume) {
+        source += `;${paper.volume}`;
+        if (paper.issue) source += `(${paper.issue})`;
+      }
+      if (paper.pages) source += `:${paper.pages}`;
+      source += ".";
+    }
+  } else if (paper.year) {
+    source = `${paper.year}.`;
+  }
+  const raw = cleanDoi(paper.doi);
+  const doiPart = raw ? ` doi: ${raw}` : "";
+  return [authorStr, title, (source + doiPart).trim()].filter(Boolean).join(" ");
 }
 
 async function apiFetch<T>(
@@ -143,26 +346,93 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = async () => {
+const CITATION_FORMATS = [
+  { id: "apa",       label: "APA 7th",      fn: formatCitationAPA },
+  { id: "mla",       label: "MLA 9th",      fn: formatCitationMLA },
+  { id: "chicago",   label: "Chicago 17th", fn: formatCitationChicago },
+  { id: "harvard",   label: "Harvard",      fn: formatCitationHarvard },
+  { id: "ieee",      label: "IEEE",         fn: formatCitationIEEE },
+  { id: "vancouver", label: "Vancouver",    fn: formatCitationVancouver },
+] as const;
+
+function CitationMenu({ paper }: { paper: RatedPaper }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const key  = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", down);
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
+  }, []);
+
+  const handleCopy = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // clipboard access denied — silently ignore
-    }
+      setCopied(id);
+      setTimeout(() => { setCopied(null); setOpen(false); }, 1400);
+    } catch { /* clipboard access denied */ }
   };
+
   return (
-    <button
-      onClick={handleCopy}
-      type="button"
-      className="text-xs text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] transition-colors"
-      title="Copy APA citation"
-    >
-      {copied ? "✓ Copied" : "Copy APA"}
-    </button>
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1 text-xs text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] transition-colors"
+        title="Copy citation"
+      >
+        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 3H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3M8 3a2 2 0 002 2h2a2 2 0 002-2M8 3a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Cite
+        <svg className={`h-2.5 w-2.5 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 4 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="absolute bottom-full left-0 mb-2 z-30 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
+            role="menu"
+          >
+            <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+              Copy citation
+            </p>
+            {CITATION_FORMATS.map(({ id, label, fn }) => {
+              const isCopied = copied === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleCopy(id, fn(paper))}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 light:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors text-left"
+                  role="menuitem"
+                >
+                  <span className={isCopied ? "text-green-400 light:text-[#1E4620] font-medium" : ""}>{label}</span>
+                  {isCopied ? (
+                    <svg className="h-3.5 w-3.5 text-green-400 light:text-[#1E4620] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3 text-slate-600 light:text-[#A67856] shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 3H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3M8 3a2 2 0 002 2h2a2 2 0 002-2M8 3a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -362,7 +632,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
       </p>
 
       <div className="mt-2">
-        <CopyButton text={formatAPA(paper)} />
+        <CitationMenu paper={paper} />
       </div>
     </motion.div>
   );
@@ -385,10 +655,10 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`claim-card rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] border-l-2 ${accentClass} bg-white/[0.03] light:bg-[rgba(44,24,16,0.025)] backdrop-blur-sm overflow-hidden`}
+      className={`claim-card rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] border-l-2 ${accentClass} bg-white/[0.03] light:bg-[rgba(44,24,16,0.025)] backdrop-blur-sm`}
     >
       {/* claim header */}
-      <div className="bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] border-b border-white/10 light:border-[rgba(80,50,20,0.1)] px-5 py-4">
+      <div className="bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] border-b border-white/10 light:border-[rgba(80,50,20,0.1)] px-5 py-4 rounded-t-xl overflow-hidden">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
             {index + 1}
