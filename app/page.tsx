@@ -2187,7 +2187,7 @@ function PlanModal({
                     <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Billed every month</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥299</p>
+                    <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥799</p>
                     <p className="text-xs text-slate-500 light:text-[#6B4226]">/ month</p>
                   </div>
                 </div>
@@ -2208,7 +2208,7 @@ function PlanModal({
                     <p className="text-xs text-amber-500 light:text-amber-600 mt-0.5">Billed once per year</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥2,990</p>
+                    <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥7,990</p>
                     <p className="text-xs text-amber-500 light:text-amber-600">/ year</p>
                   </div>
                 </div>
