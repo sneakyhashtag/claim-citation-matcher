@@ -678,8 +678,9 @@ function ProBadge() {
 }
 
 /**
- * Pro-gate message. Renders as a fixed, centred modal so it always appears
- * above all stacking contexts regardless of where the trigger lives in the DOM.
+ * Pro-gate message. Renders as a fixed centred modal so it always appears
+ * above all stacking contexts. Completely solid backgrounds — no blur, no
+ * transparency — so it is always crisp regardless of what is behind it.
  */
 function ProGatePopover({
   isSignedIn,
@@ -692,19 +693,28 @@ function ProGatePopover({
 }) {
   return (
     <>
-      {/* Full-screen dismiss layer — sits below the panel */}
-      <div className="fixed inset-0 z-[180]" onClick={onClose} />
+      {/* Dim backdrop — click anywhere to close */}
+      <div
+        className="fixed inset-0 z-[9998] bg-black/40"
+        onClick={onClose}
+      />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.94 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.94 }}
-        transition={{ duration: 0.16, ease: "easeOut" }}
-        className="fixed left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 z-[181] w-72 rounded-2xl border border-white/[0.14] light:border-[rgba(80,50,20,0.22)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-[0_24px_60px_rgba(0,0,0,0.55)] light:shadow-[0_12px_40px_rgba(80,50,20,0.18)] px-5 py-4"
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        /* Solid colours only — no rgba alpha < 1, no backdrop-filter */
+        style={{ backdropFilter: "none", WebkitBackdropFilter: "none" }}
+        className="fixed left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 z-[9999]
+                   w-72 rounded-2xl px-5 py-4
+                   bg-[#1a2035] light:bg-[#faf8f2]
+                   border-2 border-[#2e3a5a] light:border-[#b89660]
+                   shadow-[0_8px_40px_#000a,0_2px_8px_#0006] light:shadow-[0_8px_32px_#7c4e1840,0_2px_6px_#7c4e1820]"
       >
         <div className="flex items-start gap-3">
-          {/* Lock icon badge */}
-          <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/[0.12] light:bg-amber-700/[0.09] border border-amber-500/[0.20] light:border-amber-700/[0.16]">
+          {/* Lock icon */}
+          <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#2e3a5a] light:bg-[#e8dfc8] border border-[#3d4e78] light:border-[#c4a870]">
             <svg className="h-3.5 w-3.5 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0110 0v4"/>
@@ -712,16 +722,16 @@ function ProGatePopover({
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-slate-100 light:text-[#2C1810] mb-1.5">
+            <p className="text-sm font-semibold text-white light:text-[#1a0f00] mb-1.5">
               Pro feature
             </p>
-            <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] light:text-[#4a3010] leading-relaxed">
               {isSignedIn ? (
                 <>
                   <button
                     type="button"
                     onClick={() => { onClose(); onUpgrade(); }}
-                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
                   >
                     Upgrade to Pro
                   </button>
@@ -732,7 +742,7 @@ function ProGatePopover({
                   <button
                     type="button"
                     onClick={() => { onClose(); onUpgrade(); }}
-                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
                   >
                     Sign in
                   </button>
@@ -746,7 +756,7 @@ function ProGatePopover({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-[#64748b] hover:text-white light:text-[#8b6a40] light:hover:text-[#1a0f00] transition-colors"
             aria-label="Dismiss"
           >
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
