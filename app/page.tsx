@@ -3375,8 +3375,8 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col">
-                    {/* Claims count + export / date filter — 8px between the two rows */}
-                    <div className="flex flex-col gap-2">
+                    {/* Claims count + export / date filter — 16px between the two rows */}
+                    <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
