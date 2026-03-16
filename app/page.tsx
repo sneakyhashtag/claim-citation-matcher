@@ -158,7 +158,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       type="button"
-      className="text-xs text-slate-500 light:text-slate-500 hover:text-slate-300 light:hover:text-slate-700 transition-colors"
+      className="text-xs text-slate-500 light:text-[#8B5E3C] hover:text-slate-300 light:hover:text-[#4A2E1A] transition-colors"
       title="Copy APA citation"
     >
       {copied ? "✓ Copied" : "Copy APA"}
@@ -242,12 +242,12 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
               href={paper.doi}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-slate-100 light:text-slate-900 hover:text-blue-400 light:hover:text-blue-600 transition-colors leading-snug break-words"
+              className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-blue-600 transition-colors leading-snug break-words"
             >
               {paper.title ?? "Untitled"}
             </a>
           ) : (
-            <span className="text-sm font-medium text-slate-100 light:text-slate-900 leading-snug break-words">
+            <span className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-snug break-words">
               {paper.title ?? "Untitled"}
             </span>
           )}
@@ -257,7 +257,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               paper.source === "Semantic Scholar"
                 ? "bg-purple-500/15 text-purple-400 light:text-purple-700"
-                : "bg-white/10 light:bg-black/[0.07] text-slate-300 light:text-slate-600"
+                : "bg-white/10 light:bg-black/[0.07] text-slate-300 light:text-[#6B4226]"
             }`}>
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
@@ -268,12 +268,12 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
 
       {/* authors · year */}
       {authorYearMeta && (
-        <p className="mt-1.5 text-xs text-slate-400 light:text-slate-600 break-words">{authorYearMeta}</p>
+        <p className="mt-1.5 text-xs text-slate-400 light:text-[#6B4226] break-words">{authorYearMeta}</p>
       )}
 
       {/* journal */}
       {paper.journal && (
-        <p className="mt-0.5 text-xs text-slate-500 light:text-slate-600 italic truncate" title={paper.journal}>
+        <p className="mt-0.5 text-xs text-slate-500 light:text-[#6B4226] italic truncate" title={paper.journal}>
           {paper.journal}
         </p>
       )}
@@ -357,7 +357,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
       </div>
 
       {/* relevance explanation */}
-      <p className="mt-2 text-xs text-slate-500 light:text-slate-600 italic leading-relaxed">
+      <p className="mt-2 text-xs text-slate-500 light:text-[#6B4226] italic leading-relaxed">
         {paper.relevanceExplanation}
       </p>
 
@@ -390,12 +390,12 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       {/* claim header */}
       <div className="bg-white/[0.04] light:bg-black/[0.03] border-b border-white/10 light:border-black/[0.09] px-5 py-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-slate-800 text-xs font-medium shrink-0">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
             {index + 1}
           </span>
-          <span className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Claim</span>
+          <span className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Claim</span>
         </div>
-        <p className="text-sm font-medium text-slate-100 light:text-slate-900 leading-relaxed">
+        <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-relaxed">
           &ldquo;{result.claim}&rdquo;
         </p>
       </div>
@@ -403,7 +403,7 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
       {/* papers */}
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
-          <p className="text-xs text-slate-500 light:text-slate-600">
+          <p className="text-xs text-slate-500 light:text-[#6B4226]">
             No relevant papers found for this claim.
           </p>
         ) : (
@@ -424,7 +424,7 @@ function ThemeToggle({ theme, onToggle }: { theme: "dark" | "light"; onToggle: (
   return (
     <button
       onClick={onToggle}
-      className="flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-black/[0.1] bg-white/10 light:bg-black/[0.06] hover:bg-white/15 light:hover:bg-black/[0.1] backdrop-blur-sm transition-colors"
+      className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] backdrop-blur-sm transition-colors"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
@@ -476,7 +476,7 @@ function UserMenu({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl border border-white/15 light:border-black/[0.12] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors"
+        className="parchment-pill flex items-center gap-2 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -484,14 +484,14 @@ function UserMenu({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image} alt={name} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
         ) : (
-          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-slate-700 text-xs font-medium flex items-center justify-center">
+          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-[#4A2E1A] text-xs font-medium flex items-center justify-center">
             {initials}
           </span>
         )}
-        <span className="text-sm font-medium text-slate-200 light:text-slate-800 max-w-[120px] truncate hidden sm:block">
+        <span className="text-sm font-medium text-slate-200 light:text-[#2C1810] max-w-[120px] truncate hidden sm:block">
           {firstName}
         </span>
-        <svg className={`h-3.5 w-3.5 text-slate-400 light:text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+        <svg className={`h-3.5 w-3.5 text-slate-400 light:text-[#8B5E3C] transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
         </svg>
       </button>
@@ -503,31 +503,31 @@ function UserMenu({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-black/[0.10] bg-[#141828] light:bg-[rgba(246,248,253,1)] shadow-xl py-1 z-50"
+            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
             role="menu"
           >
             <div className="px-3 py-2 border-b border-white/[0.08] light:border-black/[0.08]">
-              <p className="text-xs font-medium text-slate-100 light:text-slate-900 truncate">{name}</p>
+              <p className="text-xs font-medium text-slate-100 light:text-[#2C1810] truncate">{name}</p>
               {session.user?.email && (
-                <p className="text-xs text-slate-400 light:text-slate-500 truncate">{session.user.email}</p>
+                <p className="text-xs text-slate-400 light:text-[#8B5E3C] truncate">{session.user.email}</p>
               )}
             </div>
             <button
               onClick={() => { setOpen(false); onOpenHistory(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-slate-700 hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-slate-500 light:text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
               </svg>
               History
             </button>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-slate-700 hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
               role="menuitem"
             >
-              <svg className="h-4 w-4 text-slate-500 light:text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
                 <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
               </svg>
@@ -576,12 +576,12 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
-              <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
+              <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
                 How it works
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 light:text-slate-400 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                className="p-1.5 rounded-md text-slate-500 light:text-[#A67856] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -592,13 +592,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
             {/* body */}
             <div className="px-6 py-5 space-y-5 overflow-y-auto">
-              <p className="text-sm text-slate-400 light:text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">
                 Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
               </p>
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide mb-2.5">How it works</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide mb-2.5">How it works</p>
                 <ol className="space-y-3">
                   {[
                     { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
@@ -607,10 +607,10 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                     { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
                   ].map(({ icon, text }) => (
                     <li key={icon} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-slate-100 light:text-slate-800 text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-slate-100 light:text-[#2C1810] text-xs font-medium shrink-0 mt-0.5">
                         {icon}
                       </span>
-                      <p className="text-sm text-slate-400 light:text-slate-600 leading-relaxed">{text}</p>
+                      <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">{text}</p>
                     </li>
                   ))}
                 </ol>
@@ -618,81 +618,81 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
               {/* paper badges */}
               <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Paper stat badges</p>
-                <p className="text-xs text-slate-500 light:text-slate-600 leading-relaxed">
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
                   Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-teal-400 light:text-teal-700">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-teal-700">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
               <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Relevance tiers</p>
-                <p className="text-xs text-slate-500 light:text-slate-600 leading-relaxed">
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
                   Papers are ranked by relevance with three color-coded tiers.
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-slate-700"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">Good to know</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Good to know</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
-                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-900">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+                    <strong className="text-slate-200 light:text-[#2C1810]">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
-                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-900">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+                    <strong className="text-slate-200 light:text-[#2C1810]">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
-                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-900">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+                    <strong className="text-slate-200 light:text-[#2C1810]">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
-                  <p className="text-xs text-slate-400 light:text-slate-700 leading-relaxed">
-                    <strong className="text-slate-200 light:text-slate-900">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+                    <strong className="text-slate-200 light:text-[#2C1810]">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
                   </p>
                 </div>
               </div>
@@ -750,14 +750,14 @@ function PlanModal({
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
               <div>
-                <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-slate-900 text-base">
+                <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
                   Upgrade to Pro
                 </h2>
-                <p className="text-xs text-slate-500 light:text-slate-600 mt-0.5">Unlimited searches, forever.</p>
+                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Unlimited searches, forever.</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 light:text-slate-400 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                className="p-1.5 rounded-md text-slate-500 light:text-[#A67856] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -776,12 +776,12 @@ function PlanModal({
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-100 light:text-slate-900">Monthly</p>
-                    <p className="text-xs text-slate-500 light:text-slate-600 mt-0.5">Billed every month</p>
+                    <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">Monthly</p>
+                    <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Billed every month</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-slate-100 light:text-slate-900">¥299</p>
-                    <p className="text-xs text-slate-500 light:text-slate-600">/ month</p>
+                    <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥299</p>
+                    <p className="text-xs text-slate-500 light:text-[#6B4226]">/ month</p>
                   </div>
                 </div>
               </button>
@@ -1129,7 +1129,7 @@ export default function Home() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
-              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#0e1120] light:bg-[#f0f3fa] border-l border-white/[0.08] light:border-black/[0.1] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(0,0,0,0.12)]"
+              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#0e1120] light:bg-[#EAE9C8] border-l border-white/[0.08] light:border-[rgba(80,50,20,0.12)] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(80,50,20,0.12)]"
               role="complementary"
               aria-label="Search history"
             >
@@ -1138,10 +1138,10 @@ export default function Home() {
                 {/* Title row */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4">
                   <div>
-                    <h2 className="text-base font-bold text-slate-100 light:text-slate-900 tracking-tight">
+                    <h2 className="text-base font-bold text-slate-100 light:text-[#2C1810] tracking-tight">
                       Search History
                     </h2>
-                    <p className="text-xs text-slate-500 light:text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-500 light:text-[#8B5E3C] mt-0.5">
                       {history.length === 0
                         ? "No searches yet"
                         : `${history.length} search${history.length !== 1 ? "es" : ""}`}
@@ -1151,7 +1151,7 @@ export default function Home() {
                   {/* Close button — prominent X in top-right */}
                   <button
                     onClick={() => { setShowHistory(false); setShowClearConfirm(false); }}
-                    className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 light:text-slate-500 hover:text-slate-100 light:hover:text-slate-900 hover:bg-white/[0.10] light:hover:bg-black/[0.07] transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 light:text-[#8B5E3C] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.10] light:hover:bg-black/[0.07] transition-colors"
                     aria-label="Close history"
                   >
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -1178,7 +1178,7 @@ export default function Home() {
                           </button>
                           <button
                             onClick={() => setShowClearConfirm(false)}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-slate-500 hover:text-slate-200 light:hover:text-slate-700 hover:bg-white/[0.08] light:hover:bg-black/[0.05] transition-colors"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/[0.08] light:hover:bg-black/[0.05] transition-colors"
                           >
                             Cancel
                           </button>
@@ -1203,11 +1203,11 @@ export default function Home() {
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {history.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <svg className="h-8 w-8 text-slate-600 light:text-slate-400 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                    <svg className="h-8 w-8 text-slate-600 light:text-[#A67856] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <p className="text-sm font-medium text-slate-500 light:text-slate-500">No searches yet</p>
-                    <p className="text-xs text-slate-600 light:text-slate-400 mt-1">Your analyses will appear here</p>
+                    <p className="text-sm font-medium text-slate-500 light:text-[#8B5E3C]">No searches yet</p>
+                    <p className="text-xs text-slate-600 light:text-[#A67856] mt-1">Your analyses will appear here</p>
                   </div>
                 ) : (
                   <ul className="flex flex-col gap-2">
@@ -1215,16 +1215,16 @@ export default function Home() {
                       <li key={entry.id}>
                         <button
                           onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-black/[0.09] bg-[#161b2e] light:bg-white px-4 py-4 transition-all duration-150 hover:bg-[#1d2440] light:hover:bg-slate-50 hover:border-white/[0.18] light:hover:border-black/[0.15] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] group"
+                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-[rgba(80,50,20,0.12)] bg-[#161b2e] light:bg-[rgba(248,246,234,0.85)] px-4 py-4 transition-all duration-150 hover:bg-[#1d2440] light:hover:bg-[rgba(248,246,234,1)] hover:border-white/[0.18] light:hover:border-[rgba(80,50,20,0.2)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(80,50,20,0.1)] group"
                         >
                           {/* Preview — single line, truncates with ellipsis */}
-                          <p className="text-sm font-medium text-slate-200 light:text-slate-800 truncate group-hover:text-white light:group-hover:text-slate-900 transition-colors">
+                          <p className="text-sm font-medium text-slate-200 light:text-[#2C1810] truncate group-hover:text-white light:group-hover:text-[#2C1810] transition-colors">
                             {entry.paragraph}
                           </p>
 
                           {/* Metadata row */}
                           <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-xs text-slate-500 light:text-slate-500">
+                            <div className="flex items-center gap-2 text-xs text-slate-500 light:text-[#8B5E3C]">
                               <span className="inline-flex items-center gap-1">
                                 <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                                   <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
@@ -1235,7 +1235,7 @@ export default function Home() {
                               <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
                             </div>
                             {/* Arrow hint — appears on hover */}
-                            <svg className="h-3.5 w-3.5 text-slate-600 light:text-slate-400 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                            <svg className="h-3.5 w-3.5 text-slate-600 light:text-[#A67856] opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                               <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd"/>
                             </svg>
                           </div>
@@ -1282,7 +1282,7 @@ export default function Home() {
                 <button
                   onClick={() => setShowPlanModal(true)}
                   disabled={upgrading}
-                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/30 bg-amber-500/10 light:bg-amber-600/[0.08] backdrop-blur-sm px-2.5 py-1.5 hover:bg-amber-500/15 light:hover:bg-amber-600/[0.14] text-sm font-medium text-amber-400 light:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-amber-500/15 light:hover:bg-[rgba(240,238,218,0.95)] text-sm font-medium text-amber-400 light:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -1290,7 +1290,7 @@ export default function Home() {
                   {upgrading ? "Redirecting…" : "Upgrade to Pro"}
                 </button>
               ) : (
-                <span className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/30 bg-amber-500/10 light:bg-amber-600/[0.08] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
+                <span className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                   </svg>
@@ -1305,19 +1305,19 @@ export default function Home() {
                 <>
                   <button
                     onClick={openHistory}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.12] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-300 light:text-slate-700"
+                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-300 light:text-[#4A2E1A]"
                     aria-label="Open search history"
                   >
-                    <svg className="h-4 w-4 text-slate-400 light:text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
                     </svg>
                     <span className="hidden sm:inline">History</span>
                   </button>
                   <button
                     onClick={() => signIn("google")}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/15 light:border-black/[0.12] bg-white/10 light:bg-black/[0.06] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-black/[0.1] transition-colors text-sm font-medium text-slate-200 light:text-slate-700"
+                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-200 light:text-[#4A2E1A]"
                   >
-                    <svg className="h-4 w-4 text-slate-400 light:text-slate-500 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
                     </svg>
                     Sign in
@@ -1352,7 +1352,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mt-3 text-lg font-light text-slate-400 light:text-slate-600 tracking-wide sm:text-xl"
+                  className="mt-3 text-lg font-light text-slate-400 light:text-[#6B4226] tracking-wide sm:text-xl"
                 >
                   Real papers, not hallucinated ones.
                 </motion.p>
@@ -1366,7 +1366,7 @@ export default function Home() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                    className="mt-2 text-sm text-slate-400 light:text-slate-700"
+                    className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
                   >
                     Paste a paragraph to find academic citations for each factual claim.
                   </motion.p>
@@ -1376,7 +1376,7 @@ export default function Home() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
-                      className="mt-1 text-sm text-slate-400 light:text-slate-600"
+                      className="mt-1 text-sm text-slate-400 light:text-[#6B4226]"
                     >
                       Welcome back, {session.user.name.split(" ")[0]}.
                     </motion.p>
@@ -1389,7 +1389,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-2 text-sm text-slate-400 light:text-slate-700"
+                  className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
                   Find academic citations for every factual claim in your writing.
                 </motion.p>
@@ -1430,13 +1430,13 @@ export default function Home() {
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
                   <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
-                  <span className="text-xs text-slate-500 light:text-slate-600">or</span>
+                  <span className="text-xs text-slate-500 light:text-[#6B4226]">or</span>
                   <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
                 </div>
 
                 <button
                   onClick={() => setStage("app")}
-                  className="w-full max-w-xs rounded-xl border border-white/15 light:border-black/[0.1] bg-white/8 light:bg-black/[0.05] px-6 py-3 text-sm font-medium text-slate-300 light:text-slate-700 hover:bg-white/12 light:hover:bg-black/[0.09] hover:text-white light:hover:text-slate-900 transition-colors"
+                  className="w-full max-w-xs rounded-xl border border-white/15 light:border-black/[0.1] bg-white/8 light:bg-black/[0.05] px-6 py-3 text-sm font-medium text-slate-300 light:text-[#4A2E1A] hover:bg-white/12 light:hover:bg-black/[0.09] hover:text-white light:hover:text-[#2C1810] transition-colors"
                 >
                   Continue as Guest
                 </button>
@@ -1444,7 +1444,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowHowTo(true)}
-                  className="flex items-center gap-1.5 text-sm text-slate-500 light:text-slate-600 hover:text-slate-300 light:hover:text-slate-800 transition-colors mt-1"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-slate-800 transition-colors mt-1"
                 >
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
@@ -1469,10 +1469,10 @@ export default function Home() {
                       onChange={(e) => { setText(e.target.value.slice(0, charLimit)); setUploadError(""); }}
                       placeholder="Paste your paragraph here…"
                       aria-label="Paragraph input"
-                      className={`w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-black/[0.03] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-slate-900 placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
+                      className={`parchment-textarea w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-[rgba(255,252,234,0.75)] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-[#2C1810] placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
                         !isPro && text.length >= FREE_CHAR_LIMIT
                           ? "border-red-500/40 focus:ring-red-500/40"
-                          : "border-white/10 light:border-black/[0.1] focus:ring-white/20 light:focus:ring-black/[0.15]"
+                          : "border-white/10 light:border-[rgba(80,50,20,0.15)] focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)]"
                       }`}
                       disabled={loading || extracting}
                     />
@@ -1482,7 +1482,7 @@ export default function Home() {
                           ? "text-red-400 light:text-red-600 font-medium"
                           : charLimit - text.length <= (isPro ? 500 : 100)
                           ? "text-amber-400 light:text-amber-600"
-                          : "text-slate-500 light:text-slate-600"
+                          : "text-slate-500 light:text-[#6B4226]"
                       }`}
                     >
                       {text.length.toLocaleString()}/{charLimit.toLocaleString()}
@@ -1553,7 +1553,7 @@ export default function Home() {
                               setShowUpgradeHint((v) => !v);
                             }
                           }}
-                          className="flex items-center gap-1.5 text-sm text-slate-400 light:text-slate-600 hover:text-slate-200 light:hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center gap-1.5 text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Upload document"
                         >
                           {extracting ? (
@@ -1585,7 +1585,7 @@ export default function Home() {
                                 transition={{ duration: 0.15 }}
                                 className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-black/[0.13] glass-panel shadow-xl px-4 py-3"
                               >
-                                <p className="text-xs text-slate-300 light:text-slate-700 leading-relaxed">
+                                <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
                                   Uploading documents is a Pro feature.{" "}
                                   <button
                                     type="button"
@@ -1606,7 +1606,7 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 light:text-slate-600 hover:text-slate-300 light:hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-[#2C1810] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
@@ -1625,7 +1625,7 @@ export default function Home() {
                             ? "bg-red-500/15 text-red-400 light:text-red-600"
                             : usage.remaining <= 1
                             ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
-                            : "bg-white/8 light:bg-black/[0.05] text-slate-400 light:text-slate-600"
+                            : "bg-white/8 light:bg-black/[0.05] text-slate-400 light:text-[#6B4226]"
                         }`}>
                           {usage.remaining}/3 searches left today
                         </span>
@@ -1633,7 +1633,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="btn-submit px-5 py-2 rounded-lg bg-white light:bg-slate-900 text-gray-950 light:text-white text-sm font-semibold hover:bg-slate-100 light:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="btn-submit px-5 py-2 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
                       </button>
@@ -1673,7 +1673,7 @@ export default function Home() {
                     <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-400 light:text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-sm text-slate-300 light:text-slate-700">
+                    <p className="text-sm text-slate-300 light:text-[#4A2E1A]">
                       You&apos;ve reached your daily limit of 3 free searches.{" "}
                       <button
                         type="button"
@@ -1688,7 +1688,7 @@ export default function Home() {
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-slate-700">
+                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-[#4A2E1A]">
                     <svg className="animate-spin h-4 w-4 shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -1701,7 +1701,7 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <h2 className="text-xs font-medium text-slate-500 light:text-slate-600 uppercase tracking-wide">
+                    <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
                       {results.length} claim{results.length > 1 ? "s" : ""} found
                     </h2>
 
