@@ -77,12 +77,20 @@ interface ClaimResult {
   papers: RatedPaper[];
 }
 
+interface OmakaseHistoryData {
+  rewritten_paragraph: string;
+  reference_list: string[];
+  style: string;
+  label: string;
+}
+
 interface HistoryEntry {
   id: string;
   paragraph: string;
   claims: { claim: string; searchQuery: string }[];
   results: ClaimResult[];
   createdAt: string;
+  omakase?: OmakaseHistoryData;
 }
 
 // ── recency filter ────────────────────────────────────────────────────────────
@@ -2284,11 +2292,12 @@ function lsGetHistory(): HistoryEntry[] {
 
 function lsAddHistory(
   entry: Omit<HistoryEntry, "id" | "createdAt">
-): void {
+): string {
+  const id = Date.now().toString();
   try {
     const next: HistoryEntry = {
       ...entry,
-      id: Date.now().toString(),
+      id,
       createdAt: new Date().toISOString(),
     };
     localStorage.setItem(
@@ -2297,6 +2306,18 @@ function lsAddHistory(
     );
   } catch {
     // localStorage unavailable (e.g. private browsing with storage blocked)
+  }
+  return id;
+}
+
+function lsUpdateHistory(id: string, patch: Partial<HistoryEntry>): void {
+  try {
+    const updated = lsGetHistory().map((e) =>
+      e.id === id ? { ...e, ...patch } : e
+    );
+    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(updated));
+  } catch {
+    // localStorage unavailable
   }
 }
 
@@ -2369,13 +2390,15 @@ export default function Home() {
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
   const [showOmakasePicker, setShowOmakasePicker] = useState(false);
   const [omakaseLoading, setOmakaseLoading] = useState<{ style: OmakaseStyleId; label: string } | null>(null);
-  const [omakaseResult, setOmakaseResult] = useState<{ rewritten_paragraph: string; reference_list: string[]; label: string } | null>(null);
+  const [omakaseResult, setOmakaseResult] = useState<OmakaseHistoryData | null>(null);
   const [omakaseError, setOmakaseError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  // Tracks the id of the most-recently saved history entry so Omakase can patch it
+  const currentHistoryId = useRef<string | null>(null);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -2476,6 +2499,8 @@ export default function Home() {
     setText(entry.paragraph);
     setCurrentClaims(entry.claims);
     setResults(entry.results);
+    setOmakaseResult(entry.omakase ?? null);
+    currentHistoryId.current = entry.id;
     setError("");
     setShowHistory(false);
   };
@@ -2496,6 +2521,8 @@ export default function Home() {
     setResults([]);
     setCurrentClaims([]);
     setYearFilter("all");
+    setOmakaseResult(null);
+    currentHistoryId.current = null;
 
     try {
       setStatus("Extracting claims…");
@@ -2562,7 +2589,7 @@ export default function Home() {
       await fetchUsage();
 
       // Save to browser history (works for all users, no account needed)
-      lsAddHistory({ paragraph: text, claims, results: claimResults });
+      currentHistoryId.current = lsAddHistory({ paragraph: text, claims, results: claimResults });
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setStatus("");
@@ -2635,11 +2662,17 @@ export default function Home() {
                 if (!res.ok) {
                   setOmakaseError(json?.error ?? `Request failed (${res.status})`);
                 } else {
-                  setOmakaseResult({
+                  const omakaseData = {
                     rewritten_paragraph: json.rewritten_paragraph,
                     reference_list: json.reference_list ?? [],
+                    style: style as string,
                     label: entry.label,
-                  });
+                  };
+                  setOmakaseResult(omakaseData);
+                  // Patch the existing history entry with the Omakase output
+                  if (currentHistoryId.current) {
+                    lsUpdateHistory(currentHistoryId.current, { omakase: omakaseData });
+                  }
                 }
               } catch {
                 setOmakaseError("Network error — please check your connection and try again.");
@@ -2825,6 +2858,16 @@ export default function Home() {
                               </span>
                               <span className="text-slate-700 light:text-slate-300">·</span>
                               <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+                              {entry.omakase && (
+                                <span className="inline-flex items-center gap-1 text-amber-500/80 light:text-amber-700/70">
+                                  <span className="text-slate-700 light:text-slate-300">·</span>
+                                  <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                    <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                                    <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+                                  </svg>
+                                  {entry.omakase.label}
+                                </span>
+                              )}
                             </div>
                             {/* Arrow hint — appears on hover */}
                             <svg className="h-3.5 w-3.5 text-slate-600 light:text-[#A67856] opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
