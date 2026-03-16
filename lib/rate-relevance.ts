@@ -53,7 +53,7 @@ export async function rateRelevance(
     .join("\n\n");
 
   const response = await client.messages.parse({
-    model: "claude-opus-4-6",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system: `You are a research assistant evaluating how relevant academic papers are to a specific claim.
 

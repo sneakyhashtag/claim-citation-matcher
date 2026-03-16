@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
   // ── 5. Call the Anthropic API ──────────────────────────────────────────────
   const stream = client.messages.stream({
-    model: "claude-opus-4-6",
+    model: "claude-sonnet-4-6",
     max_tokens: 2048,
     system: `You are a research assistant that identifies factual claims in text that would benefit from academic citations.
 
