@@ -2208,49 +2208,50 @@ function PlanModal({
               {/* divider */}
               <div className="mx-6 border-t border-white/[0.07] light:border-[rgba(80,50,20,0.09)]" />
 
-              {/* plan cards */}
-              <div className="px-6 py-4 flex flex-col gap-3">
-                {/* Monthly */}
-                <button
-                  onClick={() => onSelectPlan("monthly")}
-                  disabled={upgrading}
-                  className="w-full text-left rounded-xl border-2 border-white/15 light:border-[rgba(80,50,20,0.15)] px-4 py-4 hover:border-white/30 light:hover:border-[rgba(80,50,20,0.28)] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">Monthly</p>
-                      <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Billed every month</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥849</p>
-                      <p className="text-xs text-slate-500 light:text-[#6B4226]">/ month</p>
-                    </div>
-                  </div>
-                </button>
+              {/* plan cards — side by side */}
+              <div className="px-6 py-5">
+                <div className="grid grid-cols-2 gap-3">
 
-                {/* Yearly */}
-                <button
-                  onClick={() => onSelectPlan("yearly")}
-                  disabled={upgrading}
-                  className="w-full text-left rounded-xl border-2 border-amber-500/50 bg-amber-500/10 px-4 py-4 hover:bg-amber-500/15 hover:border-amber-500/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
-                >
-                  <span className="absolute -top-2.5 right-3 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide">
-                    Save 2 months
-                  </span>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-amber-300 light:text-amber-700">Yearly</p>
-                      <p className="text-xs text-amber-500 light:text-amber-600 mt-0.5">Billed once per year</p>
+                  {/* Monthly */}
+                  <button
+                    onClick={() => onSelectPlan("monthly")}
+                    disabled={upgrading}
+                    className="relative flex flex-col rounded-xl border-2 border-white/[0.12] light:border-[rgba(80,50,20,0.14)] px-4 pt-4 pb-4 text-left
+                               hover:border-white/25 light:hover:border-[rgba(80,50,20,0.26)] hover:bg-white/[0.04] light:hover:bg-black/[0.03]
+                               transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <p className="text-xs font-semibold text-slate-400 light:text-[#6B4226] uppercase tracking-wide mb-3">Monthly</p>
+                    <div className="mt-auto">
+                      <p className="text-2xl font-bold text-slate-100 light:text-[#2C1810] leading-none">¥849</p>
+                      <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] mt-1">per month</p>
+                      <p className="text-[10px] text-slate-600 light:text-[#A67856] mt-2.5">Billed monthly</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥8,490</p>
-                      <p className="text-xs text-amber-500 light:text-amber-600">/ year</p>
+                  </button>
+
+                  {/* Yearly — highlighted */}
+                  <button
+                    onClick={() => onSelectPlan("yearly")}
+                    disabled={upgrading}
+                    className="relative flex flex-col rounded-xl border-2 border-amber-500/60 light:border-amber-600/50 bg-amber-500/[0.08] light:bg-amber-700/[0.06] px-4 pt-4 pb-4 text-left
+                               hover:border-amber-500/80 light:hover:border-amber-600/70 hover:bg-amber-500/[0.12] light:hover:bg-amber-700/[0.09]
+                               shadow-[0_0_20px_rgba(245,158,11,0.12)] light:shadow-[0_0_16px_rgba(161,84,0,0.10)]
+                               transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {/* Save badge */}
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-amber-500 light:bg-amber-600 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide whitespace-nowrap shadow-sm">
+                      Save 2 months
+                    </span>
+                    <p className="text-xs font-semibold text-amber-400 light:text-amber-700 uppercase tracking-wide mb-3">Yearly</p>
+                    <div className="mt-auto">
+                      <p className="text-2xl font-bold text-amber-300 light:text-amber-800 leading-none">¥8,490</p>
+                      <p className="text-[11px] text-amber-500/80 light:text-amber-700/70 mt-1">per year</p>
+                      <p className="text-[10px] text-amber-600/70 light:text-amber-800/60 mt-2.5">≈ ¥708 / month</p>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
 
                 {upgrading && (
-                  <p className="text-center text-xs text-slate-500 pt-1">Redirecting to checkout…</p>
+                  <p className="text-center text-xs text-slate-500 mt-3">Redirecting to checkout…</p>
                 )}
               </div>
             </div>
