@@ -323,6 +323,49 @@ html.light .stat-badge-glow {
   box-shadow: 0 0 7px 1px rgba(122, 32, 0, 0.28) !important;
 }
 
+/* ── Omakase Mode button — gold shimmer, distinct from other buttons ─────── */
+
+.btn-omakase {
+  background: linear-gradient(
+    105deg,
+    rgba(245, 158, 11, 0.05) 0%,
+    rgba(251, 191, 36, 0.14) 50%,
+    rgba(245, 158, 11, 0.05) 100%
+  );
+  background-size: 200% auto;
+  animation: goldShimmer 4s linear infinite;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-omakase:not(:disabled):hover {
+  box-shadow:
+    0 0 22px 5px rgba(251, 191, 36, 0.16),
+    0 0 0 1px rgba(251, 191, 36, 0.22),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-omakase:not(:disabled):active {
+  transform: translateY(0);
+}
+
+html.light .btn-omakase {
+  background: linear-gradient(
+    105deg,
+    rgba(161, 84, 0, 0.04) 0%,
+    rgba(161, 84, 0, 0.10) 50%,
+    rgba(161, 84, 0, 0.04) 100%
+  );
+  background-size: 200% auto;
+}
+
+html.light .btn-omakase:not(:disabled):hover {
+  box-shadow:
+    0 0 18px 4px rgba(161, 84, 0, 0.13),
+    0 0 0 1px rgba(161, 84, 0, 0.20),
+    0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
 /* ── Burgundy accent for inline links on parchment ───────────────────────── */
 
 html.light a.link-burgundy,

@@ -677,7 +677,10 @@ function ProBadge() {
   );
 }
 
-/** Inline upgrade popover. Wrap in a `relative` container and position as needed. */
+/**
+ * Pro-gate message. Renders as a fixed, centred modal so it always appears
+ * above all stacking contexts regardless of where the trigger lives in the DOM.
+ */
 function ProGatePopover({
   isSignedIn,
   onUpgrade,
@@ -689,41 +692,403 @@ function ProGatePopover({
 }) {
   return (
     <>
-      {/* invisible full-screen layer — click anywhere outside to close */}
-      <div className="fixed inset-0 z-10" onClick={onClose} />
+      {/* Full-screen dismiss layer — sits below the panel */}
+      <div className="fixed inset-0 z-[180]" onClick={onClose} />
+
       <motion.div
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 4 }}
-        transition={{ duration: 0.15 }}
-        className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.16)] glass-panel shadow-xl px-4 py-3"
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.16, ease: "easeOut" }}
+        className="fixed left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 z-[181] w-72 rounded-2xl border border-white/[0.14] light:border-[rgba(80,50,20,0.22)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-[0_24px_60px_rgba(0,0,0,0.55)] light:shadow-[0_12px_40px_rgba(80,50,20,0.18)] px-5 py-4"
       >
-        <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
-          {isSignedIn ? (
-            <>
+        <div className="flex items-start gap-3">
+          {/* Lock icon badge */}
+          <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/[0.12] light:bg-amber-700/[0.09] border border-amber-500/[0.20] light:border-amber-700/[0.16]">
+            <svg className="h-3.5 w-3.5 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-slate-100 light:text-[#2C1810] mb-1.5">
+              Pro feature
+            </p>
+            <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
+              {isSignedIn ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); onUpgrade(); }}
+                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                  >
+                    Upgrade to Pro
+                  </button>
+                  {" "}to unlock this feature.
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); onUpgrade(); }}
+                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                  >
+                    Sign in
+                  </button>
+                  {" "}and upgrade to Pro to unlock this feature.
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* Dismiss × */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+            aria-label="Dismiss"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ── Omakase citation style picker modal ───────────────────────────────────────
+
+const OMAKASE_STYLES = [
+  { id: "apa",       label: "APA",       subtitle: "7th edition" },
+  { id: "mla",       label: "MLA",       subtitle: "9th edition" },
+  { id: "chicago",   label: "Chicago",   subtitle: "17th edition" },
+  { id: "harvard",   label: "Harvard",   subtitle: "Author–date" },
+  { id: "ieee",      label: "IEEE",      subtitle: "Numbered refs" },
+  { id: "vancouver", label: "Vancouver", subtitle: "Numbered refs" },
+] as const;
+
+type OmakaseStyleId = (typeof OMAKASE_STYLES)[number]["id"];
+
+function OmakaseCitationPicker({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (style: OmakaseStyleId) => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        key="omakase-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <motion.div
+        key="omakase-panel"
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+      >
+        <div
+          className="pointer-events-auto w-full max-w-sm rounded-2xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] glass-panel shadow-2xl p-6"
+          role="dialog"
+          aria-modal
+          aria-label="Choose citation style"
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <h2 className="text-base font-semibold text-slate-100 light:text-[#2C1810] letterpress-title">
+                Choose citation style
+              </h2>
+              <p className="mt-0.5 text-xs text-slate-500 light:text-[#8B5E3C]">
+                Your paragraph will be rewritten with inline citations.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-3 shrink-0 rounded-lg p-1 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+              aria-label="Close"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* Style grid */}
+          <div className="grid grid-cols-2 gap-2">
+            {OMAKASE_STYLES.map(({ id, label, subtitle }) => (
               <button
+                key={id}
                 type="button"
-                onClick={() => { onClose(); onUpgrade(); }}
-                className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                onClick={() => onSelect(id)}
+                className="group flex flex-col items-start gap-0.5 rounded-xl border border-white/[0.08] light:border-[rgba(80,50,20,0.12)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 text-left transition-all hover:border-amber-500/40 light:hover:border-amber-700/30 hover:bg-amber-500/[0.07] light:hover:bg-amber-700/[0.05] hover:shadow-[0_0_12px_1px_rgba(251,191,36,0.10)]"
               >
-                Upgrade to Pro
+                <span className="text-sm font-semibold text-slate-200 light:text-[#2C1810] group-hover:text-amber-300 light:group-hover:text-amber-800 transition-colors">
+                  {label}
+                </span>
+                <span className="text-[10px] text-slate-500 light:text-[#8B5E3C]">
+                  {subtitle}
+                </span>
               </button>
-              {" "}to unlock this feature.
-            </>
-          ) : (
-            <>
-              This is a Pro feature.{" "}
-              <button
-                type="button"
-                onClick={() => { onClose(); onUpgrade(); }}
-                className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ── Omakase result — helpers ──────────────────────────────────────────────────
+
+/**
+ * Splits a paragraph into alternating plain-text and citation segments.
+ * Matches author-date styles like (Smith et al., 2021) and numbered
+ * styles like [1] or [1,2] or [1–3].
+ */
+function splitCitations(text: string): { kind: "text" | "cite"; value: string }[] {
+  const re = /(\[[0-9][0-9,;\s–\-]*\]|\([^()]*\b(?:19|20)\d{2}[a-z]?\b[^()]*\))/g;
+  const segments: { kind: "text" | "cite"; value: string }[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) segments.push({ kind: "text", value: text.slice(last, m.index) });
+    segments.push({ kind: "cite", value: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) segments.push({ kind: "text", value: text.slice(last) });
+  return segments;
+}
+
+const CopyIcon = () => (
+  <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+  </svg>
+);
+const CheckIcon = () => (
+  <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+function useCopyButton(text: () => string) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard unavailable */ }
+  };
+  return { copied, copy };
+}
+
+// ── Omakase result — inline section ──────────────────────────────────────────
+
+function OmakaseResultSection({
+  rewrittenParagraph,
+  referenceList,
+  styleName,
+  onDismiss,
+}: {
+  rewrittenParagraph: string;
+  referenceList: string[];
+  styleName: string;
+  onDismiss: () => void;
+}) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll into view once on mount
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    // Small delay so the animation has started before we scroll
+    const id = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 80);
+    return () => clearTimeout(id);
+  }, []);
+
+  const refText  = referenceList.map((r, i) => `${i + 1}. ${r}`).join("\n");
+  const allText  = `${rewrittenParagraph}\n\nReferences\n${refText}`;
+  const para     = useCopyButton(() => rewrittenParagraph);
+  const refs     = useCopyButton(() => refText);
+  const all      = useCopyButton(() => allText);
+  const segments = splitCitations(rewrittenParagraph);
+
+  const btnBase  = "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap";
+  const btnAmber = `${btnBase} border-amber-500/30 light:border-amber-700/25 bg-amber-500/10 light:bg-amber-700/[0.07] text-amber-300 light:text-amber-800 hover:bg-amber-500/[0.18] light:hover:bg-amber-700/[0.12]`;
+  const btnGhost = `${btnBase} border-white/[0.09] light:border-[rgba(80,50,20,0.13)] text-slate-400 light:text-[#6B4226] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)]`;
+
+  return (
+    <motion.div
+      ref={sectionRef}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl border border-amber-500/[0.18] light:border-[rgba(120,80,30,0.18)] bg-[#0b0d1a] light:bg-[rgba(253,250,243,1)] shadow-[0_0_0_1px_rgba(251,191,36,0.04),0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_4px_24px_rgba(100,60,10,0.10)] overflow-hidden"
+    >
+      {/* Amber gradient top-line accent */}
+      <div className="h-px bg-gradient-to-r from-transparent via-amber-500/50 light:via-amber-700/35 to-transparent" />
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-5 pt-4 pb-3.5 border-b border-white/[0.06] light:border-[rgba(80,50,20,0.09)]">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <svg className="h-4 w-4 shrink-0 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+          </svg>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-slate-100 light:text-[#2C1810] letterpress-title truncate">
+              Omakase rewrite
+            </h2>
+            <p className="text-[10px] text-slate-500 light:text-[#8B5E3C]">
+              {styleName} · {referenceList.length} reference{referenceList.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="ml-3 shrink-0 rounded-lg p-1.5 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+          aria-label="Dismiss Omakase result"
+        >
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* ── Paragraph ── */}
+      <div className="px-5 pt-5 pb-4">
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+            Rewritten paragraph
+          </h3>
+          <button type="button" onClick={para.copy} className={btnGhost}>
+            {para.copied ? <><CheckIcon />Copied!</> : <><CopyIcon />Copy paragraph</>}
+          </button>
+        </div>
+        <p className="text-sm leading-[1.85] text-slate-200 light:text-[#2C1810]">
+          {segments.map((seg, i) =>
+            seg.kind === "cite" ? (
+              <mark
+                key={i}
+                className="rounded-sm px-[3px] py-px font-medium not-italic
+                           text-amber-300 bg-amber-500/[0.18] border border-amber-500/[0.22]
+                           light:text-amber-900 light:bg-amber-600/[0.11] light:border-amber-700/[0.20]"
+                style={{ WebkitBoxDecorationBreak: "clone", boxDecorationBreak: "clone" }}
               >
-                Sign in
-              </button>
-              {" "}and upgrade to Pro to unlock.
-            </>
+                {seg.value}
+              </mark>
+            ) : (
+              <span key={i}>{seg.value}</span>
+            )
           )}
         </p>
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="mx-5 border-t border-white/[0.05] light:border-[rgba(80,50,20,0.08)]" />
+
+      {/* ── References ── */}
+      {referenceList.length > 0 && (
+        <div className="px-5 pt-4 pb-5 bg-white/[0.015] light:bg-[rgba(44,24,16,0.025)]">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+              References
+            </h3>
+            <button type="button" onClick={refs.copy} className={btnGhost}>
+              {refs.copied ? <><CheckIcon />Copied!</> : <><CopyIcon />Copy references</>}
+            </button>
+          </div>
+          <ol className="flex flex-col gap-2">
+            {referenceList.map((ref, i) => (
+              <li key={i} className="flex gap-3 text-xs leading-relaxed text-slate-300 light:text-[#3D2010]">
+                <span className="shrink-0 mt-px font-mono text-[10px] text-amber-600/70 light:text-amber-800/60 select-none tabular-nums">
+                  [{i + 1}]
+                </span>
+                <span>{ref}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* ── Footer ── */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.09)]
+                      bg-white/[0.015] light:bg-[rgba(44,24,16,0.018)]">
+        <p className="text-[10px] text-slate-600 light:text-[#A67856] hidden sm:block">
+          Citations are highlighted in the paragraph above.
+        </p>
+        <button type="button" onClick={all.copy} className={btnAmber}>
+          {all.copied
+            ? <><CheckIcon />Copied!</>
+            : <><CopyIcon />Copy all</>}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Omakase loading overlay ────────────────────────────────────────────────────
+
+function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
+  return (
+    <>
+      <motion.div
+        key="omakase-loading-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+      />
+      <motion.div
+        key="omakase-loading-panel"
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+      >
+        <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] glass-panel shadow-2xl px-8 py-10 flex flex-col items-center gap-4 text-center">
+          {/* Spinning sparkles */}
+          <div className="relative flex items-center justify-center">
+            <svg className="absolute h-12 w-12 animate-spin text-amber-500/20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            </svg>
+            <svg className="h-6 w-6 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+              <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">
+              Rewriting with {styleName} citations…
+            </p>
+            <p className="mt-1 text-xs text-slate-500 light:text-[#8B5E3C]">
+              Inserting references from your matched papers
+            </p>
+          </div>
+        </div>
       </motion.div>
     </>
   );
@@ -1928,6 +2293,11 @@ export default function Home() {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeHint, setShowUpgradeHint] = useState(false);
+  const [showOmakaseGate, setShowOmakaseGate] = useState(false);
+  const [showOmakasePicker, setShowOmakasePicker] = useState(false);
+  const [omakaseLoading, setOmakaseLoading] = useState<{ style: OmakaseStyleId; label: string } | null>(null);
+  const [omakaseResult, setOmakaseResult] = useState<{ rewritten_paragraph: string; reference_list: string[]; label: string } | null>(null);
+  const [omakaseError, setOmakaseError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2151,6 +2521,102 @@ export default function Home() {
     <>
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
+
+      {/* ── omakase citation style picker ── */}
+      <AnimatePresence>
+        {showOmakasePicker && (
+          <OmakaseCitationPicker
+            onSelect={async (style) => {
+              const entry = OMAKASE_STYLES.find((s) => s.id === style)!;
+              setShowOmakasePicker(false);
+              setOmakaseLoading({ style, label: entry.label });
+              setOmakaseError(null);
+
+              // Collect all rated papers across every claim result
+              const allRatedPapers = (() => {
+                const seen = new Set<string>();
+                const out: import("@/lib/rate-relevance").RatedPaper[] = [];
+                for (const r of results) {
+                  for (const p of r.papers) {
+                    const doi = p.doi?.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() ?? null;
+                    const key = doi ?? p.title?.toLowerCase().trim();
+                    if (!key || seen.has(key)) continue;
+                    seen.add(key);
+                    out.push(p);
+                  }
+                }
+                return out;
+              })();
+
+              try {
+                const res = await fetch("/api/omakase", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    paragraph: text,
+                    papers: allRatedPapers,
+                    citationStyle: entry.label,
+                  }),
+                });
+                const json = await res.json();
+                if (!res.ok) {
+                  setOmakaseError(json?.error ?? `Request failed (${res.status})`);
+                } else {
+                  setOmakaseResult({
+                    rewritten_paragraph: json.rewritten_paragraph,
+                    reference_list: json.reference_list ?? [],
+                    label: entry.label,
+                  });
+                }
+              } catch {
+                setOmakaseError("Network error — please check your connection and try again.");
+              } finally {
+                setOmakaseLoading(null);
+              }
+            }}
+            onClose={() => setShowOmakasePicker(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── omakase loading overlay ── */}
+      <AnimatePresence>
+        {omakaseLoading && (
+          <OmakaseLoadingOverlay styleName={omakaseLoading.label} />
+        )}
+      </AnimatePresence>
+
+      {/* ── omakase error toast ── */}
+      <AnimatePresence>
+        {omakaseError && (
+          <motion.div
+            key="omakase-error"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.18 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-xl border border-red-500/25 bg-[#1a0a0a] light:bg-[#fdf2f2] px-4 py-3 shadow-2xl text-xs text-red-400 light:text-red-700 max-w-sm w-full"
+          >
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span className="flex-1">{omakaseError}</span>
+            <button
+              type="button"
+              onClick={() => setOmakaseError(null)}
+              className="shrink-0 rounded p-0.5 hover:bg-red-500/10 transition-colors"
+              aria-label="Dismiss"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── plan picker modal ── */}
       {showPlanModal && (
@@ -2788,14 +3254,61 @@ export default function Home() {
 
                 {results.length > 0 && (
                   <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
-                          {results.length} claim{results.length > 1 ? "s" : ""} found
-                        </h2>
-                        <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
+                            {results.length} claim{results.length > 1 ? "s" : ""} found
+                          </h2>
+                          <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                        </div>
                       </div>
                       <RecencyFilter value={yearFilter} onChange={setYearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                    </div>
+
+                    {/* ── Omakase Mode ──────────────────────────────────── */}
+                    <div className="flex justify-center">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={isPro
+                            ? () => setShowOmakasePicker(true)
+                            : () => setShowOmakaseGate((v) => !v)
+                          }
+                          className={`inline-flex items-center gap-2.5 rounded-xl border px-5 py-2.5 text-sm font-medium ${
+                            isPro
+                              ? "btn-omakase border-amber-500/25 light:border-amber-700/20 text-amber-300 light:text-amber-800"
+                              : "border-white/10 light:border-[rgba(44,24,16,0.12)] text-slate-500 light:text-[#8B5E3C] opacity-60"
+                          }`}
+                        >
+                          {isPro ? (
+                            /* Sparkles icon */
+                            <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                              <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+                              <path d="M16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/>
+                            </svg>
+                          ) : (
+                            /* Lock icon */
+                            <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                          )}
+                          Omakase: rewrite with citations
+                          {!isPro && <ProBadge />}
+                        </button>
+
+                        <AnimatePresence>
+                          {showOmakaseGate && !isPro && (
+                            <ProGatePopover
+                              isSignedIn={isSignedIn}
+                              onUpgrade={handleUpgradeClick}
+                              onClose={() => setShowOmakaseGate(false)}
+                            />
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
                     {results.map((result, i) => (
@@ -2813,6 +3326,18 @@ export default function Home() {
                         }
                       />
                     ))}
+
+                    {/* ── Omakase result ── */}
+                    <AnimatePresence>
+                      {omakaseResult && (
+                        <OmakaseResultSection
+                          rewrittenParagraph={omakaseResult.rewritten_paragraph}
+                          referenceList={omakaseResult.reference_list}
+                          styleName={omakaseResult.label}
+                          onDismiss={() => setOmakaseResult(null)}
+                        />
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </motion.div>
