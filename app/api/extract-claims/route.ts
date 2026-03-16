@@ -65,8 +65,9 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 5. Call the Anthropic API ──────────────────────────────────────────────
+  // Pro users get Sonnet for higher accuracy; free/guest users get Haiku.
   const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
+    model: pro ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001",
     max_tokens: 2048,
     system: `You are a research assistant that identifies factual claims in text that would benefit from academic citations.
 
