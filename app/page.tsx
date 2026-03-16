@@ -705,21 +705,24 @@ function ProGatePopover({
         onClick={onClose}
       />
 
+      {/* Outer div owns the fixed centering — keeps it out of Framer Motion's
+          transform so scale animation never overwrites translate(-50%,-50%). */}
+      <div
+        style={{
+          position: "fixed",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          width: "18rem",
+        }}
+      >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        style={{
-          position: "fixed",
-          left: "50%",
-          top: "42%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 9999,
-          width: "18rem",
-          backdropFilter: "none",
-          WebkitBackdropFilter: "none",
-        }}
+        style={{ backdropFilter: "none", WebkitBackdropFilter: "none" }}
         className="rounded-2xl px-5 py-4
                    bg-[#1a2035] light:bg-[#faf8f2]
                    border-2 border-[#2e3a5a] light:border-[#b89660]
@@ -780,6 +783,7 @@ function ProGatePopover({
           </button>
         </div>
       </motion.div>
+      </div>
     </>,
     document.body
   );
