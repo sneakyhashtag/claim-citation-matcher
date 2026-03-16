@@ -1630,28 +1630,17 @@ export default function Home() {
 
               {/* App subtitle — fades in after the tagline exits */}
               {ready && stage === "app" && (
-                <>
-                  <motion.p
-                    key="app-sub"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                    className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
-                  >
-                    Paste a paragraph to find academic citations for each factual claim.
-                  </motion.p>
-                  {session?.user?.name && (
-                    <motion.p
-                      key="app-greeting"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
-                      className="mt-1 text-sm text-slate-400 light:text-[#6B4226]"
-                    >
-                      Welcome back, {session.user.name.split(" ")[0]}.
-                    </motion.p>
-                  )}
-                </>
+                <motion.p
+                  key="app-sub"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+                  className="mt-2 text-sm text-slate-400 light:text-[#4A2E1A]"
+                >
+                  {session?.user?.name
+                    ? `Welcome back, ${session.user.name.split(" ")[0]}.`
+                    : "Paste a paragraph to find academic citations for each factual claim."}
+                </motion.p>
               )}
               {ready && stage === "auth" && (
                 <motion.p
