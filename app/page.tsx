@@ -944,12 +944,15 @@ function OmakaseResultSection({
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Scroll into view once on mount
+  // Scroll into view once on mount with breathing room above the section
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    // Small delay so the animation has started before we scroll
-    const id = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 80);
+    // Wait for the DOM paint + animation frame so getBoundingClientRect is accurate
+    const id = setTimeout(() => {
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 120);
     return () => clearTimeout(id);
   }, []);
 
