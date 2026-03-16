@@ -944,29 +944,14 @@ function OmakaseResultSection({
   referenceList,
   styleName,
   onDismiss,
+  containerRef,
 }: {
   rewrittenParagraph: string;
   referenceList: string[];
   styleName: string;
   onDismiss: () => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // Scroll into view once on mount — 500 ms delay so Framer Motion animation
-  // and any layout shifts have fully settled before we measure position.
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const id = setTimeout(() => {
-      // scrollIntoView with block:start then nudge up 20px for breathing room
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      // A second rAF after scrollIntoView to apply the -20px offset
-      requestAnimationFrame(() => {
-        window.scrollBy({ top: -20, behavior: "smooth" });
-      });
-    }, 500);
-    return () => clearTimeout(id);
-  }, []);
 
   const refText  = referenceList.map((r, i) => `${i + 1}. ${r}`).join("\n");
   const allText  = `${rewrittenParagraph}\n\nReferences\n${refText}`;
@@ -981,7 +966,7 @@ function OmakaseResultSection({
 
   return (
     <motion.div
-      ref={sectionRef}
+      ref={containerRef}
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
@@ -2399,6 +2384,8 @@ export default function Home() {
   const resultsRef = useRef<HTMLDivElement>(null);
   // Tracks the id of the most-recently saved history entry so Omakase can patch it
   const currentHistoryId = useRef<string | null>(null);
+  // Ref attached to the Omakase result card for reliable scroll-into-view
+  const omakaseResultRef = useRef<HTMLDivElement>(null);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -2607,6 +2594,15 @@ export default function Home() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.length > 0 ? results[0]?.claim : null]);
+
+  // Scroll to Omakase result once it is set and rendered
+  useEffect(() => {
+    if (!omakaseResult) return;
+    const id = setTimeout(() => {
+      omakaseResultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 500);
+    return () => clearTimeout(id);
+  }, [omakaseResult]);
 
   const greeting = useMemo(
     () => session?.user?.name ? pickGreeting(session.user.name.split(" ")[0]) : null,
@@ -3461,6 +3457,7 @@ export default function Home() {
                           referenceList={omakaseResult.reference_list}
                           styleName={omakaseResult.label}
                           onDismiss={() => setOmakaseResult(null)}
+                          containerRef={omakaseResultRef}
                         />
                       )}
                     </AnimatePresence>
