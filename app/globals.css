@@ -316,3 +316,21 @@ html.light .orb-2,
 html.light .orb-3 {
   opacity: 0;
 }
+
+/* ── Stat badge glow override for parchment — warm sepia instead of orange ── */
+
+html.light .stat-badge-glow {
+  box-shadow: 0 0 7px 1px rgba(122, 32, 0, 0.28) !important;
+}
+
+/* ── Burgundy accent for inline links on parchment ───────────────────────── */
+
+html.light a.link-burgundy,
+html.light button.link-burgundy {
+  color: #8B2500;
+}
+
+html.light a.link-burgundy:hover,
+html.light button.link-burgundy:hover {
+  color: #6B1C00;
+}

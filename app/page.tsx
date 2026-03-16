@@ -117,18 +117,18 @@ function getTier(score: number): {
 } {
   if (score >= 5) return {
     label: "Direct",
-    cardClass: "bg-green-500/[0.07] light:bg-green-500/[0.08] border-green-500/25 light:border-green-500/35",
-    badgeClass: "bg-green-500/15 text-green-400 light:text-green-700",
+    cardClass: "bg-green-500/[0.07] light:bg-[rgba(30,70,32,0.05)] border-green-500/25 light:border-[rgba(30,70,32,0.22)]",
+    badgeClass: "bg-green-500/15 text-green-400 light:bg-[rgba(30,70,32,0.11)] light:border-[rgba(30,70,32,0.32)] light:text-[#1E4620]",
   };
   if (score >= 4) return {
     label: "High",
-    cardClass: "bg-blue-500/[0.07] light:bg-blue-500/[0.07] border-blue-500/25 light:border-blue-500/30",
-    badgeClass: "bg-blue-500/15 text-blue-400 light:text-blue-700",
+    cardClass: "bg-blue-500/[0.07] light:bg-[rgba(42,48,112,0.05)] border-blue-500/25 light:border-[rgba(42,48,112,0.2)]",
+    badgeClass: "bg-blue-500/15 text-blue-400 light:bg-[rgba(42,48,112,0.09)] light:border-[rgba(42,48,112,0.28)] light:text-[#2A3070]",
   };
   return {
     label: "Moderate",
-    cardClass: "bg-amber-500/[0.06] light:bg-amber-500/[0.07] border-amber-500/20 light:border-amber-500/30",
-    badgeClass: "bg-amber-500/15 text-amber-400 light:text-amber-700",
+    cardClass: "bg-amber-500/[0.06] light:bg-[rgba(107,58,0,0.05)] border-amber-500/20 light:border-[rgba(107,58,0,0.2)]",
+    badgeClass: "bg-amber-500/15 text-amber-400 light:bg-[rgba(107,58,0,0.09)] light:border-[rgba(107,58,0,0.26)] light:text-[#6B3A00]",
   };
 }
 
@@ -137,7 +137,7 @@ function getTier(score: number): {
 function ScoreBadge({ score }: { score: number }) {
   const { label, badgeClass } = getTier(score);
   return (
-    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass}`}>
+    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${badgeClass}`}>
       {label}
     </span>
   );
@@ -158,7 +158,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       type="button"
-      className="text-xs text-slate-500 light:text-[#8B5E3C] hover:text-slate-300 light:hover:text-[#4A2E1A] transition-colors"
+      className="text-xs text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] transition-colors"
       title="Copy APA citation"
     >
       {copied ? "✓ Copied" : "Copy APA"}
@@ -204,7 +204,7 @@ function StatBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-wide ${colorClass}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-wide ${colorClass}${glowing ? " stat-badge-glow" : ""}`}
       style={glowing ? { boxShadow: "0 0 7px 1px rgba(234,88,12,0.35)" } : undefined}
     >
       {icon}
@@ -242,7 +242,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
               href={paper.doi}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-blue-600 transition-colors leading-snug break-words"
+              className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-[#8B2500] transition-colors leading-snug break-words"
             >
               {paper.title ?? "Untitled"}
             </a>
@@ -256,8 +256,8 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           {paper.source && (
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               paper.source === "Semantic Scholar"
-                ? "bg-purple-500/15 text-purple-400 light:text-purple-700"
-                : "bg-white/10 light:bg-black/[0.07] text-slate-300 light:text-[#6B4226]"
+                ? "bg-purple-500/15 text-purple-400 light:bg-[rgba(75,20,95,0.10)] light:text-[#4B1460]"
+                : "bg-white/10 light:bg-[rgba(44,24,16,0.08)] text-slate-300 light:text-[#4A2E1A]"
             }`}>
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
@@ -285,8 +285,8 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           <StatBadge
             colorClass={
               paper.citationCount >= 500
-                ? "bg-orange-500/15 border-orange-500/40 text-orange-400 light:text-orange-600"
-                : "bg-orange-500/10 border-orange-500/20 text-orange-500 light:text-orange-600"
+                ? "bg-orange-500/15 border-orange-500/40 text-orange-400 light:bg-[rgba(139,37,0,0.10)] light:border-[rgba(139,37,0,0.32)] light:text-[#7A2000]"
+                : "bg-orange-500/10 border-orange-500/20 text-orange-500 light:bg-[rgba(139,37,0,0.07)] light:border-[rgba(139,37,0,0.22)] light:text-[#7A2000]"
             }
             glowing={paper.citationCount >= 500}
             text={`Cited ${paper.citationCount.toLocaleString()}x`}
@@ -304,7 +304,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
           paper.influentialCitationCount != null &&
           paper.influentialCitationCount > 0 && (
           <StatBadge
-            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400 light:text-violet-700"
+            colorClass="bg-violet-500/10 border-violet-500/20 text-violet-400 light:bg-[rgba(75,20,95,0.08)] light:border-[rgba(75,20,95,0.24)] light:text-[#4B1460]"
             text={`Influential: ${paper.influentialCitationCount}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -317,7 +317,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         {/* 📊 blue bars — journal h-index */}
         {paper.journalHIndex != null && (
           <StatBadge
-            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400 light:text-sky-700"
+            colorClass="bg-sky-500/10 border-sky-500/20 text-sky-400 light:bg-[rgba(15,50,100,0.08)] light:border-[rgba(15,50,100,0.24)] light:text-[#0F3264]"
             text={`h-index: ${paper.journalHIndex}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -332,7 +332,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         {/* 🔵 teal pill — 2-year mean citedness (≈ Impact Factor, OpenAlex) */}
         {paper.impactFactor != null && (
           <StatBadge
-            colorClass="bg-teal-500/10 border-teal-500/20 text-teal-400 light:text-teal-700"
+            colorClass="bg-teal-500/10 border-teal-500/20 text-teal-400 light:bg-[rgba(0,75,70,0.08)] light:border-[rgba(0,75,70,0.24)] light:text-[#004B46]"
             text={`IF ${paper.impactFactor.toFixed(1)}`}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -345,7 +345,7 @@ function PaperCard({ paper, index = 0 }: { paper: RatedPaper; index?: number }) 
         {/* 📖 green book — field / subject area */}
         {paper.subjectArea && (
           <StatBadge
-            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:text-emerald-700"
+            colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:bg-[rgba(10,60,25,0.08)] light:border-[rgba(10,60,25,0.24)] light:text-[#0A3C19]"
             text={paper.subjectArea}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -375,22 +375,22 @@ function ClaimCard({ result, index }: { result: ClaimResult; index: number }) {
     ? Math.max(...result.papers.map((p) => p.relevanceScore))
     : 0;
   const accentClass =
-    topScore >= 5 ? "border-l-green-500/60" :
-    topScore >= 4 ? "border-l-blue-500/55" :
-    result.papers.length > 0 ? "border-l-amber-500/50" :
-    "border-l-white/15";
+    topScore >= 5 ? "border-l-green-500/60 light:border-l-[rgba(30,70,32,0.55)]" :
+    topScore >= 4 ? "border-l-blue-500/55 light:border-l-[rgba(42,48,112,0.50)]" :
+    result.papers.length > 0 ? "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.45)]" :
+    "border-l-white/15 light:border-l-[rgba(44,24,16,0.2)]";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`claim-card rounded-xl border border-white/10 light:border-black/[0.09] border-l-2 ${accentClass} bg-white/[0.03] light:bg-black/[0.025] backdrop-blur-sm overflow-hidden`}
+      className={`claim-card rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] border-l-2 ${accentClass} bg-white/[0.03] light:bg-[rgba(44,24,16,0.025)] backdrop-blur-sm overflow-hidden`}
     >
       {/* claim header */}
-      <div className="bg-white/[0.04] light:bg-black/[0.03] border-b border-white/10 light:border-black/[0.09] px-5 py-4">
+      <div className="bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] border-b border-white/10 light:border-[rgba(80,50,20,0.1)] px-5 py-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
             {index + 1}
           </span>
           <span className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Claim</span>
@@ -484,7 +484,7 @@ function UserMenu({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image} alt={name} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
         ) : (
-          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-black/[0.1] text-white light:text-[#4A2E1A] text-xs font-medium flex items-center justify-center">
+          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#4A2E1A] text-xs font-medium flex items-center justify-center">
             {initials}
           </span>
         )}
@@ -506,7 +506,7 @@ function UserMenu({
             className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
             role="menu"
           >
-            <div className="px-3 py-2 border-b border-white/[0.08] light:border-black/[0.08]">
+            <div className="px-3 py-2 border-b border-white/[0.08] light:border-[rgba(80,50,20,0.09)]">
               <p className="text-xs font-medium text-slate-100 light:text-[#2C1810] truncate">{name}</p>
               {session.user?.email && (
                 <p className="text-xs text-slate-400 light:text-[#8B5E3C] truncate">{session.user.email}</p>
@@ -514,7 +514,7 @@ function UserMenu({
             </div>
             <button
               onClick={() => { setOpen(false); onOpenHistory(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
               role="menuitem"
             >
               <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -524,7 +524,7 @@ function UserMenu({
             </button>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.05] transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
               role="menuitem"
             >
               <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -575,7 +575,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
               <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
                 How it works
               </h2>
@@ -607,7 +607,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                     { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
                   ].map(({ icon, text }) => (
                     <li key={icon} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-black/[0.1] text-slate-100 light:text-[#2C1810] text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-slate-100 light:text-[#2C1810] text-xs font-medium shrink-0 mt-0.5">
                         {icon}
                       </span>
                       <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">{text}</p>
@@ -617,7 +617,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* paper badges */}
-              <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
+              <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
                 <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Paper stat badges</p>
                 <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
                   Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
@@ -625,29 +625,29 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-orange-600">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-[#7A2000]">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-violet-700">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-[#4B1460]">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-sky-700">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-[#0F3264]">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-teal-700">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-[#004B46]">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-emerald-700">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-[#0A3C19]">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
-              <div className="rounded-xl border border-white/10 light:border-black/[0.09] bg-white/[0.04] light:bg-black/[0.03] px-4 py-3 space-y-2">
+              <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
                 <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Relevance tiers</p>
                 <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
                   Papers are ranked by relevance with three color-coded tiers.
@@ -655,15 +655,15 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-green-700">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-[#1E4620]">Direct</strong> — the paper directly supports the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-blue-700">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-[#2A3070]">High</strong> — closely related and useful context for the claim.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-amber-700">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-[#6B3A00]">Moderate</strong> — touches on the topic but is not a direct match.</span>
                   </div>
                 </div>
               </div>
@@ -748,7 +748,7 @@ function PlanModal({
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-black/[0.09] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
               <div>
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
                   Upgrade to Pro
@@ -772,7 +772,7 @@ function PlanModal({
               <button
                 onClick={() => onSelectPlan("monthly")}
                 disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-white/15 light:border-black/[0.12] px-4 py-4 hover:border-white/30 light:hover:border-black/[0.22] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full text-left rounded-xl border-2 border-white/15 light:border-[rgba(80,50,20,0.15)] px-4 py-4 hover:border-white/30 light:hover:border-[rgba(80,50,20,0.28)] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -1134,7 +1134,7 @@ export default function Home() {
               aria-label="Search history"
             >
               {/* Header */}
-              <div className="border-b border-white/[0.08] light:border-black/[0.08] shrink-0">
+              <div className="border-b border-white/[0.08] light:border-[rgba(80,50,20,0.09)] shrink-0">
                 {/* Title row */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4">
                   <div>
@@ -1178,7 +1178,7 @@ export default function Home() {
                           </button>
                           <button
                             onClick={() => setShowClearConfirm(false)}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/[0.08] light:hover:bg-black/[0.05] transition-colors"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/[0.08] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
                           >
                             Cancel
                           </button>
@@ -1429,14 +1429,14 @@ export default function Home() {
                 </button>
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
-                  <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
+                  <div className="flex-1 h-px bg-white/10 light:bg-[rgba(44,24,16,0.1)]" />
                   <span className="text-xs text-slate-500 light:text-[#6B4226]">or</span>
-                  <div className="flex-1 h-px bg-white/10 light:bg-black/10" />
+                  <div className="flex-1 h-px bg-white/10 light:bg-[rgba(44,24,16,0.1)]" />
                 </div>
 
                 <button
                   onClick={() => setStage("app")}
-                  className="w-full max-w-xs rounded-xl border border-white/15 light:border-black/[0.1] bg-white/8 light:bg-black/[0.05] px-6 py-3 text-sm font-medium text-slate-300 light:text-[#4A2E1A] hover:bg-white/12 light:hover:bg-black/[0.09] hover:text-white light:hover:text-[#2C1810] transition-colors"
+                  className="w-full max-w-xs rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.12)] bg-white/8 light:bg-[rgba(44,24,16,0.05)] px-6 py-3 text-sm font-medium text-slate-300 light:text-[#4A2E1A] hover:bg-white/12 light:hover:bg-[rgba(44,24,16,0.07)] hover:text-white light:hover:text-[#2C1810] transition-colors"
                 >
                   Continue as Guest
                 </button>
@@ -1583,7 +1583,7 @@ export default function Home() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 4 }}
                                 transition={{ duration: 0.15 }}
-                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-black/[0.13] glass-panel shadow-xl px-4 py-3"
+                                className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.16)] glass-panel shadow-xl px-4 py-3"
                               >
                                 <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
                                   Uploading documents is a Pro feature.{" "}
@@ -1606,7 +1606,7 @@ export default function Home() {
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-[#2C1810] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         Try an example
                       </button>
@@ -1625,7 +1625,7 @@ export default function Home() {
                             ? "bg-red-500/15 text-red-400 light:text-red-600"
                             : usage.remaining <= 1
                             ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
-                            : "bg-white/8 light:bg-black/[0.05] text-slate-400 light:text-[#6B4226]"
+                            : "bg-white/8 light:bg-[rgba(44,24,16,0.05)] text-slate-400 light:text-[#6B4226]"
                         }`}>
                           {usage.remaining}/3 searches left today
                         </span>
@@ -1655,12 +1655,12 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 light:border-blue-300/60 bg-green-500/10 light:bg-blue-50 px-4 py-3"
+                      className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 light:border-[rgba(30,70,32,0.35)] bg-green-500/10 light:bg-[rgba(30,70,32,0.07)] px-4 py-3"
                     >
-                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500 light:text-blue-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500 light:text-[#1E4620]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
                       </svg>
-                      <p className="text-sm text-green-300 light:text-blue-800">
+                      <p className="text-sm text-green-300 light:text-[#1E4620]">
                         <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
                       </p>
                     </motion.div>
