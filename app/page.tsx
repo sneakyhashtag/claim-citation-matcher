@@ -559,7 +559,7 @@ function ExportMenu({
         className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 light:border-[rgba(44,24,16,0.14)] bg-white/[0.05] light:bg-[rgba(44,24,16,0.04)] px-2.5 py-1 text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
           isPro
             ? "text-slate-400 light:text-[#6B4226] hover:bg-white/[0.09] light:hover:bg-[rgba(44,24,16,0.08)] hover:text-slate-200 light:hover:text-[#2C1810]"
-            : "text-slate-600 light:text-[#A67856] opacity-60"
+            : "text-slate-600 light:text-[#A67856] opacity-75"
         }`}
       >
         {isPro ? (
@@ -1500,7 +1500,7 @@ function PaperCard({
               className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
                 isPro
                   ? "text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00]"
-                  : "text-slate-600 light:text-[#A67856] opacity-60"
+                  : "text-slate-600 light:text-[#A67856] opacity-75"
               }`}
             >
               {isPro ? (
@@ -1713,7 +1713,7 @@ function RecencyFilter({
         Published
         {!isPro && <ProBadge />}
       </span>
-      <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-60" : ""}`} role="group" aria-label="Filter papers by publication date">
+      <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by publication date">
         {YEAR_FILTERS.map(({ id, label }) => {
           const active = value === id;
           return (
@@ -3403,7 +3403,7 @@ export default function Home() {
                               ? omakaseLoading
                                 ? "btn-omakase-loading border-amber-500/40 light:border-amber-700/35 text-amber-300 light:text-amber-800 cursor-default"
                                 : "btn-omakase border-amber-500/25 light:border-amber-700/20 text-amber-300 light:text-amber-800"
-                              : "border-white/10 light:border-[rgba(44,24,16,0.12)] text-slate-500 light:text-[#8B5E3C] opacity-60"
+                              : "border-white/10 light:border-[rgba(44,24,16,0.12)] text-slate-500 light:text-[#8B5E3C] opacity-75"
                           }`}
                         >
                           {isPro ? (
