@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Paper, RatedPaper } from "@/lib/rate-relevance";
@@ -678,9 +679,10 @@ function ProBadge() {
 }
 
 /**
- * Pro-gate message. Renders as a fixed centred modal so it always appears
- * above all stacking contexts. Completely solid backgrounds — no blur, no
- * transparency — so it is always crisp regardless of what is behind it.
+ * Pro-gate message. Uses a React portal to render directly into document.body,
+ * completely escaping all stacking contexts including Framer Motion transform
+ * containers (which would otherwise trap position:fixed children).
+ * Solid colours only — no blur, no transparency.
  */
 function ProGatePopover({
   isSignedIn,
@@ -691,11 +693,15 @@ function ProGatePopover({
   onUpgrade: () => void;
   onClose: () => void;
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Dim backdrop — click anywhere to close */}
       <div
-        className="fixed inset-0 z-[9998] bg-black/40"
+        style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.45)" }}
         onClick={onClose}
       />
 
@@ -704,13 +710,21 @@ function ProGatePopover({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        /* Solid colours only — no rgba alpha < 1, no backdrop-filter */
-        style={{ backdropFilter: "none", WebkitBackdropFilter: "none" }}
-        className="fixed left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 z-[9999]
-                   w-72 rounded-2xl px-5 py-4
+        style={{
+          position: "fixed",
+          left: "50%",
+          top: "42%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          width: "18rem",
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
+        }}
+        className="rounded-2xl px-5 py-4
                    bg-[#1a2035] light:bg-[#faf8f2]
                    border-2 border-[#2e3a5a] light:border-[#b89660]
-                   shadow-[0_8px_40px_#000a,0_2px_8px_#0006] light:shadow-[0_8px_32px_#7c4e1840,0_2px_6px_#7c4e1820]"
+                   shadow-[0_8px_40px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]
+                   light:shadow-[0_8px_32px_rgba(124,78,24,0.25),0_2px_6px_rgba(124,78,24,0.12)]"
       >
         <div className="flex items-start gap-3">
           {/* Lock icon */}
@@ -766,7 +780,8 @@ function ProGatePopover({
           </button>
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body
   );
 }
 
