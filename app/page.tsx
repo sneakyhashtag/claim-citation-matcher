@@ -1338,7 +1338,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-slate-900 sm:text-5xl leading-tight tracking-tight"
+              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-[#2C1810] sm:text-5xl leading-tight tracking-tight light:letterpress-title"
             >
               Reference Finder
             </motion.h1>

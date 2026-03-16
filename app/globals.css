@@ -14,9 +14,9 @@
 }
 
 html.light {
-  --background: #f5f7fb;
-  --foreground: #0f172a;
-  --page-bg: #f5f7fb;
+  --background: #EDEDD3;
+  --foreground: #2C1810;
+  --page-bg: #EDEDD3;
 }
 
 html {
@@ -68,7 +68,22 @@ body {
 }
 
 html.light .noise-overlay::before {
-  opacity: 0.018;
+  /* Fine grain — more visible on parchment */
+  opacity: 0.06;
+}
+
+/* Coarser paper-fiber layer — only in light/parchment mode */
+html.light .noise-overlay::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.28' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23p)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 320px 320px;
 }
 
 /* ── Submit button shimmer ───────────────────────────────────────────────── */
@@ -166,8 +181,9 @@ html.light .paper-card:hover {
 }
 
 html.light .dot-pattern {
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.18) 1px, transparent 1px);
-  opacity: 0.14;
+  /* Warm sepia dots on parchment */
+  background-image: radial-gradient(circle, rgba(80, 50, 20, 0.22) 1px, transparent 1px);
+  opacity: 0.18;
 }
 
 /* ── Edge vignette ───────────────────────────────────────────────────────── */
@@ -186,8 +202,8 @@ html.light .vignette {
   background: radial-gradient(
     ellipse at 50% 35%,
     transparent 45%,
-    rgba(245, 247, 251, 0.60) 75%,
-    rgba(245, 247, 251, 0.88) 100%
+    rgba(237, 237, 211, 0.55) 75%,
+    rgba(237, 237, 211, 0.85) 100%
   );
 }
 
@@ -201,8 +217,9 @@ html.light .vignette {
 }
 
 html.light .glass-panel {
-  background: rgba(246, 248, 253, 1.0);
-  border-color: rgba(0, 0, 0, 0.13);
+  /* Warm off-white to stay close to parchment palette */
+  background: rgba(248, 246, 234, 1.0);
+  border-color: rgba(80, 50, 20, 0.14);
 }
 
 /* ── Claim card hover ────────────────────────────────────────────────────── */
@@ -223,5 +240,25 @@ html.light .claim-card:hover {
 
 html.light textarea::placeholder,
 html.light input::placeholder {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(44, 24, 16, 0.38);
+}
+
+/* ── Letterpress title effect (parchment light mode) ─────────────────────── */
+/* Simulates ink pressed into paper: white highlight below each letter gives  */
+/* the illusion the type is slightly embedded into the page surface.          */
+
+html.light .letterpress-title {
+  color: #2C1810;
+  text-shadow:
+    0px  1px  1px rgba(255, 255, 255, 0.55),
+    0px -1px  0px rgba(0,   0,   0,   0.10),
+    0px  0px  3px rgba(44,  24,  16,  0.06);
+}
+
+/* ── Mute gradient orbs on parchment (they look out of place) ─────────────── */
+
+html.light .orb-1,
+html.light .orb-2,
+html.light .orb-3 {
+  opacity: 0;
 }
