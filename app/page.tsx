@@ -944,15 +944,19 @@ function OmakaseResultSection({
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Scroll into view once on mount with breathing room above the section
+  // Scroll into view once on mount — 500 ms delay so Framer Motion animation
+  // and any layout shifts have fully settled before we measure position.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    // Wait for the DOM paint + animation frame so getBoundingClientRect is accurate
     const id = setTimeout(() => {
-      const top = el.getBoundingClientRect().top + window.scrollY - 80;
-      window.scrollTo({ top, behavior: "smooth" });
-    }, 120);
+      // scrollIntoView with block:start then nudge up 20px for breathing room
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // A second rAF after scrollIntoView to apply the -20px offset
+      requestAnimationFrame(() => {
+        window.scrollBy({ top: -20, behavior: "smooth" });
+      });
+    }, 500);
     return () => clearTimeout(id);
   }, []);
 
