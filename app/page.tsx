@@ -95,24 +95,28 @@ interface HistoryEntry {
 
 // ── recency filter ────────────────────────────────────────────────────────────
 
-type YearFilter = "all" | "5yr" | "3yr" | "1yr" | "2020-2025";
+type YearFilter = "all" | "5yr" | "3yr" | "1yr" | "custom";
+type CustomRange = { from: number; to: number } | null;
 
 const YEAR_FILTERS: { id: YearFilter; label: string }[] = [
-  { id: "all",       label: "All time" },
-  { id: "5yr",       label: "Last 5 years" },
-  { id: "3yr",       label: "Last 3 years" },
-  { id: "1yr",       label: "Last year" },
-  { id: "2020-2025", label: "2020–2025" },
+  { id: "all",    label: "All time" },
+  { id: "5yr",    label: "Last 5 years" },
+  { id: "3yr",    label: "Last 3 years" },
+  { id: "1yr",    label: "Last year" },
+  { id: "custom", label: "Custom" },
 ];
 
-function paperInRange(year: number | null, filter: YearFilter): boolean {
+function paperInRange(year: number | null, filter: YearFilter, customRange?: CustomRange): boolean {
   if (filter === "all") return true;
   if (year == null) return false; // undated papers hidden by any non-"all" filter
   const now = new Date().getFullYear();
   if (filter === "5yr") return year >= now - 5;
   if (filter === "3yr") return year >= now - 3;
   if (filter === "1yr") return year >= now - 1;
-  if (filter === "2020-2025") return year >= 2020 && year <= 2025;
+  if (filter === "custom") {
+    if (!customRange) return true;
+    return year >= customRange.from && year <= customRange.to;
+  }
   return true;
 }
 
@@ -1363,6 +1367,7 @@ function PaperCard({
   knownPaperKeys,
   onUsageUpdate,
   yearFilter = "all",
+  customRange,
   isPro = false,
   isSignedIn = false,
   onUpgrade,
@@ -1372,6 +1377,7 @@ function PaperCard({
   knownPaperKeys?: Set<string>;
   onUsageUpdate?: (remaining: number) => void;
   yearFilter?: YearFilter;
+  customRange?: CustomRange;
   isPro?: boolean;
   isSignedIn?: boolean;
   onUpgrade?: () => void;
@@ -1580,7 +1586,7 @@ function PaperCard({
                 <p className="text-xs text-red-400 py-2">{relatedError}</p>
               )}
               {!relatedLoading && relatedPapers !== null && (() => {
-                const visible = relatedPapers.filter((p) => paperInRange(p.year, yearFilter));
+                const visible = relatedPapers.filter((p) => paperInRange(p.year, yearFilter, customRange));
                 const hidden = relatedPapers.length - visible.length;
                 if (relatedPapers.length === 0) return (
                   <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">No related papers found.</p>
@@ -1691,17 +1697,38 @@ function RelatedPaperCard({ paper, index = 0 }: { paper: Paper; index?: number }
 function RecencyFilter({
   value,
   onChange,
+  customRange,
+  onCustomRange,
   isPro = false,
   isSignedIn = false,
   onUpgrade,
 }: {
   value: YearFilter;
   onChange: (f: YearFilter) => void;
+  customRange?: CustomRange;
+  onCustomRange?: (r: CustomRange) => void;
   isPro?: boolean;
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
   const [showProGate, setShowProGate] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [draftFrom, setDraftFrom] = useState("");
+  const [draftTo, setDraftTo] = useState("");
+
+  const handleApply = () => {
+    const from = parseInt(draftFrom);
+    const to = parseInt(draftTo);
+    if (!isNaN(from) && !isNaN(to) && from <= to) {
+      onCustomRange?.({ from, to });
+      onChange("custom");
+      setShowCustomPicker(false);
+    }
+  };
+
+  const pillBase = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors";
+  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]";
+  const pillIdle = "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]";
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -1714,7 +1741,8 @@ function RecencyFilter({
         {!isPro && <ProBadge />}
       </span>
       <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by publication date">
-        {YEAR_FILTERS.map(({ id, label }) => {
+        {/* Preset filter pills */}
+        {YEAR_FILTERS.filter(f => f.id !== "custom").map(({ id, label }) => {
           const active = value === id;
           return (
             <button
@@ -1722,16 +1750,65 @@ function RecencyFilter({
               type="button"
               onClick={() => isPro ? onChange(id) : setShowProGate((v) => !v)}
               aria-pressed={active}
-              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                active && isPro
-                  ? "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]"
-                  : "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]"
-              }`}
+              className={`${pillBase} ${active && isPro ? pillActive : pillIdle}`}
             >
               {label}
             </button>
           );
         })}
+
+        {/* Custom range button */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => isPro ? setShowCustomPicker((v) => !v) : setShowProGate((v) => !v)}
+            aria-pressed={value === "custom" && isPro}
+            className={`${pillBase} ${value === "custom" && isPro ? pillActive : pillIdle}`}
+          >
+            {value === "custom" && customRange
+              ? `${customRange.from}–${customRange.to}`
+              : "Custom"}
+          </button>
+
+          {/* Custom year range picker */}
+          {showCustomPicker && isPro && (
+            <>
+              {/* Backdrop to close on outside click */}
+              <div className="fixed inset-0 z-10" onClick={() => setShowCustomPicker(false)} />
+              <div className="absolute left-0 top-full mt-2 z-20 flex items-center gap-1.5 rounded-xl border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] bg-[#161b2e] light:bg-[rgba(248,246,234,0.99)] shadow-[0_8px_32px_rgba(0,0,0,0.45)] light:shadow-[0_4px_20px_rgba(80,50,20,0.12)] px-3 py-2.5 whitespace-nowrap">
+                <input
+                  type="number"
+                  placeholder="From"
+                  value={draftFrom}
+                  onChange={(e) => setDraftFrom(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApply()}
+                  min={1900}
+                  max={2100}
+                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-slate-200 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-slate-600 light:text-[#8B5E3C] text-xs select-none">–</span>
+                <input
+                  type="number"
+                  placeholder="To"
+                  value={draftTo}
+                  onChange={(e) => setDraftTo(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApply()}
+                  min={1900}
+                  max={2100}
+                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-slate-200 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  className="rounded-lg bg-white/[0.10] light:bg-[rgba(44,24,16,0.08)] border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] px-2.5 py-1 text-xs font-medium text-slate-200 light:text-[#2C1810] hover:bg-white/[0.16] light:hover:bg-[rgba(44,24,16,0.13)] transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
         <AnimatePresence>
           {showProGate && !isPro && (
             <ProGatePopover
@@ -1754,6 +1831,7 @@ function ClaimCard({
   knownPaperKeys,
   onUsageUpdate,
   yearFilter = "all",
+  customRange,
   isPro = false,
   isSignedIn = false,
   onUpgrade,
@@ -1763,11 +1841,12 @@ function ClaimCard({
   knownPaperKeys?: Set<string>;
   onUsageUpdate?: (remaining: number) => void;
   yearFilter?: YearFilter;
+  customRange?: CustomRange;
   isPro?: boolean;
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
-  const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter));
+  const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter, customRange));
   const hiddenCount = result.papers.length - visiblePapers.length;
 
   const topScore = visiblePapers.length > 0
@@ -1817,7 +1896,7 @@ function ClaimCard({
         ) : (
           <div className="flex flex-col gap-3">
             {visiblePapers.map((paper, i) => (
-              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} />
+              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} />
             ))}
             {hiddenCount > 0 && (
               <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
@@ -2335,6 +2414,7 @@ export default function Home() {
   const [results, setResults] = useState<ClaimResult[]>([]);
   const [currentClaims, setCurrentClaims] = useState<{ claim: string; searchQuery: string }[]>([]);
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
+  const [customRange, setCustomRange] = useState<CustomRange>(null);
 
   // Keys of all papers already shown in the main results — used to deduplicate related papers
   const knownPaperKeys = useMemo(() => {
@@ -2518,6 +2598,7 @@ export default function Home() {
     setCurrentClaims([]);
     setYearFilter("all");
     setOmakaseResult(null);
+    setCustomRange(null);
     currentHistoryId.current = null;
 
     try {
@@ -3408,7 +3489,7 @@ export default function Home() {
                           <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                         </div>
                       </div>
-                      <RecencyFilter value={yearFilter} onChange={setYearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                      <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                     </div>
 
                     {/* ── Omakase Mode — 24px below date filter ─────────── */}
@@ -3475,6 +3556,7 @@ export default function Home() {
                           index={i}
                           knownPaperKeys={knownPaperKeys}
                           yearFilter={yearFilter}
+                          customRange={customRange}
                           isPro={isPro}
                           isSignedIn={isSignedIn}
                           onUpgrade={handleUpgradeClick}
