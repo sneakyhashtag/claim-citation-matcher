@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { relevanceScoringModel } from "@/lib/models";
 
 const client = new Anthropic();
 
@@ -53,7 +54,7 @@ export async function rateRelevance(
     .join("\n\n");
 
   const response = await client.messages.parse({
-    model: "claude-haiku-4-5-20251001",
+    model: relevanceScoringModel(),
     max_tokens: 1024,
     system: `You are a research assistant evaluating how relevant academic papers are to a specific claim.
 

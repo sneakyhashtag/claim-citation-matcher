@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { readCount, writeCount, DAILY_LIMIT } from "@/lib/usage-cookie";
 import { readPro } from "@/lib/pro-cookie";
+import { claimExtractionModel } from "@/lib/models";
 
 const client = new Anthropic();
 
@@ -65,9 +66,8 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 5. Call the Anthropic API ──────────────────────────────────────────────
-  // Pro users get Sonnet for higher accuracy; free/guest users get Haiku.
   const stream = client.messages.stream({
-    model: pro ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001",
+    model: claimExtractionModel(pro),
     max_tokens: 2048,
     system: `You are a research assistant that identifies factual claims in text that would benefit from academic citations.
 
