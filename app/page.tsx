@@ -3344,23 +3344,33 @@ export default function Home() {
                       <div className="relative">
                         <button
                           type="button"
+                          disabled={!!omakaseLoading}
                           onClick={isPro
-                            ? () => setShowOmakasePicker(true)
+                            ? () => !omakaseLoading && setShowOmakasePicker(true)
                             : () => setShowOmakaseGate((v) => !v)
                           }
-                          className={`inline-flex items-center gap-2.5 rounded-xl border px-5 py-2.5 text-sm font-medium ${
+                          className={`inline-flex items-center gap-2.5 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all ${
                             isPro
-                              ? "btn-omakase border-amber-500/25 light:border-amber-700/20 text-amber-300 light:text-amber-800"
+                              ? omakaseLoading
+                                ? "btn-omakase-loading border-amber-500/40 light:border-amber-700/35 text-amber-300 light:text-amber-800 cursor-default"
+                                : "btn-omakase border-amber-500/25 light:border-amber-700/20 text-amber-300 light:text-amber-800"
                               : "border-white/10 light:border-[rgba(44,24,16,0.12)] text-slate-500 light:text-[#8B5E3C] opacity-60"
                           }`}
                         >
                           {isPro ? (
-                            /* Sparkles icon */
-                            <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
-                              <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
-                              <path d="M16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/>
-                            </svg>
+                            omakaseLoading ? (
+                              /* Spinning star during loading */
+                              <svg className="spin-star h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                                <path d="M12 2l2.09 6.26L20 9.27l-4.91 3.58L16.91 19 12 15.77 7.09 19l1.82-6.15L4 9.27l5.91-1.01z"/>
+                              </svg>
+                            ) : (
+                              /* Sparkles icon */
+                              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                                <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+                                <path d="M16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/>
+                              </svg>
+                            )
                           ) : (
                             /* Lock icon */
                             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -3368,7 +3378,7 @@ export default function Home() {
                               <path d="M7 11V7a5 5 0 0110 0v4"/>
                             </svg>
                           )}
-                          Omakase: rewrite with citations
+                          {omakaseLoading ? "Rewriting your paragraph…" : "Omakase: rewrite with citations"}
                           {!isPro && <ProBadge />}
                         </button>
 

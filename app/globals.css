@@ -323,6 +323,53 @@ html.light .stat-badge-glow {
   box-shadow: 0 0 7px 1px rgba(122, 32, 0, 0.28) !important;
 }
 
+/* ── Omakase loading — spinning star + pulsing glow ─────────────────────── */
+
+@keyframes spinStar {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes omakasePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px 2px  rgba(251, 191, 36, 0.18),
+      0 0 0    1px  rgba(251, 191, 36, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 22px 6px  rgba(251, 191, 36, 0.38),
+      0 0 0    1px  rgba(251, 191, 36, 0.50);
+  }
+}
+
+.spin-star {
+  animation: spinStar 1s linear infinite;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.btn-omakase-loading {
+  animation: omakasePulse 1.4s ease-in-out infinite !important;
+}
+
+html.light .btn-omakase-loading {
+  animation: omakasePulseLight 1.4s ease-in-out infinite !important;
+}
+
+@keyframes omakasePulseLight {
+  0%, 100% {
+    box-shadow:
+      0 0 10px 2px  rgba(161, 84, 0, 0.16),
+      0 0 0    1px  rgba(161, 84, 0, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 5px  rgba(161, 84, 0, 0.30),
+      0 0 0    1px  rgba(161, 84, 0, 0.44);
+  }
+}
+
 /* ── Omakase Mode button — gold shimmer, distinct from other buttons ─────── */
 
 .btn-omakase {
