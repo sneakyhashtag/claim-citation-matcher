@@ -2148,7 +2148,7 @@ function PlanModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-          className="pointer-events-auto w-full max-w-sm"
+          className="pointer-events-auto w-full max-w-md"
           role="dialog"
           aria-modal="true"
           aria-labelledby="plan-modal-title"
@@ -2160,7 +2160,7 @@ function PlanModal({
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
                   Upgrade to Pro
                 </h2>
-                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Unlimited searches, forever.</p>
+                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Everything you need for serious research.</p>
               </div>
               <button
                 onClick={onClose}
@@ -2173,50 +2173,86 @@ function PlanModal({
               </button>
             </div>
 
-            {/* plan cards */}
-            <div className="px-6 py-5 flex flex-col gap-3 overflow-y-auto">
-              {/* Monthly */}
-              <button
-                onClick={() => onSelectPlan("monthly")}
-                disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-white/15 light:border-[rgba(80,50,20,0.15)] px-4 py-4 hover:border-white/30 light:hover:border-[rgba(80,50,20,0.28)] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">Monthly</p>
-                    <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Billed every month</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥849</p>
-                    <p className="text-xs text-slate-500 light:text-[#6B4226]">/ month</p>
-                  </div>
-                </div>
-              </button>
+            <div className="overflow-y-auto">
+              {/* feature list */}
+              <div className="px-6 pt-5 pb-4">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] mb-3">
+                  What you unlock
+                </p>
+                <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  {([
+                    ["Unlimited searches", "3/day on free"],
+                    ["10,000 char limit", "1,000 on free"],
+                    ["Document upload", "PDFs, Word, images"],
+                    ["Omakase mode", "Auto-rewrite with citations"],
+                    ["Export results", "BibTeX, RIS, plain text"],
+                    ["Date filter", "Narrow by publication year"],
+                    ["Find more like this", "Discover related papers"],
+                    ["All future features", "Included automatically"],
+                  ] as [string, string][]).map(([title, sub]) => (
+                    <li key={title} className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/15 light:bg-emerald-700/10">
+                        <svg className="h-2.5 w-2.5 text-emerald-400 light:text-emerald-700" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <polyline points="2 6 5 9 10 3"/>
+                        </svg>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-slate-200 light:text-[#2C1810] leading-tight">{title}</p>
+                        <p className="text-[10px] text-slate-500 light:text-[#8B5E3C] leading-tight mt-0.5">{sub}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              {/* Yearly */}
-              <button
-                onClick={() => onSelectPlan("yearly")}
-                disabled={upgrading}
-                className="w-full text-left rounded-xl border-2 border-amber-500/50 bg-amber-500/10 px-4 py-4 hover:bg-amber-500/15 hover:border-amber-500/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
-              >
-                <span className="absolute -top-2.5 right-3 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide">
-                  Save 2 months
-                </span>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-amber-300 light:text-amber-700">Yearly</p>
-                    <p className="text-xs text-amber-500 light:text-amber-600 mt-0.5">Billed once per year</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥8,490</p>
-                    <p className="text-xs text-amber-500 light:text-amber-600">/ year</p>
-                  </div>
-                </div>
-              </button>
+              {/* divider */}
+              <div className="mx-6 border-t border-white/[0.07] light:border-[rgba(80,50,20,0.09)]" />
 
-              {upgrading && (
-                <p className="text-center text-xs text-slate-500 pt-1">Redirecting to checkout…</p>
-              )}
+              {/* plan cards */}
+              <div className="px-6 py-4 flex flex-col gap-3">
+                {/* Monthly */}
+                <button
+                  onClick={() => onSelectPlan("monthly")}
+                  disabled={upgrading}
+                  className="w-full text-left rounded-xl border-2 border-white/15 light:border-[rgba(80,50,20,0.15)] px-4 py-4 hover:border-white/30 light:hover:border-[rgba(80,50,20,0.28)] hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">Monthly</p>
+                      <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Billed every month</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-slate-100 light:text-[#2C1810]">¥849</p>
+                      <p className="text-xs text-slate-500 light:text-[#6B4226]">/ month</p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Yearly */}
+                <button
+                  onClick={() => onSelectPlan("yearly")}
+                  disabled={upgrading}
+                  className="w-full text-left rounded-xl border-2 border-amber-500/50 bg-amber-500/10 px-4 py-4 hover:bg-amber-500/15 hover:border-amber-500/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+                >
+                  <span className="absolute -top-2.5 right-3 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide">
+                    Save 2 months
+                  </span>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-amber-300 light:text-amber-700">Yearly</p>
+                      <p className="text-xs text-amber-500 light:text-amber-600 mt-0.5">Billed once per year</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-amber-300 light:text-amber-700">¥8,490</p>
+                      <p className="text-xs text-amber-500 light:text-amber-600">/ year</p>
+                    </div>
+                  </div>
+                </button>
+
+                {upgrading && (
+                  <p className="text-center text-xs text-slate-500 pt-1">Redirecting to checkout…</p>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
