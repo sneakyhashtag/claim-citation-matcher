@@ -1578,25 +1578,27 @@ export default function Home() {
             >
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
-              {/* Upgrade to Pro / Pro badge */}
-              {!isPro ? (
-                <button
-                  onClick={() => setShowPlanModal(true)}
-                  disabled={upgrading}
-                  className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-amber-500/15 light:hover:bg-[rgba(240,238,218,0.95)] text-sm font-medium text-amber-400 light:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                  </svg>
-                  {upgrading ? "Redirecting…" : "Upgrade to Pro"}
-                </button>
-              ) : (
-                <span className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                  </svg>
-                  Pro
-                </span>
+              {/* Upgrade to Pro / Pro badge — signed-in users only */}
+              {session && (
+                isPro ? (
+                  <span className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    Pro
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setShowPlanModal(true)}
+                    disabled={upgrading}
+                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-amber-500/15 light:hover:bg-[rgba(240,238,218,0.95)] text-sm font-medium text-amber-400 light:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                  </button>
+                )
               )}
 
               {/* User menu (signed-in) or History + Sign in (guest) */}
@@ -1781,14 +1783,29 @@ export default function Home() {
                   {!isPro && text.length >= FREE_CHAR_LIMIT && (
                     <p className="text-xs text-red-400 light:text-red-500">
                       Free accounts are limited to 1,000 characters.{" "}
-                      <button
-                        type="button"
-                        onClick={() => setShowPlanModal(true)}
-                        className="underline underline-offset-2 hover:text-amber-400 transition-colors"
-                      >
-                        Upgrade to Pro
-                      </button>{" "}
-                      for up to 10,000 characters.
+                      {session ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setShowPlanModal(true)}
+                            className="underline underline-offset-2 hover:text-amber-400 transition-colors"
+                          >
+                            Upgrade to Pro
+                          </button>{" "}
+                          for up to 10,000 characters.
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => signIn()}
+                            className="underline underline-offset-2 hover:text-amber-400 transition-colors"
+                          >
+                            Sign in
+                          </button>{" "}
+                          to unlock Pro features.
+                        </>
+                      )}
                     </p>
                   )}
 
@@ -1875,14 +1892,29 @@ export default function Home() {
                               >
                                 <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
                                   Uploading documents is a Pro feature.{" "}
-                                  <button
-                                    type="button"
-                                    onClick={() => { setShowUpgradeHint(false); setShowPlanModal(true); }}
-                                    className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
-                                  >
-                                    Upgrade to Pro
-                                  </button>{" "}
-                                  to upload PDFs, Word docs, and images.
+                                  {session ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => { setShowUpgradeHint(false); setShowPlanModal(true); }}
+                                        className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                      >
+                                        Upgrade to Pro
+                                      </button>{" "}
+                                      to upload PDFs, Word docs, and images.
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => { setShowUpgradeHint(false); signIn(); }}
+                                        className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                      >
+                                        Sign in
+                                      </button>{" "}
+                                      to unlock Pro features including file uploads.
+                                    </>
+                                  )}
                                 </p>
                               </motion.div>
                             </>
@@ -1963,14 +1995,29 @@ export default function Home() {
                     </svg>
                     <p className="text-sm text-slate-300 light:text-[#4A2E1A]">
                       You&apos;ve reached your daily limit of 3 free searches.{" "}
-                      <button
-                        type="button"
-                        onClick={() => setShowPlanModal(true)}
-                        className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
-                      >
-                        Upgrade to Pro
-                      </button>{" "}
-                      for unlimited access.
+                      {session ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setShowPlanModal(true)}
+                            className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                          >
+                            Upgrade to Pro
+                          </button>{" "}
+                          for unlimited access.
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => signIn()}
+                            className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
+                          >
+                            Sign in
+                          </button>{" "}
+                          to unlock Pro features with unlimited searches.
+                        </>
+                      )}
                     </p>
                   </div>
                 )}
