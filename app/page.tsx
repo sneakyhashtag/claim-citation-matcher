@@ -896,11 +896,20 @@ function OmakaseCitationPicker({
 
 /**
  * Splits a paragraph into alternating plain-text and citation segments.
- * Matches author-date styles like (Smith et al., 2021) and numbered
- * styles like [1] or [1,2] or [1–3].
+ *
+ * Alternates (tried left-to-right at each position):
+ *  1. IEEE / Vancouver brackets  [1]  [1,2]  [1–3]
+ *  2. APA / Harvard / Chicago    (Smith, 2020)  (Smith et al., 2020, p. 45)
+ *  3. MLA author-page            (Smith 45)  (Smith and Jones 123–130)
+ *  4. Vancouver parenthetical    (1)  (1, 2)  — only 1–3 digit numbers
  */
 function splitCitations(text: string): { kind: "text" | "cite"; value: string }[] {
-  const re = /(\[[0-9][0-9,;\s–\-]*\]|\([^()]*\b(?:19|20)\d{2}[a-z]?\b[^()]*\))/g;
+  // Each alternate covers one family of citation styles:
+  //   1. IEEE/Vancouver brackets: [1]  [1,2]  [1–3]
+  //   2. APA/Harvard/Chicago year: (Smith, 2020)  (Smith et al., 2020, p. 45)
+  //   3. MLA author-page: (Smith 45)  (Jones 123–130)
+  //   4. Vancouver parenthetical numbers: (1)  (1, 2)
+  const re = /(\[[0-9][0-9,;\s\u2013-]*\]|\([^()]{1,120}\b(?:19|20)\d{2}[a-z]?\b[^()]{0,80}\)|\([A-Z][a-zA-Z\u00C0-\u017E.,\s]+\s+\d{1,4}(?:[\u2013-]\d{1,4})?\)|\(\d{1,3}(?:[,;\s]+\d{1,3})*\))/g;
   const segments: { kind: "text" | "cite"; value: string }[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
