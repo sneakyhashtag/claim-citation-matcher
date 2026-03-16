@@ -3374,8 +3374,9 @@ export default function Home() {
                 {error && <ErrorBanner message={error} />}
 
                 {results.length > 0 && (
-                  <div ref={resultsRef} className="mt-8 flex flex-col gap-6">
-                    <div className="flex flex-col gap-2.5">
+                  <div ref={resultsRef} className="mt-8 flex flex-col">
+                    {/* Claims count + export / date filter — 8px between the two rows */}
+                    <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
@@ -3387,8 +3388,8 @@ export default function Home() {
                       <RecencyFilter value={yearFilter} onChange={setYearFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                     </div>
 
-                    {/* ── Omakase Mode ──────────────────────────────────── */}
-                    <div className="flex justify-center">
+                    {/* ── Omakase Mode — 24px below date filter ─────────── */}
+                    <div className="mt-6 flex justify-center">
                       <div className="relative">
                         <button
                           type="button"
@@ -3442,34 +3443,37 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {results.map((result, i) => (
-                      <ClaimCard
-                        key={i}
-                        result={result}
-                        index={i}
-                        knownPaperKeys={knownPaperKeys}
-                        yearFilter={yearFilter}
-                        isPro={isPro}
-                        isSignedIn={isSignedIn}
-                        onUpgrade={handleUpgradeClick}
-                        onUsageUpdate={(remaining) =>
-                          setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
-                        }
-                      />
-                    ))}
-
-                    {/* ── Omakase result ── */}
-                    <AnimatePresence>
-                      {omakaseResult && (
-                        <OmakaseResultSection
-                          rewrittenParagraph={omakaseResult.rewritten_paragraph}
-                          referenceList={omakaseResult.reference_list}
-                          styleName={omakaseResult.label}
-                          onDismiss={() => setOmakaseResult(null)}
-                          containerRef={omakaseResultRef}
+                    {/* Claim cards + Omakase result — 32px below Omakase, 24px between cards */}
+                    <div className="mt-8 flex flex-col gap-6">
+                      {results.map((result, i) => (
+                        <ClaimCard
+                          key={i}
+                          result={result}
+                          index={i}
+                          knownPaperKeys={knownPaperKeys}
+                          yearFilter={yearFilter}
+                          isPro={isPro}
+                          isSignedIn={isSignedIn}
+                          onUpgrade={handleUpgradeClick}
+                          onUsageUpdate={(remaining) =>
+                            setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
+                          }
                         />
-                      )}
-                    </AnimatePresence>
+                      ))}
+
+                      {/* ── Omakase result ── */}
+                      <AnimatePresence>
+                        {omakaseResult && (
+                          <OmakaseResultSection
+                            rewrittenParagraph={omakaseResult.rewritten_paragraph}
+                            referenceList={omakaseResult.reference_list}
+                            styleName={omakaseResult.label}
+                            onDismiss={() => setOmakaseResult(null)}
+                            containerRef={omakaseResultRef}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 )}
               </motion.div>
