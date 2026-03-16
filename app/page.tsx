@@ -3374,7 +3374,7 @@ export default function Home() {
                 {error && <ErrorBanner message={error} />}
 
                 {results.length > 0 && (
-                  <div ref={resultsRef} className="mt-8 flex flex-col">
+                  <div ref={resultsRef} className="mt-5 flex flex-col">
                     {/* Claims count + export / date filter — 24px between the two rows */}
                     <div className="flex flex-col gap-6">
                       <div className="flex items-center justify-between">
