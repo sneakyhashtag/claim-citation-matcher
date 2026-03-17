@@ -32,15 +32,30 @@ export async function GET(_req: NextRequest) {
     });
 
     for (const customer of customers.data) {
-      const subscriptions = await stripe.subscriptions.list({
+      // Check paid active subscriptions first.
+      const activeSubs = await stripe.subscriptions.list({
         customer: customer.id,
         status: "active",
         limit: 1,
       });
-
-      if (subscriptions.data.length > 0) {
-        // Active subscription found — refresh the Pro cookie and return true.
+      if (activeSubs.data.length > 0) {
         const res = NextResponse.json({ pro: true });
+        setProCookie(res);
+        return res;
+      }
+
+      // Check trialing subscriptions (card on file, not yet charged).
+      const trialSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: "trialing",
+        limit: 1,
+      });
+      if (trialSubs.data.length > 0) {
+        const sub = trialSubs.data[0];
+        const trialEnd = sub.trial_end
+          ? new Date(sub.trial_end * 1000).toISOString().slice(0, 10)
+          : null;
+        const res = NextResponse.json({ pro: true, trialEnd });
         setProCookie(res);
         return res;
       }

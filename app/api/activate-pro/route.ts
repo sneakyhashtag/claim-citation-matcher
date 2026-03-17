@@ -35,7 +35,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
   }
 
-  const res = NextResponse.json({ pro: true });
+  // Retrieve trial end date from the subscription if this was a trial checkout.
+  let trialEnd: string | null = null;
+  if (stripeSession.subscription) {
+    try {
+      const sub = await stripe.subscriptions.retrieve(stripeSession.subscription as string);
+      if (sub.trial_end) {
+        trialEnd = new Date(sub.trial_end * 1000).toISOString().slice(0, 10);
+      }
+    } catch {
+      // Trial info is optional — proceed without it.
+    }
+  }
+
+  const res = NextResponse.json({ pro: true, trialEnd });
   setProCookie(res);
   return res;
 }
