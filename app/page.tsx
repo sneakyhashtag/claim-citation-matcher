@@ -3396,7 +3396,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="btn-submit flex items-center justify-center p-3 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="btn-submit flex items-center justify-center px-5 py-2 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
                       </button>
