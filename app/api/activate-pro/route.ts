@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  if (stripeSession.payment_status !== "paid" || stripeSession.status !== "complete") {
+  const validPaymentStatus =
+    stripeSession.payment_status === "paid" ||
+    stripeSession.payment_status === "no_payment_required"; // trial period — card on file, not yet charged
+  if (!validPaymentStatus || stripeSession.status !== "complete") {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
   }
 
