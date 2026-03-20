@@ -12,6 +12,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@stripe/stripe-js": "^8.9.0",
+    "@vercel/postgres": "^0.10.0",
     "better-sqlite3": "^12.8.0",
     "framer-motion": "^12.36.0",
     "mammoth": "^1.12.0",
