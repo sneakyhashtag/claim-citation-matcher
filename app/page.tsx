@@ -2563,13 +2563,24 @@ const [proSuccess, setProSuccess] = useState(false);
     return () => clearTimeout(t);
   }, [proSuccess]);
 
-  const openHistory = () => {
-    setHistory(lsGetHistory());
+  const openHistory = async () => {
+    if (session) {
+      // Signed-in: load from DB (cross-device history)
+      const { data } = await apiFetch<{ entries: HistoryEntry[] }>("/api/history");
+      setHistory(data?.entries ?? []);
+    } else {
+      // Guest: load from localStorage
+      setHistory(lsGetHistory());
+    }
     setShowHistory(true);
   };
 
-  const clearHistory = () => {
-    lsClearHistory();
+  const clearHistory = async () => {
+    if (session) {
+      await apiFetch("/api/history", { method: "DELETE" });
+    } else {
+      lsClearHistory();
+    }
     setHistory([]);
     setShowClearConfirm(false);
   };
@@ -2668,8 +2679,18 @@ const [proSuccess, setProSuccess] = useState(false);
       setStatus("");
       await fetchUsage();
 
-      // Save to browser history (works for all users, no account needed)
-      currentHistoryId.current = lsAddHistory({ paragraph: text, claims, results: claimResults });
+      // Save history: DB for signed-in users (cross-device), localStorage for guests
+      if (session) {
+        apiFetch<{ id: string; createdAt: string }>("/api/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paragraph: text, claims, results: claimResults }),
+        }).then(({ data }) => {
+          if (data?.id) currentHistoryId.current = data.id;
+        });
+      } else {
+        currentHistoryId.current = lsAddHistory({ paragraph: text, claims, results: claimResults });
+      }
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setStatus("");
@@ -2783,7 +2804,15 @@ const [proSuccess, setProSuccess] = useState(false);
                   setOmakaseResult(omakaseData);
                   // Patch the existing history entry with the Omakase output
                   if (currentHistoryId.current) {
-                    lsUpdateHistory(currentHistoryId.current, { omakase: omakaseData });
+                    if (session) {
+                      apiFetch(`/api/history/${currentHistoryId.current}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ omakase: omakaseData }),
+                      });
+                    } else {
+                      lsUpdateHistory(currentHistoryId.current, { omakase: omakaseData });
+                    }
                   }
                 }
               } catch {
