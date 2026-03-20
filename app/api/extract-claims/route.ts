@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readCount, writeCount, DAILY_LIMIT } from "@/lib/usage-cookie";
+import { writeCount } from "@/lib/usage-cookie";
+import { checkUsageDB, incrementUsageDB, DAILY_LIMIT } from "@/lib/db-usage";
 import { readPro } from "@/lib/pro-cookie";
 import { claimExtractionModel } from "@/lib/models";
 
@@ -38,22 +39,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── 4. Usage limit — checked BEFORE calling the Anthropic API ─────────────
+  // ── 4. Usage limit — verified against the database BEFORE calling the API ──
   //
-  // Pro users are exempt. Free/guest users get DAILY_LIMIT searches per day,
-  // tracked via a signed HTTP-only cookie. The cookie is written onto the
-  // response AFTER the API call so a count slot is only consumed when we
-  // actually make the call.
-  //
-  // Note: stateless cookies cannot prevent a determined user from deleting
-  // their cookie. This limit is a soft cap, not hard enforcement.
+  // Pro users are exempt. Free/guest users get DAILY_LIMIT searches per day.
+  // The DB is the authoritative source so the limit cannot be bypassed by
+  // clearing cookies. The cookie is written onto the response AFTER a
+  // successful API call as a frontend cache for instant counter display.
 
-  let currentCount = 0;
+  let dbCount = 0;
 
   if (!pro) {
-    currentCount = readCount(req);
+    const usage = await checkUsageDB(req, session);
+    dbCount = usage.count;
 
-    if (currentCount >= DAILY_LIMIT) {
+    if (!usage.allowed) {
       return NextResponse.json(
         {
           error: `You've reached your daily limit of ${DAILY_LIMIT} free searches. Come back tomorrow, or upgrade to Pro for unlimited searches.`,
@@ -100,15 +99,13 @@ Return ONLY a valid JSON array of these objects. No markdown, no explanation, ju
     );
   }
 
-  // ── 6. Build response and increment the usage counter ─────────────────────
-  const newCount = currentCount + 1;
-  const remaining = Math.max(0, DAILY_LIMIT - newCount);
-
-  const res = NextResponse.json({ claims, remaining, limit: DAILY_LIMIT });
-
+  // ── 6. Increment DB counter, update cookie cache, and respond ─────────────
   if (!pro) {
+    const { count: newCount, remaining } = await incrementUsageDB(req, session);
+    const res = NextResponse.json({ claims, remaining, limit: DAILY_LIMIT });
     writeCount(res, newCount);
+    return res;
   }
 
-  return res;
+  return NextResponse.json({ claims, remaining: null, limit: null });
 }

@@ -30,10 +30,10 @@ export async function GET() {
     await sql`
       CREATE TABLE IF NOT EXISTS usage (
         id           SERIAL PRIMARY KEY,
-        user_id      INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        identifier   TEXT NOT NULL,
         search_count INTEGER NOT NULL DEFAULT 0,
         date         DATE NOT NULL DEFAULT CURRENT_DATE,
-        UNIQUE (user_id, date)
+        UNIQUE (identifier, date)
       )
     `;
 

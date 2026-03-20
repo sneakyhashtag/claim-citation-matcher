@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readCount, writeCount, DAILY_LIMIT } from "@/lib/usage-cookie";
+import { writeCount } from "@/lib/usage-cookie";
+import { checkUsageDB, incrementUsageDB, DAILY_LIMIT } from "@/lib/db-usage";
 import { readPro } from "@/lib/pro-cookie";
 import type { Paper } from "@/lib/rate-relevance";
 
@@ -188,14 +189,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
 
-  // ── Usage limit (same rules as extract-claims) ─────────────────────────────
+  // ── Usage limit — verified against the database (same rules as extract-claims)
   const session = await auth();
   const pro = !!session?.user && readPro(req);
-  let currentCount = 0;
 
   if (!pro) {
-    currentCount = readCount(req);
-    if (currentCount >= DAILY_LIMIT) {
+    const usage = await checkUsageDB(req, session);
+    if (!usage.allowed) {
       return NextResponse.json(
         {
           error: `You've reached your daily limit of ${DAILY_LIMIT} free searches. Come back tomorrow, or upgrade to Pro for unlimited searches.`,
@@ -239,10 +239,13 @@ export async function POST(req: NextRequest) {
     if (papers.length >= 5) break;
   }
 
-  // ── Increment usage counter and respond ────────────────────────────────────
-  const newCount = currentCount + 1;
-  const remaining = Math.max(0, DAILY_LIMIT - newCount);
-  const resBody = NextResponse.json({ papers, remaining, limit: DAILY_LIMIT });
-  if (!pro) writeCount(resBody, newCount);
-  return resBody;
+  // ── Increment DB counter, update cookie cache, and respond ─────────────────
+  if (!pro) {
+    const { count: newCount, remaining } = await incrementUsageDB(req, session);
+    const res = NextResponse.json({ papers, remaining, limit: DAILY_LIMIT });
+    writeCount(res, newCount);
+    return res;
+  }
+
+  return NextResponse.json({ papers, remaining: null, limit: null });
 }
