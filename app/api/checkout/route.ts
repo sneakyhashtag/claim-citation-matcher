@@ -32,17 +32,9 @@ export async function POST(req: NextRequest) {
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: 7,
-    },
     // {CHECKOUT_SESSION_ID} is a Stripe template variable replaced at redirect time.
     success_url: `${BASE_URL}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
-    custom_text: {
-      submit: {
-        message: "Start your 7-day free trial. You won't be charged until the trial ends.",
-      },
-    },
   };
 
   if (session?.user?.email) {

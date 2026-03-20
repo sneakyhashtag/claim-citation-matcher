@@ -679,15 +679,6 @@ function getTier(score: number): {
 // POLICY: All new features default to Pro-only. Add isPro gating with
 // ProGatePopover when building anything new, unless explicitly told otherwise.
 
-function trialDaysLeft(trialEnd: string): number {
-  const todayMs = Date.UTC(
-    new Date().getUTCFullYear(),
-    new Date().getUTCMonth(),
-    new Date().getUTCDate()
-  );
-  const endMs = new Date(trialEnd + "T00:00:00Z").getTime();
-  return Math.max(0, Math.ceil((endMs - todayMs) / 86400000));
-}
 
 function ProBadge() {
   return (
@@ -2467,8 +2458,7 @@ export default function Home() {
   // Usage counter — default to full allowance so counter is visible immediately
   const [usage, setUsage] = useState({ count: 0, remaining: 3, limit: 3 });
   const [isPro, setIsPro] = useState(false);
-  const [trialEnd, setTrialEnd] = useState<string | null>(null);
-  const [proSuccess, setProSuccess] = useState(false);
+const [proSuccess, setProSuccess] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeHint, setShowUpgradeHint] = useState(false);
@@ -2546,10 +2536,9 @@ export default function Home() {
     // Check Stripe subscription status on every app load so Pro access survives
     // sign-out / sign-in cycles. The route reads the email from the server-side
     // session and re-sets the Pro cookie if an active subscription is found.
-    apiFetch<{ pro: boolean; trialEnd?: string | null }>("/api/check-subscription").then(({ data }) => {
+    apiFetch<{ pro: boolean }>("/api/check-subscription").then(({ data }) => {
       if (data?.pro) {
         setIsPro(true);
-        if (data.trialEnd) setTrialEnd(data.trialEnd);
       }
     });
     // Handle post-checkout success redirect: /?payment=success&session_id=cs_xxx
@@ -2557,10 +2546,9 @@ export default function Home() {
     const sessionId = params.get("session_id");
     if (params.get("payment") === "success" && sessionId) {
       window.history.replaceState({}, "", "/");
-      apiFetch<{ pro: boolean; trialEnd?: string | null }>(`/api/activate-pro?session_id=${sessionId}`).then(({ data }) => {
+      apiFetch<{ pro: boolean }>(`/api/activate-pro?session_id=${sessionId}`).then(({ data }) => {
         if (data?.pro) {
           setIsPro(true);
-          if (data.trialEnd) setTrialEnd(data.trialEnd);
           setProSuccess(true);
         }
       });
@@ -3039,25 +3027,12 @@ export default function Home() {
               {/* Upgrade to Pro / Pro badge — signed-in users only */}
               {session && (
                 isPro ? (
-                  trialEnd ? (() => {
-                    const days = trialDaysLeft(trialEnd);
-                    const warn = days <= 2;
-                    return (
-                      <span className={`parchment-pill flex items-center gap-1.5 rounded-xl border backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium ${warn ? "border-orange-500/30 light:border-orange-700/35 bg-orange-500/10 light:bg-[rgba(248,246,234,0.92)] text-orange-400 light:text-orange-700" : "border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] text-amber-400 light:text-amber-700"}`}>
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        Trial — {days} day{days !== 1 ? "s" : ""} left
-                      </span>
-                    );
-                  })() : (
                   <span className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
                     <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                     Pro
                   </span>
-                  )
                 ) : (
                   <button
                     onClick={() => setShowPlanModal(true)}

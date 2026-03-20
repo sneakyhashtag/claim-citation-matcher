@@ -16,9 +16,9 @@ const playfair = Playfair_Display({
 });
 
 const BASE_URL = "https://claim-citation-matcher.vercel.app";
-const TITLE = "Reference Finder - AI-Powered Academic Citation Tool";
+const TITLE = "Reference Finder — AI-Powered Academic Citation Tool | Real Papers, Not Hallucinated";
 const DESCRIPTION =
-  "Paste any academic paragraph and instantly find real, verified research papers for every claim. Powered by AI and real academic databases.";
+  "Paste any academic paragraph and instantly find real, verified research papers for every claim. AI-powered claim extraction, relevance ranking, journal quality stats, and Omakase mode. Free to use, Pro from ¥490/month.";
 
 export const metadata: Metadata = {
   title: TITLE,

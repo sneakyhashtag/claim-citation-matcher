@@ -43,22 +43,6 @@ export async function GET(_req: NextRequest) {
         setProCookie(res);
         return res;
       }
-
-      // Check trialing subscriptions (card on file, not yet charged).
-      const trialSubs = await stripe.subscriptions.list({
-        customer: customer.id,
-        status: "trialing",
-        limit: 1,
-      });
-      if (trialSubs.data.length > 0) {
-        const sub = trialSubs.data[0];
-        const trialEnd = sub.trial_end
-          ? new Date(sub.trial_end * 1000).toISOString().slice(0, 10)
-          : null;
-        const res = NextResponse.json({ pro: true, trialEnd });
-        setProCookie(res);
-        return res;
-      }
     }
 
     // No active subscription for any matching customer record.

@@ -28,27 +28,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  const validPaymentStatus =
-    stripeSession.payment_status === "paid" ||
-    stripeSession.payment_status === "no_payment_required"; // trial period — card on file, not yet charged
-  if (!validPaymentStatus || stripeSession.status !== "complete") {
+  if (stripeSession.payment_status !== "paid" || stripeSession.status !== "complete") {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
   }
 
-  // Retrieve trial end date from the subscription if this was a trial checkout.
-  let trialEnd: string | null = null;
-  if (stripeSession.subscription) {
-    try {
-      const sub = await stripe.subscriptions.retrieve(stripeSession.subscription as string);
-      if (sub.trial_end) {
-        trialEnd = new Date(sub.trial_end * 1000).toISOString().slice(0, 10);
-      }
-    } catch {
-      // Trial info is optional — proceed without it.
-    }
-  }
-
-  const res = NextResponse.json({ pro: true, trialEnd });
+  const res = NextResponse.json({ pro: true });
   setProCookie(res);
   return res;
 }
