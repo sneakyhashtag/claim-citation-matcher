@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readPro } from "@/lib/pro-cookie";
+import { checkIsPro } from "@/lib/pro-cookie";
 import type { RatedPaper } from "@/lib/rate-relevance";
 import { omakaseModel } from "@/lib/models";
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
-  const pro = readPro(req);
+  const pro = checkIsPro(req, session.user.email);
   if (!pro) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
@@ -81,10 +81,14 @@ export async function POST(req: NextRequest) {
   // ── Call Anthropic API ─────────────────────────────────────────────────────
   const papersBlock = buildPapersBlock(papers);
 
+  const gbtHint = citationStyle === "GB/T 7714"
+    ? "\n\nFor GB/T 7714 (Chinese national standard): in-text citations use superscript numbers [1]. Reference list format: Author1 LastInitials, Author2 LastInitials. Title[J]. Journal Name, Year, Volume(Issue): Pages. Example: Zhang S, Li X. Effects of climate change on coral reefs[J]. Nature Climate Change, 2020, 10(3): 234-241. List up to 3 authors then use \"et al\" for more."
+    : "";
+
   const response = await client.messages.parse({
     model: omakaseModel(),
     max_tokens: 2048,
-    system: `You are an academic writing assistant. Rewrite the following paragraph with proper in-text citations using the citation style specified. Only use papers from the provided list. Prefer papers categorized as Direct or High relevance with higher citation counts and h-index. Do not use Moderate papers unless no better option exists.`,
+    system: `You are an academic writing assistant. Rewrite the following paragraph with proper in-text citations using the citation style specified. Only use papers from the provided list. Prefer papers categorized as Direct or High relevance with higher citation counts and h-index. Do not use Moderate papers unless no better option exists.${gbtHint}`,
     messages: [
       {
         role: "user",

@@ -18,6 +18,8 @@ export interface Paper {
   journalHIndex?: number | null;
   /** 2-year mean citedness from OpenAlex — a free proxy for Impact Factor. */
   impactFactor?: number | null;
+  /** Scimago Journal Rankings quartile ("Q1"–"Q4"), looked up from the SJR index. */
+  sjrQuartile?: string | null;
   subjectArea?: string | null;
   doi: string | null;
   abstract: string | null;

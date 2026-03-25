@@ -353,6 +353,42 @@ function formatCitationVancouver(paper: Paper): string {
   return [authorStr, title, (source + doiPart).trim()].filter(Boolean).join(" ");
 }
 
+function formatCitationGBT(paper: Paper): string {
+  const parsed = parseAuthors(paper.authors);
+  const gbtA = (a: ParsedAuthor) => {
+    const inits = a.initials.replace(/\.\s*/g, "");
+    return `${a.last}${inits ? " " + inits : ""}`;
+  };
+  let authorStr = "";
+  if (parsed.length <= 3) {
+    authorStr = parsed.map(gbtA).join(", ");
+  } else {
+    authorStr = parsed.slice(0, 3).map(gbtA).join(", ") + ", et al";
+  }
+
+  const title = paper.title ?? "Untitled";
+  let source = "";
+  if (paper.journal) {
+    source = paper.journal;
+    if (paper.year) {
+      source += `, ${paper.year}`;
+      if (paper.volume) {
+        source += `, ${paper.volume}`;
+        if (paper.issue) source += `(${paper.issue})`;
+      }
+      if (paper.pages) source += `: ${paper.pages}`;
+    }
+  } else if (paper.year) {
+    source = `${paper.year}`;
+  }
+
+  const parts: string[] = [];
+  if (authorStr) parts.push(authorStr + ".");
+  parts.push(`${title}[J].`);
+  if (source) parts.push(source + ".");
+  return parts.join(" ");
+}
+
 // ── export generators ─────────────────────────────────────────────────────────
 
 // Tracks the citation format most recently used in any CitationMenu so the
@@ -805,12 +841,13 @@ function ProGatePopover({
 // ── Omakase citation style picker modal ───────────────────────────────────────
 
 const OMAKASE_STYLES = [
-  { id: "apa",       label: "APA",       subtitle: "7th edition" },
-  { id: "mla",       label: "MLA",       subtitle: "9th edition" },
-  { id: "chicago",   label: "Chicago",   subtitle: "17th edition" },
-  { id: "harvard",   label: "Harvard",   subtitle: "Author–date" },
-  { id: "ieee",      label: "IEEE",      subtitle: "Numbered refs" },
-  { id: "vancouver", label: "Vancouver", subtitle: "Numbered refs" },
+  { id: "apa",       label: "APA",        subtitle: "7th edition" },
+  { id: "mla",       label: "MLA",        subtitle: "9th edition" },
+  { id: "chicago",   label: "Chicago",    subtitle: "17th edition" },
+  { id: "harvard",   label: "Harvard",    subtitle: "Author–date" },
+  { id: "ieee",      label: "IEEE",       subtitle: "Numbered refs" },
+  { id: "vancouver", label: "Vancouver",  subtitle: "Numbered refs" },
+  { id: "gbt",       label: "GB/T 7714", subtitle: "Chinese national standard" },
 ] as const;
 
 type OmakaseStyleId = (typeof OMAKASE_STYLES)[number]["id"];
@@ -1155,6 +1192,7 @@ const CITATION_FORMATS = [
   { id: "harvard",   label: "Harvard",      fn: formatCitationHarvard },
   { id: "ieee",      label: "IEEE",         fn: formatCitationIEEE },
   { id: "vancouver", label: "Vancouver",    fn: formatCitationVancouver },
+  { id: "gbt",       label: "GB/T 7714",    fn: formatCitationGBT },
 ] as const;
 
 function CitationMenu({ paper }: { paper: Paper }) {
@@ -1269,21 +1307,33 @@ function StatBadge({
   text,
   colorClass,
   glowing = false,
+  title,
 }: {
   icon: React.ReactNode;
   text: string;
   colorClass: string;
   glowing?: boolean;
+  title?: string;
 }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-wide ${colorClass}${glowing ? " stat-badge-glow" : ""}`}
       style={glowing ? { boxShadow: "0 0 7px 1px rgba(234,88,12,0.35)" } : undefined}
+      title={title}
     >
       {icon}
       {text}
     </span>
   );
+}
+
+function sjrQuartileStyle(q: string): { colorClass: string } {
+  switch (q) {
+    case "Q1": return { colorClass: "bg-emerald-700/15 border-emerald-700/30 text-emerald-300 light:bg-[rgba(10,70,30,0.10)] light:border-[rgba(10,70,30,0.28)] light:text-[#0A4620]" };
+    case "Q2": return { colorClass: "bg-green-500/10 border-green-500/20 text-green-400 light:bg-[rgba(20,90,30,0.08)] light:border-[rgba(20,90,30,0.22)] light:text-[#1A5C1A]" };
+    case "Q3": return { colorClass: "bg-amber-500/10 border-amber-500/20 text-amber-400 light:bg-[rgba(100,60,0,0.08)] light:border-[rgba(100,60,0,0.22)] light:text-[#6B3A00]" };
+    default:   return { colorClass: "bg-slate-500/10 border-slate-500/20 text-slate-400 light:bg-[rgba(80,80,80,0.07)] light:border-[rgba(80,80,80,0.18)] light:text-[#5A5A5A]" };
+  }
 }
 
 // ── shared paper stats row ────────────────────────────────────────────────────
@@ -1345,6 +1395,21 @@ function PaperStatBadges({ paper }: { paper: Paper }) {
           }
         />
       )}
+      {paper.sjrQuartile && (() => {
+        const { colorClass } = sjrQuartileStyle(paper.sjrQuartile);
+        return (
+          <StatBadge
+            colorClass={colorClass}
+            text={paper.sjrQuartile}
+            title="SJR quartile from Scimago Journal Rankings — the official ranking for this journal."
+            icon={
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"/>
+              </svg>
+            }
+          />
+        );
+      })()}
       {paper.subjectArea && (
         <StatBadge
           colorClass="bg-emerald-500/10 border-emerald-500/20 text-emerald-400 light:bg-[rgba(10,60,25,0.08)] light:border-[rgba(10,60,25,0.24)] light:text-[#0A3C19]"
@@ -2131,6 +2196,10 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                   <div className="flex items-start gap-2.5">
                     <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
                     <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-[#004B46]">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-emerald-300 text-sm shrink-0 leading-none mt-0.5 font-semibold">Q</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-300 light:text-[#0A4620]">Q1–Q4 — SJR journal quartile.</strong> The official quartile from Scimago Journal Rankings (SJR), sourced from the public SJR dataset. Q1 is the top 25% of journals in a field by SJR score, Q4 is the bottom 25%. Lookup uses ISSN first, then journal name. Only shown when the journal is found in the SJR index.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>

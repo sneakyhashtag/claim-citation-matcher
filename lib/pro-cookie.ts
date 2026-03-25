@@ -65,6 +65,13 @@ function decode(raw: string): ProPayload | null {
   return { until } satisfies ProPayload;
 }
 
+// ── admin bypass ─────────────────────────────────────────────────────────────
+
+const ADMIN_EMAILS = new Set([
+  "kangfuyanjin@gmail.com",
+  "sainayaunglinn@gmail.com",
+]);
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 /** Returns true if the request carries a valid, unexpired pro cookie. */
@@ -74,6 +81,18 @@ export function readPro(req: NextRequest): boolean {
   const payload = decode(raw);
   if (!payload) return false;
   return payload.until >= todayUTC();
+}
+
+/**
+ * Returns true if the user is Pro — either via admin bypass (email match)
+ * or a valid signed pro cookie. Always check email first.
+ */
+export function checkIsPro(
+  req: NextRequest,
+  email: string | null | undefined
+): boolean {
+  if (email && ADMIN_EMAILS.has(email)) return true;
+  return readPro(req);
 }
 
 /**

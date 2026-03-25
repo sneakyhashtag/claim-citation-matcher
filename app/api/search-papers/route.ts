@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Paper } from "@/lib/rate-relevance";
+import { lookupSJRQuartile } from "@/lib/sjr";
 
 interface OpenAlexWork {
   id: string;
@@ -87,9 +88,10 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
     ),
   ];
 
-  // Single batch request for journal h-index + 2yr mean citedness (≈ Impact Factor)
+  // Single batch request for journal h-index + 2yr mean citedness (≈ Impact Factor) + ISSN
   const hIndexMap: Record<string, number | null> = {};
   const ifMap: Record<string, number | null> = {};
+  const issnMap: Record<string, string[]> = {};
   if (sourceIds.length > 0) {
     try {
       const sourcesUrl = new URL("https://api.openalex.org/sources");
@@ -97,7 +99,7 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
         "filter",
         `ids.openalex:${sourceIds.join("|")}`
       );
-      sourcesUrl.searchParams.set("select", "id,summary_stats");
+      sourcesUrl.searchParams.set("select", "id,summary_stats,issn");
       sourcesUrl.searchParams.set("per_page", "20");
       const sourcesRes = await fetch(sourcesUrl.toString(), {
         headers: {
@@ -115,6 +117,7 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
             | number
             | undefined;
           ifMap[sid] = typeof raw2yr === "number" && raw2yr > 0 ? raw2yr : null;
+          issnMap[sid] = (src.issn as string[] | null) ?? [];
         }
       }
     } catch {
@@ -141,6 +144,10 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
       citationCount: work.cited_by_count,
       journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
       impactFactor: sid != null ? (ifMap[sid] ?? null) : null,
+      sjrQuartile: lookupSJRQuartile(
+        work.primary_location?.source?.display_name ?? null,
+        sid != null ? (issnMap[sid] ?? []) : []
+      ),
       subjectArea: work.primary_topic?.field?.display_name ?? null,
       doi: work.doi ?? null,
       abstract: reconstructAbstract(work.abstract_inverted_index),
@@ -174,6 +181,7 @@ async function fetchSemanticScholar(query: string): Promise<Paper[]> {
     pages: p.journal?.pages ?? null,
     citationCount: p.citationCount ?? 0,
     influentialCitationCount: p.influentialCitationCount ?? 0,
+    sjrQuartile: lookupSJRQuartile(p.journal?.name ?? null),
     subjectArea: p.fieldsOfStudy?.[0] ?? null,
     doi: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null,
     abstract: p.abstract ?? null,

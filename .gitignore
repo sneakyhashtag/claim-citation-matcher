@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local database
+# local database (exclude the SJR placeholder which is safe to commit)
 /data
+!/data/sjr-quartiles.json

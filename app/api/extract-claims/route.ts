@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { writeCount } from "@/lib/usage-cookie";
 import { checkUsageDB, incrementUsageDB, DAILY_LIMIT } from "@/lib/db-usage";
-import { readPro } from "@/lib/pro-cookie";
+import { checkIsPro } from "@/lib/pro-cookie";
 import { claimExtractionModel } from "@/lib/models";
 
 const client = new Anthropic();
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   // ── 2. Pro check — requires BOTH a signed-in session AND a valid Pro cookie ─
   // A guest user must never receive Pro features regardless of any cookie.
   const session = await auth();
-  const pro = !!session?.user && readPro(req);
+  const pro = !!session?.user && checkIsPro(req, session.user.email);
 
   // ── 3. Character limit ─────────────────────────────────────────────────────
   const charLimit = pro ? 10000 : 1000;

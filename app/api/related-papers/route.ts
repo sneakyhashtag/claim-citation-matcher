@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { writeCount } from "@/lib/usage-cookie";
 import { checkUsageDB, incrementUsageDB, DAILY_LIMIT } from "@/lib/db-usage";
-import { readPro } from "@/lib/pro-cookie";
+import { checkIsPro } from "@/lib/pro-cookie";
 import type { Paper } from "@/lib/rate-relevance";
+import { lookupSJRQuartile } from "@/lib/sjr";
 
 interface S2Paper {
   paperId: string;
@@ -72,6 +73,7 @@ function mapS2Paper(p: S2Paper): Paper {
     pages: p.journal?.pages ?? null,
     citationCount: p.citationCount ?? 0,
     influentialCitationCount: p.influentialCitationCount ?? 0,
+    sjrQuartile: lookupSJRQuartile(p.journal?.name ?? null),
     subjectArea: p.fieldsOfStudy?.[0] ?? null,
     doi: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null,
     abstract: p.abstract ?? null,
@@ -131,11 +133,12 @@ async function fetchOpenAlexSearch(query: string): Promise<Paper[]> {
 
   const hIndexMap: Record<string, number | null> = {};
   const ifMap: Record<string, number | null> = {};
+  const issnMap: Record<string, string[]> = {};
   if (sourceIds.length > 0) {
     try {
       const sourcesUrl = new URL("https://api.openalex.org/sources");
       sourcesUrl.searchParams.set("filter", `ids.openalex:${sourceIds.join("|")}`);
-      sourcesUrl.searchParams.set("select", "id,summary_stats");
+      sourcesUrl.searchParams.set("select", "id,summary_stats,issn");
       sourcesUrl.searchParams.set("per_page", "20");
       const srcRes = await fetch(sourcesUrl.toString(), {
         headers: { "User-Agent": "claim-citation-matcher (mailto:contact@example.com)" },
@@ -147,6 +150,7 @@ async function fetchOpenAlexSearch(query: string): Promise<Paper[]> {
           hIndexMap[sid] = (src.summary_stats?.h_index as number | undefined) ?? null;
           const raw2yr = src.summary_stats?.["2yr_mean_citedness"] as number | undefined;
           ifMap[sid] = typeof raw2yr === "number" && raw2yr > 0 ? raw2yr : null;
+          issnMap[sid] = (src.issn as string[] | null) ?? [];
         }
       }
     } catch {
@@ -171,6 +175,10 @@ async function fetchOpenAlexSearch(query: string): Promise<Paper[]> {
       citationCount: work.cited_by_count,
       journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
       impactFactor: sid != null ? (ifMap[sid] ?? null) : null,
+      sjrQuartile: lookupSJRQuartile(
+        work.primary_location?.source?.display_name ?? null,
+        sid != null ? (issnMap[sid] ?? []) : []
+      ),
       subjectArea: work.primary_topic?.field?.display_name ?? null,
       doi: work.doi ?? null,
       abstract: reconstructAbstract(work.abstract_inverted_index),
@@ -191,7 +199,7 @@ export async function POST(req: NextRequest) {
 
   // ── Usage limit — verified against the database (same rules as extract-claims)
   const session = await auth();
-  const pro = !!session?.user && readPro(req);
+  const pro = !!session?.user && checkIsPro(req, session.user.email);
 
   if (!pro) {
     const usage = await checkUsageDB(req, session);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readPro, clearProCookie } from "@/lib/pro-cookie";
+import { checkIsPro, clearProCookie } from "@/lib/pro-cookie";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -13,5 +13,5 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  return NextResponse.json({ pro: readPro(req) });
+  return NextResponse.json({ pro: checkIsPro(req, session.user.email) });
 }

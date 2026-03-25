@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readPro } from "@/lib/pro-cookie";
+import { checkIsPro } from "@/lib/pro-cookie";
 
 // OCR and document parsing can take a while — allow up to 60 seconds.
 export const maxDuration = 60;
@@ -72,7 +72,7 @@ function cleanExtractedText(raw: string): string {
 export async function POST(req: NextRequest) {
   // Must be signed in AND have an active Pro subscription.
   const session = await auth();
-  if (!session?.user || !readPro(req)) {
+  if (!session?.user || !checkIsPro(req, session.user.email)) {
     return NextResponse.json(
       { error: "Document upload is a Pro feature." },
       { status: 403 }
