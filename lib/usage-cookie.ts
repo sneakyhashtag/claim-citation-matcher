@@ -81,7 +81,9 @@ function decode(raw: string): UsagePayload | null {
 export function readUsage(req: NextRequest): UsageInfo {
   const today = todayUTC();
   const raw = req.cookies.get(COOKIE_NAME)?.value ?? "";
+  console.log(`[usage-cookie] readUsage: cookie present=${!!raw}, name=${COOKIE_NAME}`);
   const payload = raw ? decode(raw) : null;
+  console.log(`[usage-cookie] readUsage: decoded=${JSON.stringify(payload)}, today=${today}`);
   const count = payload?.date === today ? payload.count : 0;
 
   return {
@@ -108,10 +110,11 @@ export function readCount(req: NextRequest): number {
  */
 export function writeCount(res: NextResponse, newCount: number): void {
   const value = encode({ count: newCount, date: todayUTC() });
+  console.log(`[usage-cookie] writeCount: setting ${COOKIE_NAME}=${newCount}, secure=true, sameSite=lax, path=/, maxAge=${60 * 60 * 24 * 7}`);
   res.cookies.set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days; reset logic lives inside the payload
   });

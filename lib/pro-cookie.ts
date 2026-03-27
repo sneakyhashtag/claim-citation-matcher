@@ -72,15 +72,24 @@ const ADMIN_EMAILS = new Set([
   "sainayaunglinn@gmail.com",
 ]);
 
+/** Returns true if this email is an admin who always gets Pro access. */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  return !!email && ADMIN_EMAILS.has(email);
+}
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 /** Returns true if the request carries a valid, unexpired pro cookie. */
 export function readPro(req: NextRequest): boolean {
   const raw = req.cookies.get(COOKIE_NAME)?.value ?? "";
+  console.log(`[pro-cookie] readPro: cookie present=${!!raw}, name=${COOKIE_NAME}`);
   if (!raw) return false;
   const payload = decode(raw);
+  console.log(`[pro-cookie] readPro: decoded=${JSON.stringify(payload)}, today=${todayUTC()}`);
   if (!payload) return false;
-  return payload.until >= todayUTC();
+  const valid = payload.until >= todayUTC();
+  console.log(`[pro-cookie] readPro: valid=${valid}, until=${payload.until}`);
+  return valid;
 }
 
 /**
@@ -91,7 +100,10 @@ export function checkIsPro(
   req: NextRequest,
   email: string | null | undefined
 ): boolean {
-  if (email && ADMIN_EMAILS.has(email)) return true;
+  if (email && ADMIN_EMAILS.has(email)) {
+    console.log(`[pro-cookie] checkIsPro: admin bypass for ${email}`);
+    return true;
+  }
   return readPro(req);
 }
 
@@ -101,10 +113,11 @@ export function checkIsPro(
  * so stale pro cookies don't linger on guest browsers.
  */
 export function clearProCookie(res: NextResponse): void {
+  console.log(`[pro-cookie] clearProCookie: clearing ${COOKIE_NAME}`);
   res.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     path: "/",
     maxAge: 0,
   });
@@ -113,10 +126,12 @@ export function clearProCookie(res: NextResponse): void {
 /** Write a signed pro cookie onto a response, valid for PRO_DURATION_DAYS days. */
 export function setProCookie(res: NextResponse): void {
   const until = futureDateUTC(PRO_DURATION_DAYS);
-  res.cookies.set(COOKIE_NAME, encode({ until }), {
+  const encoded = encode({ until });
+  console.log(`[pro-cookie] setProCookie: setting ${COOKIE_NAME}, until=${until}, secure=true, sameSite=lax, path=/`);
+  res.cookies.set(COOKIE_NAME, encoded, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * PRO_DURATION_DAYS,
   });

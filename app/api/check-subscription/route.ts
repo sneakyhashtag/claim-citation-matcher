@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { setProCookie, clearProCookie } from "@/lib/pro-cookie";
+import { setProCookie, clearProCookie, isAdminEmail } from "@/lib/pro-cookie";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -21,6 +21,14 @@ export async function GET(_req: NextRequest) {
 
   if (!session?.user?.email) {
     return NextResponse.json({ pro: false });
+  }
+
+  // Admin bypass — return Pro immediately without calling Stripe.
+  if (isAdminEmail(session.user.email)) {
+    console.log(`[check-subscription] admin bypass for ${session.user.email}`);
+    const res = NextResponse.json({ pro: true });
+    setProCookie(res);
+    return res;
   }
 
   try {
