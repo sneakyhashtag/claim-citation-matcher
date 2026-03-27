@@ -1343,6 +1343,35 @@ function StatBadge({
   );
 }
 
+const MATCH_TYPE_TOOLTIP =
+  "Relevance is assessed based on the paper\u2019s abstract, not the full text. Click the DOI link to verify against the original paper.";
+
+function MatchTypeInfoIcon() {
+  return (
+    <span className="relative ml-auto group/mti flex-shrink-0">
+      <button
+        type="button"
+        aria-label={MATCH_TYPE_TOOLTIP}
+        className="flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 light:text-[rgba(80,60,30,0.45)] light:hover:text-[rgba(60,40,10,0.75)] transition-colors focus:outline-none"
+      >
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 7v4M8 5.5v.5"/>
+        </svg>
+      </button>
+      {/* tooltip */}
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full right-0 z-50 mb-1.5 w-64 rounded border border-slate-700/60 bg-slate-900 px-3 py-2 text-[11px] leading-relaxed text-slate-300 opacity-0 shadow-lg transition-opacity group-hover/mti:opacity-100 group-focus-within/mti:opacity-100 light:border-[rgba(80,60,30,0.22)] light:bg-[#FDF8F0] light:text-[#3D2B10]"
+      >
+        {MATCH_TYPE_TOOLTIP}
+        {/* arrow */}
+        <span className="absolute -bottom-[5px] right-2 h-2 w-2 rotate-45 border-b border-r border-slate-700/60 bg-slate-900 light:border-[rgba(80,60,30,0.22)] light:bg-[#FDF8F0]" />
+      </span>
+    </span>
+  );
+}
+
 function sjrQuartileStyle(q: string): { colorClass: string } {
   switch (q) {
     case "Q1": return { colorClass: "bg-emerald-700/15 border-emerald-700/30 text-emerald-300 light:bg-[rgba(10,70,30,0.10)] light:border-[rgba(10,70,30,0.28)] light:text-[#0A4620]" };
@@ -1581,19 +1610,20 @@ function PaperCard({
           {paper.relevanceExplanation}
         </p>
 
-        {/* matching excerpt — Exact Match */}
-        {paper.matchingExcerpt && paper.matchType === "Exact Match" && (
+        {/* matching excerpt — Abstract Match */}
+        {paper.matchingExcerpt && paper.matchType === "Abstract Match" && (
           <div className={`mt-2.5 rounded-sm border-l-2 px-3 py-2 ${excerptBorderClass} ${excerptBgClass}`}>
             <div className="mb-1.5 flex items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold text-green-400 light:border-[rgba(30,100,40,0.32)] light:bg-[rgba(30,100,40,0.11)] light:text-[#1A5C22]">
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
                   <path d="M10.28 2.28a.75.75 0 0 0-1.06 0L4.5 6.997 2.78 5.28a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l5.25-5.25a.75.75 0 0 0 0-1.06Z"/>
                 </svg>
-                Exact Match
+                Abstract Match
               </span>
               <span className={`text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
                 Matching sentence from abstract
               </span>
+              <MatchTypeInfoIcon />
             </div>
             <blockquote>
               <p className={`text-[11px] italic leading-relaxed ${excerptTextClass}`}>
@@ -1605,8 +1635,8 @@ function PaperCard({
           </div>
         )}
 
-        {/* matching excerpt — Thematic Match */}
-        {paper.matchingExcerpt && paper.matchType === "Thematic Match" && (
+        {/* matching excerpt — Topic Match */}
+        {paper.matchingExcerpt && paper.matchType === "Topic Match" && (
           <div className="mt-2.5 rounded-sm border border-slate-700/40 bg-slate-800/30 px-3 py-2 light:border-[rgba(80,60,30,0.18)] light:bg-[rgba(245,240,230,0.70)]">
             <div className="mb-1.5 flex items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400 light:border-[rgba(42,48,112,0.32)] light:bg-[rgba(42,48,112,0.10)] light:text-[#2A3070]">
@@ -1614,11 +1644,12 @@ function PaperCard({
                   <circle cx="6" cy="6" r="4.5"/>
                   <path d="M6 4v2.5M6 8v.5"/>
                 </svg>
-                Thematic Match
+                Topic Match
               </span>
               <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500/70 light:text-[rgba(80,60,30,0.55)]">
                 How this paper relates
               </span>
+              <MatchTypeInfoIcon />
             </div>
             <p className="text-[11px] leading-relaxed text-slate-400 light:text-[#4A3520]">
               {paper.matchingExcerpt}
