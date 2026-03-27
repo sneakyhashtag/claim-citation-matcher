@@ -32,6 +32,7 @@ export interface Paper {
 export interface RatedPaper extends Paper {
   relevanceScore: number;
   relevanceExplanation: string;
+  matchingExcerpt?: string | null;
 }
 
 const RatingSchema = z.object({
@@ -40,6 +41,7 @@ const RatingSchema = z.object({
       index: z.number().int(),
       score: z.number().int().min(1).max(5),
       explanation: z.string(),
+      matching_excerpt: z.string().nullable(),
     })
   ),
 });
@@ -59,7 +61,7 @@ export async function rateRelevance(
 
   const response = await client.messages.parse({
     model: relevanceScoringModel(),
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: `You are a research assistant evaluating how relevant academic papers are to a specific claim.
 
 Rate each paper's relevance to the claim on a scale of 1–5:
@@ -69,7 +71,7 @@ Rate each paper's relevance to the claim on a scale of 1–5:
 4 = Highly relevant
 5 = Directly supports or refutes the claim
 
-For each paper provide a one-sentence explanation.`,
+For each paper provide a one-sentence explanation. Also extract the single most relevant sentence or phrase from the abstract that best matches the claim — copy it verbatim and return it as matching_excerpt. If the abstract is unavailable or nothing is clearly relevant, set matching_excerpt to null.`,
     messages: [
       {
         role: "user",
@@ -89,5 +91,6 @@ For each paper provide a one-sentence explanation.`,
       ...papers[r.index],
       relevanceScore: r.score,
       relevanceExplanation: r.explanation,
+      matchingExcerpt: r.matching_excerpt ?? null,
     }));
 }

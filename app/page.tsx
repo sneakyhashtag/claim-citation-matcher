@@ -1565,6 +1565,17 @@ function PaperCard({
           {paper.relevanceExplanation}
         </p>
 
+        {/* matching excerpt */}
+        {paper.matchingExcerpt && (
+          <blockquote className="mt-2 pl-3 border-l-2 border-slate-600/50 light:border-[rgba(80,50,20,0.30)]">
+            <p className="text-xs text-slate-400 light:text-[#5C3D1E] leading-relaxed">
+              <span className="text-slate-500 light:text-[#8B6340] select-none">&ldquo;</span>
+              {paper.matchingExcerpt}
+              <span className="text-slate-500 light:text-[#8B6340] select-none">&rdquo;</span>
+            </p>
+          </blockquote>
+        )}
+
         <div className="mt-2 flex items-center gap-3">
           <CitationMenu paper={paper} />
           <div className="relative">
