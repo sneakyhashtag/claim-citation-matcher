@@ -67,14 +67,25 @@ export function lookupSJRQuartile(
     for (const issn of issns) {
       const normalized = issn.replace(/-/g, "").trim();
       const raw = idx.issn[normalized];
-      if (raw) return parseValue(raw);
+      if (raw) {
+        const result = parseValue(raw);
+        console.log(`[sjr] ISSN hit: journal="${journal}" issn=${normalized} => ${raw}`);
+        return result;
+      }
     }
+    console.log(`[sjr] ISSN miss: journal="${journal}" issns=[${issns.map(i => i.replace(/-/g,"")).join(",")}]`);
   }
 
   // 2. Normalised title lookup
   if (journal) {
-    const raw = idx.title[normalizeTitle(journal)];
-    if (raw) return parseValue(raw);
+    const titleKey = normalizeTitle(journal);
+    const raw = idx.title[titleKey];
+    if (raw) {
+      const result = parseValue(raw);
+      console.log(`[sjr] title hit: journal="${journal}" key="${titleKey}" => ${raw}`);
+      return result;
+    }
+    console.log(`[sjr] title miss: journal="${journal}" key="${titleKey}"`);
   }
 
   return null;
