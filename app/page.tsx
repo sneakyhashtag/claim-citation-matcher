@@ -692,21 +692,37 @@ function getTier(score: number): {
   label: string;
   cardClass: string;
   badgeClass: string;
+  excerptBorderClass: string;
+  excerptBgClass: string;
+  excerptTextClass: string;
+  excerptLabelClass: string;
 } {
   if (score >= 5) return {
     label: "Direct",
     cardClass: "bg-green-500/[0.07] light:bg-[rgba(30,70,32,0.05)] border-green-500/25 light:border-[rgba(30,70,32,0.22)]",
     badgeClass: "bg-green-500/15 text-green-400 light:bg-[rgba(30,70,32,0.11)] light:border-[rgba(30,70,32,0.32)] light:text-[#1E4620]",
+    excerptBorderClass: "border-l-green-500/50 light:border-l-[rgba(30,70,32,0.40)]",
+    excerptBgClass: "bg-green-500/[0.06] light:bg-[rgba(240,252,240,0.80)]",
+    excerptTextClass: "text-green-200/80 light:text-[#1E4620]",
+    excerptLabelClass: "text-green-500/60 light:text-[rgba(30,70,32,0.55)]",
   };
   if (score >= 4) return {
     label: "High",
     cardClass: "bg-blue-500/[0.07] light:bg-[rgba(42,48,112,0.05)] border-blue-500/25 light:border-[rgba(42,48,112,0.2)]",
     badgeClass: "bg-blue-500/15 text-blue-400 light:bg-[rgba(42,48,112,0.09)] light:border-[rgba(42,48,112,0.28)] light:text-[#2A3070]",
+    excerptBorderClass: "border-l-blue-500/50 light:border-l-[rgba(42,48,112,0.38)]",
+    excerptBgClass: "bg-blue-500/[0.06] light:bg-[rgba(240,244,255,0.80)]",
+    excerptTextClass: "text-blue-200/80 light:text-[#2A3070]",
+    excerptLabelClass: "text-blue-500/60 light:text-[rgba(42,48,112,0.55)]",
   };
   return {
     label: "Moderate",
     cardClass: "bg-amber-500/[0.06] light:bg-[rgba(107,58,0,0.05)] border-amber-500/20 light:border-[rgba(107,58,0,0.2)]",
     badgeClass: "bg-amber-500/15 text-amber-400 light:bg-[rgba(107,58,0,0.09)] light:border-[rgba(107,58,0,0.26)] light:text-[#6B3A00]",
+    excerptBorderClass: "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.38)]",
+    excerptBgClass: "bg-amber-500/[0.05] light:bg-[rgba(255,248,235,0.85)]",
+    excerptTextClass: "text-amber-200/80 light:text-[#6B3A00]",
+    excerptLabelClass: "text-amber-500/60 light:text-[rgba(107,58,0,0.55)]",
   };
 }
 
@@ -1465,7 +1481,7 @@ function PaperCard({
         : `${paper.authors[0]}, et al.`;
 
   const authorYearMeta = [authorLine, paper.year].filter(Boolean).join(" · ");
-  const { cardClass } = getTier(paper.relevanceScore);
+  const { cardClass, excerptBorderClass, excerptBgClass, excerptTextClass, excerptLabelClass } = getTier(paper.relevanceScore);
 
   const handleFindRelated = async () => {
     if (relatedPapers !== null) {
@@ -1567,13 +1583,18 @@ function PaperCard({
 
         {/* matching excerpt */}
         {paper.matchingExcerpt && (
-          <blockquote className="mt-2 pl-3 border-l-2 border-slate-600/50 light:border-[rgba(80,50,20,0.30)]">
-            <p className="text-xs text-slate-400 light:text-[#5C3D1E] leading-relaxed">
-              <span className="text-slate-500 light:text-[#8B6340] select-none">&ldquo;</span>
-              {paper.matchingExcerpt}
-              <span className="text-slate-500 light:text-[#8B6340] select-none">&rdquo;</span>
+          <div className={`mt-2.5 rounded-sm border-l-2 px-3 py-2 ${excerptBorderClass} ${excerptBgClass}`}>
+            <p className={`mb-1 text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
+              Matching excerpt from abstract
             </p>
-          </blockquote>
+            <blockquote>
+              <p className={`text-[11px] italic leading-relaxed ${excerptTextClass}`}>
+                <span className="select-none not-italic opacity-60">&ldquo;</span>
+                {paper.matchingExcerpt}
+                <span className="select-none not-italic opacity-60">&rdquo;</span>
+              </p>
+            </blockquote>
+          </div>
         )}
 
         <div className="mt-2 flex items-center gap-3">
