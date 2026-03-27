@@ -20,6 +20,8 @@ export interface Paper {
   impactFactor?: number | null;
   /** Scimago Journal Rankings quartile ("Q1"–"Q4"), looked up from the SJR index. */
   sjrQuartile?: string | null;
+  /** The dominant SJR subject category for the journal (e.g. "Medicine (miscellaneous)"). */
+  sjrCategory?: string | null;
   subjectArea?: string | null;
   doi: string | null;
   abstract: string | null;

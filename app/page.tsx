@@ -1397,10 +1397,13 @@ function PaperStatBadges({ paper }: { paper: Paper }) {
       )}
       {paper.sjrQuartile && (() => {
         const { colorClass } = sjrQuartileStyle(paper.sjrQuartile);
+        const label = paper.sjrCategory
+          ? `${paper.sjrQuartile} · ${paper.sjrCategory}`
+          : paper.sjrQuartile;
         return (
           <StatBadge
             colorClass={colorClass}
-            text={paper.sjrQuartile}
+            text={label}
             title="SJR quartile from Scimago Journal Rankings — the official ranking for this journal."
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>

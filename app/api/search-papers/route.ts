@@ -144,10 +144,13 @@ async function fetchOpenAlex(query: string): Promise<Paper[]> {
       citationCount: work.cited_by_count,
       journalHIndex: sid != null ? (hIndexMap[sid] ?? null) : null,
       impactFactor: sid != null ? (ifMap[sid] ?? null) : null,
-      sjrQuartile: lookupSJRQuartile(
-        work.primary_location?.source?.display_name ?? null,
-        sid != null ? (issnMap[sid] ?? []) : []
-      ),
+      ...(() => {
+        const sjr = lookupSJRQuartile(
+          work.primary_location?.source?.display_name ?? null,
+          sid != null ? (issnMap[sid] ?? []) : []
+        );
+        return { sjrQuartile: sjr?.quartile ?? null, sjrCategory: sjr?.category ?? null };
+      })(),
       subjectArea: work.primary_topic?.field?.display_name ?? null,
       doi: work.doi ?? null,
       abstract: reconstructAbstract(work.abstract_inverted_index),
@@ -181,7 +184,10 @@ async function fetchSemanticScholar(query: string): Promise<Paper[]> {
     pages: p.journal?.pages ?? null,
     citationCount: p.citationCount ?? 0,
     influentialCitationCount: p.influentialCitationCount ?? 0,
-    sjrQuartile: lookupSJRQuartile(p.journal?.name ?? null),
+    ...(() => {
+      const sjr = lookupSJRQuartile(p.journal?.name ?? null);
+      return { sjrQuartile: sjr?.quartile ?? null, sjrCategory: sjr?.category ?? null };
+    })(),
     subjectArea: p.fieldsOfStudy?.[0] ?? null,
     doi: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null,
     abstract: p.abstract ?? null,

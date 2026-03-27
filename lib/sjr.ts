@@ -4,8 +4,8 @@
  * The index is generated from the official SJR CSV by running:
  *   node scripts/build-sjr-index.mjs
  *
+ * Stored value format: "Q2|Environmental Science" (quartile|category).
  * Lookup priority: ISSN (exact) → normalised journal title.
- * Returns "Q1" | "Q2" | "Q3" | "Q4" | null.
  */
 
 import { readFileSync } from "fs";
@@ -14,6 +14,11 @@ import { join } from "path";
 interface SJRIndex {
   issn: Record<string, string>;
   title: Record<string, string>;
+}
+
+export interface SJRResult {
+  quartile: string;
+  category: string | null;
 }
 
 let _index: SJRIndex | null = null;
@@ -37,31 +42,39 @@ function normalizeTitle(t: string): string {
   return t.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
 }
 
+/** Parse the stored "Q2|Environmental Science" or plain "Q2" value. */
+function parseValue(raw: string): SJRResult {
+  const pipe = raw.indexOf("|");
+  if (pipe === -1) return { quartile: raw, category: null };
+  return { quartile: raw.slice(0, pipe), category: raw.slice(pipe + 1) || null };
+}
+
 /**
  * Look up the SJR quartile for a journal.
  *
  * @param journal  Display name of the journal (may be null).
  * @param issns    One or more ISSNs associated with the journal (optional).
- * @returns "Q1" | "Q2" | "Q3" | "Q4" | null
+ * @returns { quartile, category } or null
  */
 export function lookupSJRQuartile(
   journal: string | null,
   issns?: string[]
-): string | null {
+): SJRResult | null {
   const idx = getIndex();
 
-  // 1. ISSN lookup — most reliable
+  // 1. ISSN lookup — most reliable (strip hyphens to match stored format)
   if (issns && issns.length > 0) {
     for (const issn of issns) {
-      const q = idx.issn[issn.trim()];
-      if (q) return q;
+      const normalized = issn.replace(/-/g, "").trim();
+      const raw = idx.issn[normalized];
+      if (raw) return parseValue(raw);
     }
   }
 
   // 2. Normalised title lookup
   if (journal) {
-    const q = idx.title[normalizeTitle(journal)];
-    if (q) return q;
+    const raw = idx.title[normalizeTitle(journal)];
+    if (raw) return parseValue(raw);
   }
 
   return null;
