@@ -1,8 +1,23 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { createPool } from "@vercel/postgres";
+import { sql } from "@/lib/db";
 import bcrypt from "bcryptjs";
+
+// ── Custom error codes surfaced to the sign-in page ──────────────────────────
+
+class EmailNotFound extends CredentialsSignin {
+  code = "EmailNotFound" as const;
+}
+class GoogleOnly extends CredentialsSignin {
+  // Account exists but was created via Google — no password stored.
+  code = "GoogleOnly" as const;
+}
+class WrongPassword extends CredentialsSignin {
+  code = "WrongPassword" as const;
+}
+
+// ── Auth config ───────────────────────────────────────────────────────────────
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -16,28 +31,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string | undefined;
+        const email = (credentials?.email as string | undefined)
+          ?.trim()
+          .toLowerCase();
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
 
-        const pool = createPool({ connectionString: process.env.POSTGRES_URL });
-        const client = await pool.connect();
-        try {
-          const result = await client.query(
-            "SELECT id, email, name, password_hash FROM users WHERE email = $1",
-            [email.toLowerCase().trim()]
-          );
-          const user = result.rows[0];
-          if (!user?.password_hash) return null;
+        const result = await sql`
+          SELECT id, email, name, password_hash
+          FROM   users
+          WHERE  email = ${email}
+        `;
+        const user = result.rows[0];
 
-          const valid = await bcrypt.compare(password, user.password_hash);
-          if (!valid) return null;
+        if (!user) throw new EmailNotFound();
+        if (!user.password_hash) throw new GoogleOnly();
 
-          return { id: String(user.id), email: user.email, name: user.name };
-        } finally {
-          client.release();
-          await pool.end();
-        }
+        const valid = await bcrypt.compare(password, user.password_hash as string);
+        if (!valid) throw new WrongPassword();
+
+        return {
+          id: String(user.id),
+          email: user.email as string,
+          name: user.name as string | null,
+        };
       },
     }),
   ],
