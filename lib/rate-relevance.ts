@@ -32,6 +32,7 @@ export interface Paper {
 export interface RatedPaper extends Paper {
   relevanceScore: number;
   relevanceExplanation: string;
+  matchType?: "Exact Match" | "Thematic Match" | null;
   matchingExcerpt?: string | null;
 }
 
@@ -41,6 +42,7 @@ const RatingSchema = z.object({
       index: z.number().int(),
       score: z.number().int().min(1).max(5),
       explanation: z.string(),
+      match_type: z.enum(["Exact Match", "Thematic Match"]),
       matching_excerpt: z.string().nullable(),
     })
   ),
@@ -71,7 +73,18 @@ Rate each paper's relevance to the claim on a scale of 1–5:
 4 = Highly relevant
 5 = Directly supports or refutes the claim
 
-For each paper provide a one-sentence explanation. Also extract the single most relevant sentence or phrase from the abstract that best matches the claim — copy it verbatim and return it as matching_excerpt. If the abstract is unavailable or nothing is clearly relevant, set matching_excerpt to null.`,
+For each paper also provide:
+
+1. explanation: a one-sentence explanation of the relevance.
+
+2. match_type: classify as exactly one of:
+   - "Exact Match" — a specific sentence or phrase in the abstract directly states or closely mirrors the claim
+   - "Thematic Match" — the paper generally discusses the topic or draws conclusions that support the claim, but no single sentence directly corresponds
+
+3. matching_excerpt:
+   - For "Exact Match": copy verbatim the single sentence or phrase from the abstract that most directly matches the claim.
+   - For "Thematic Match": write one brief sentence explaining how the paper's overall findings or conclusions support the claim (do not quote; synthesise).
+   - Set to null only if the abstract is unavailable.`,
     messages: [
       {
         role: "user",
@@ -91,6 +104,7 @@ For each paper provide a one-sentence explanation. Also extract the single most 
       ...papers[r.index],
       relevanceScore: r.score,
       relevanceExplanation: r.explanation,
+      matchType: r.match_type,
       matchingExcerpt: r.matching_excerpt ?? null,
     }));
 }

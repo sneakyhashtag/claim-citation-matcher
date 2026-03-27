@@ -1585,13 +1585,17 @@ function PaperCard({
         {paper.matchingExcerpt && (
           <div className={`mt-2.5 rounded-sm border-l-2 px-3 py-2 ${excerptBorderClass} ${excerptBgClass}`}>
             <p className={`mb-1 text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
-              Matching excerpt from abstract
+              {paper.matchType ?? "Matching excerpt"}{paper.matchType ? " · from abstract" : ""}
             </p>
             <blockquote>
               <p className={`text-[11px] italic leading-relaxed ${excerptTextClass}`}>
-                <span className="select-none not-italic opacity-60">&ldquo;</span>
+                {paper.matchType === "Exact Match" && (
+                  <span className="select-none not-italic opacity-60">&ldquo;</span>
+                )}
                 {paper.matchingExcerpt}
-                <span className="select-none not-italic opacity-60">&rdquo;</span>
+                {paper.matchType === "Exact Match" && (
+                  <span className="select-none not-italic opacity-60">&rdquo;</span>
+                )}
               </p>
             </blockquote>
           </div>
