@@ -1581,23 +1581,48 @@ function PaperCard({
           {paper.relevanceExplanation}
         </p>
 
-        {/* matching excerpt */}
-        {paper.matchingExcerpt && (
+        {/* matching excerpt — Exact Match */}
+        {paper.matchingExcerpt && paper.matchType === "Exact Match" && (
           <div className={`mt-2.5 rounded-sm border-l-2 px-3 py-2 ${excerptBorderClass} ${excerptBgClass}`}>
-            <p className={`mb-1 text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
-              {paper.matchType ?? "Matching excerpt"}{paper.matchType ? " · from abstract" : ""}
-            </p>
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold text-green-400 light:border-[rgba(30,100,40,0.32)] light:bg-[rgba(30,100,40,0.11)] light:text-[#1A5C22]">
+                <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
+                  <path d="M10.28 2.28a.75.75 0 0 0-1.06 0L4.5 6.997 2.78 5.28a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l5.25-5.25a.75.75 0 0 0 0-1.06Z"/>
+                </svg>
+                Exact Match
+              </span>
+              <span className={`text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
+                Matching sentence from abstract
+              </span>
+            </div>
             <blockquote>
               <p className={`text-[11px] italic leading-relaxed ${excerptTextClass}`}>
-                {paper.matchType === "Exact Match" && (
-                  <span className="select-none not-italic opacity-60">&ldquo;</span>
-                )}
+                <span className="select-none not-italic opacity-50">&ldquo;</span>
                 {paper.matchingExcerpt}
-                {paper.matchType === "Exact Match" && (
-                  <span className="select-none not-italic opacity-60">&rdquo;</span>
-                )}
+                <span className="select-none not-italic opacity-50">&rdquo;</span>
               </p>
             </blockquote>
+          </div>
+        )}
+
+        {/* matching excerpt — Thematic Match */}
+        {paper.matchingExcerpt && paper.matchType === "Thematic Match" && (
+          <div className="mt-2.5 rounded-sm border border-slate-700/40 bg-slate-800/30 px-3 py-2 light:border-[rgba(80,60,30,0.18)] light:bg-[rgba(245,240,230,0.70)]">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400 light:border-[rgba(42,48,112,0.32)] light:bg-[rgba(42,48,112,0.10)] light:text-[#2A3070]">
+                <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                  <circle cx="6" cy="6" r="4.5"/>
+                  <path d="M6 4v2.5M6 8v.5"/>
+                </svg>
+                Thematic Match
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500/70 light:text-[rgba(80,60,30,0.55)]">
+                How this paper relates
+              </span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-slate-400 light:text-[#4A3520]">
+              {paper.matchingExcerpt}
+            </p>
           </div>
         )}
 
