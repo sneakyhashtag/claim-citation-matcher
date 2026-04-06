@@ -39,7 +39,7 @@ const rows: { ja: string; en: string; value: string }[] = [
     ja: "販売価格",
     en: "Price",
     value:
-      "月額プラン：¥490／月（税込）\n年額プラン：¥4,900／年（税込）\nMonthly plan: ¥490/month (tax included)\nAnnual plan: ¥4,900/year (tax included)",
+      "月額プラン：$2.99／月\n年額プラン：$29.99／年\nMonthly plan: $2.99/month\nAnnual plan: $29.99/year",
   },
   {
     ja: "支払い方法",

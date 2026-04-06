@@ -2472,7 +2472,7 @@ function PlanModal({
                   >
                     <p className="text-xs font-semibold text-slate-400 light:text-[#6B4226] uppercase tracking-wide mb-3">Monthly</p>
                     <div className="mt-auto">
-                      <p className="text-2xl font-bold text-slate-100 light:text-[#2C1810] leading-none">¥490</p>
+                      <p className="text-2xl font-bold text-slate-100 light:text-[#2C1810] leading-none">$2.99</p>
                       <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] mt-1">per month</p>
                       <p className="text-[10px] text-slate-600 light:text-[#A67856] mt-2.5">Billed monthly</p>
                     </div>
@@ -2493,9 +2493,9 @@ function PlanModal({
                     </span>
                     <p className="text-xs font-semibold text-amber-400 light:text-amber-700 uppercase tracking-wide mb-3">Yearly</p>
                     <div className="mt-auto">
-                      <p className="text-2xl font-bold text-amber-300 light:text-amber-800 leading-none">¥4,900</p>
+                      <p className="text-2xl font-bold text-amber-300 light:text-amber-800 leading-none">$29.99</p>
                       <p className="text-[11px] text-amber-500/80 light:text-amber-700/70 mt-1">per year</p>
-                      <p className="text-[10px] text-amber-600/70 light:text-amber-800/60 mt-2.5">≈ ¥408 / month</p>
+                      <p className="text-[10px] text-amber-600/70 light:text-amber-800/60 mt-2.5">≈ $2.50 / month</p>
                     </div>
                   </button>
                 </div>
