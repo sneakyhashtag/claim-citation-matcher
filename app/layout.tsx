@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
+import Link from "next/link";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -55,7 +56,17 @@ export default function RootLayout({
       <body
         className={`${dmSans.variable} ${playfair.variable} font-[family-name:var(--font-dm-sans)] antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <footer className="border-t border-white/[0.05] light:border-[rgba(80,50,20,0.08)] py-4 px-6 text-center">
+            <Link
+              href="/legal"
+              className="text-[11px] text-slate-600 light:text-[#A67856] transition-colors hover:text-slate-400 light:hover:text-[#6B3A22]"
+            >
+              特定商取引法に基づく表記 / Commercial Disclosure
+            </Link>
+          </footer>
+        </Providers>
       </body>
     </html>
   );
