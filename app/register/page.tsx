@@ -94,138 +94,138 @@ function RegisterForm() {
     }
   
     return (
-          <div className="min-h-screen flex items-center justify-center bg-[#080a12] px-4">
-                <div className="w-full max-w-sm rounded-xl border border-slate-700/50 bg-slate-900/80 px-8 py-9 shadow-2xl">
-                  {/* header */}
-                        <div className="mb-7 text-center">
-                                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/15">
-                                              <BookIcon />
-                                  </div>div>
-                                  <h1 className="text-lg font-semibold text-slate-100">Create an account</h1>h1>
-                                  <p className="mt-1 text-xs text-slate-500">Free · 3 searches per day</p>p>
-                        </div>div>
-                
-                  {/* error banner */}
-                  {error && (
-                      <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
-                        {error}
-                        {emailTaken && (
-                                      <>
-                                        {" "}
-                                                      <Link
-                                                                          href={signInHref}
-                                                                          className="underline underline-offset-2 hover:text-red-300"
-                                                                        >
-                                                                        Sign in instead
-                                                      </Link>Link>
-                                      </>>
-                                    )}
-                      </div>div>
-                        )}
-                
-                  {/* form */}
-                        <form onSubmit={handleRegister} className="space-y-3">
-                                  <div>
-                                              <label htmlFor="name" className="mb-1 block text-xs font-medium text-slate-400">
-                                                            Name
-                                              </label>label>
-                                              <input
-                                                              id="name"
-                                                              type="text"
-                                                              autoComplete="name"
-                                                              required
-                                                              value={name}
-                                                              onChange={(e) => {
-                                                                                setName(e.target.value);
-                                                                                setError(null);
-                                                              }}
-                                                              className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
-                                                              placeholder="Your name"
-                                                            />
-                                  </div>div>
-                                  <div>
-                                              <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400">
-                                                            Email
-                                              </label>label>
-                                              <input
-                                                              id="email"
-                                                              type="email"
-                                                              autoComplete="email"
-                                                              required
-                                                              value={email}
-                                                              onChange={(e) => {
-                                                                                setEmail(e.target.value);
-                                                                                setError(null);
-                                                                                setEmailTaken(false);
-                                                              }}
-                                                              className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
-                                                              placeholder="you@example.com"
-                                                            />
-                                  </div>div>
-                                  <div>
-                                              <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400">
-                                                            Password{" "}
-                                                            <span className="text-slate-600">(min. 8 characters)</span>span>
-                                              </label>label>
-                                              <input
-                                                              id="password"
-                                                              type="password"
-                                                              autoComplete="new-password"
-                                                              required
-                                                              minLength={8}
-                                                              value={password}
-                                                              onChange={(e) => {
-                                                                                setPassword(e.target.value);
-                                                                                setError(null);
-                                                              }}
-                                                              className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
-                                                              placeholder="••••••••"
-                                                            />
-                                  </div>div>
-                                  <button
-                                                type="submit"
-                                                disabled={loading}
-                                                className="mt-1 w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                                              >
-                                    {loading ? "Creating account…" : "Create account"}
-                                  </button>button>
-                        </form>form>
-                
-                  {/* divider */}
-                        <div className="my-4 flex items-center gap-3">
-                                  <div className="h-px flex-1 bg-slate-700/60" />
-                                  <span className="text-[11px] uppercase tracking-widest text-slate-500">or</span>span>
-                                  <div className="h-px flex-1 bg-slate-700/60" />
-                        </div>div>
-                
-                  {/* Google sign-up */}
-                        <button
-                                    type="button"
-                                    onClick={() => signIn("google", { callbackUrl })}
-                                    className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-600/60 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-500/80 hover:bg-slate-800 active:scale-[0.98]"
-                                  >
-                                  <GoogleLogo />
-                                  Sign up with Google
-                        </button>button>
-                
-                        <p className="mt-5 text-center text-xs text-slate-500">
-                                  Already have an account?{" "}
-                                  <Link
-                                                href={signInHref}
-                                                className="font-medium text-amber-400 transition-colors hover:text-amber-300"
-                                              >
-                                              Sign in
-                                  </Link>Link>
-                        </p>p>
-                </div>div>
-          </div>div>
-        );
+      <div className="min-h-screen flex items-center justify-center bg-[#080a12] px-4">
+        <div className="w-full max-w-sm rounded-xl border border-slate-700/50 bg-slate-900/80 px-8 py-9 shadow-2xl">
+          {/* header */}
+          <div className="mb-7 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/15">
+              <BookIcon />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-100">Create an account</h1>
+            <p className="mt-1 text-xs text-slate-500">Free · 3 searches per day</p>
+          </div>
+
+          {/* error banner */}
+          {error && (
+            <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
+              {error}
+              {emailTaken && (
+                <>
+                  {" "}
+                  <Link
+                    href={signInHref}
+                    className="underline underline-offset-2 hover:text-red-300"
+                  >
+                    Sign in instead
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* form */}
+          <form onSubmit={handleRegister} className="space-y-3">
+            <div>
+              <label htmlFor="name" className="mb-1 block text-xs font-medium text-slate-400">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError(null);
+                }}
+                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                placeholder="Your name"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                  setEmailTaken(false);
+                }}
+                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400">
+                Password{" "}
+                <span className="text-slate-600">(min. 8 characters)</span>
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError(null);
+                }}
+                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                placeholder="••••••••"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Creating account…" : "Create account"}
+            </button>
+          </form>
+
+          {/* divider */}
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-700/60" />
+            <span className="text-[11px] uppercase tracking-widest text-slate-500">or</span>
+            <div className="h-px flex-1 bg-slate-700/60" />
+          </div>
+
+          {/* Google sign-up */}
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl })}
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-600/60 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-500/80 hover:bg-slate-800 active:scale-[0.98]"
+          >
+            <GoogleLogo />
+            Sign up with Google
+          </button>
+
+          <p className="mt-5 text-center text-xs text-slate-500">
+            Already have an account?{" "}
+            <Link
+              href={signInHref}
+              className="font-medium text-amber-400 transition-colors hover:text-amber-300"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
 }
 
 export default function RegisterPage() {
-    return (
-          <Suspense fallback={null}>
-                <RegisterForm />
-          </Suspense>Suspense>
-        );
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  );
 }
