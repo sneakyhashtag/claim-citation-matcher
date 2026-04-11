@@ -219,7 +219,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div>Loading...</div>}>
       <SignInForm />
     </Suspense>
   );
