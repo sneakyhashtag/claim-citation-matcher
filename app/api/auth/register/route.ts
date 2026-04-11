@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPool } from "@vercel/postgres";
+import { Pool } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const pool = createPool({ connectionString: process.env.POSTGRES_URL });
+  const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
   const client = await pool.connect();
 
   try {
