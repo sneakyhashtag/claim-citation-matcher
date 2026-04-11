@@ -41,6 +41,10 @@ const EXAMPLE_TEXTS = [
   "More than 55% of the global population currently lives in urban areas, and the United Nations projects this proportion will rise to 68% by 2050, adding approximately 2.5 billion people to cities. Urban heat islands cause city centers to be 1 to 3 degrees Celsius warmer than surrounding rural areas, increasing cooling energy demand and contributing to higher mortality rates during heat waves. Access to urban green spaces is associated with lower rates of obesity, cardiovascular disease, and mental illness, yet low-income urban neighborhoods contain 34% less green space per resident than wealthy neighborhoods in the same cities. Over one billion people currently live in informal urban settlements lacking adequate access to clean water, sanitation, and secure housing.",
 ];
 
+function toTitleCase(str: string): string {
+  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function pickGreeting(firstName: string): string {
   const hour = new Date().getHours();
   const timeGreeting =
@@ -2120,7 +2124,7 @@ function UserMenu({
     };
   }, []);
 
-  const name = session.user?.name ?? "Account";
+  const name = toTitleCase(session.user?.name ?? "Account");
   const firstName = name.split(" ")[0];
   const image = session.user?.image;
   const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
@@ -2677,7 +2681,8 @@ const [proSuccess, setProSuccess] = useState(false);
     if (data?.url) {
       window.location.href = data.url;
     } else {
-      setError(err ?? "Failed to start checkout");
+      console.error("[checkout]", err);
+      setError("Payments are temporarily unavailable. Please try again later.");
       setUpgrading(false);
       setShowPlanModal(false);
     }
@@ -2883,7 +2888,7 @@ const [proSuccess, setProSuccess] = useState(false);
   }, [omakaseResult]);
 
   const greeting = useMemo(
-    () => session?.user?.name ? pickGreeting(session.user.name.split(" ")[0]) : null,
+    () => session?.user?.name ? pickGreeting(toTitleCase(session.user.name).split(" ")[0]) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [session?.user?.name]
   );
