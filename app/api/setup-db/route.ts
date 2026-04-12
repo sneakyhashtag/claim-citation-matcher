@@ -37,6 +37,12 @@ export async function GET() {
       )
     `;
 
+    // Idempotent column additions — safe to run on an existing database.
+    await sql`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS has_used_trial BOOLEAN NOT NULL DEFAULT FALSE
+    `;
+
     return NextResponse.json({ ok: true, message: "Tables created successfully." });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

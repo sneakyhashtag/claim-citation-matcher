@@ -1,12 +1,10 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { sql } from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-// NEXTAUTH_URL is the authoritative base URL for this app — it's already
-// required for NextAuth to work, so it's always set in production.
-// Strip any trailing slash so we can safely append paths.
 const BASE_URL = (
   process.env.NEXTAUTH_URL ?? "http://localhost:3000"
 ).replace(/\/$/, "");
@@ -29,14 +27,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Check whether this user has already used their free trial.
+  let hasUsedTrial = false;
+  if (session?.user?.email) {
+    const result = await sql`
+      SELECT has_used_trial FROM users WHERE email = ${session.user.email}
+    `;
+    hasUsedTrial = result.rows[0]?.has_used_trial ?? false;
+  }
+
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_collection: "always",
     line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: 7,
-    },
-    // {CHECKOUT_SESSION_ID} is a Stripe template variable replaced at redirect time.
+    // Only offer the trial if the user hasn't used one before.
+    ...(hasUsedTrial ? {} : { subscription_data: { trial_period_days: 7 } }),
     success_url: `${BASE_URL}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
   };

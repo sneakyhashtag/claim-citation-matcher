@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { setProCookie } from "@/lib/pro-cookie";
+import { sql } from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -34,6 +35,16 @@ export async function GET(req: NextRequest) {
     stripeSession.payment_status === "no_payment_required";
   if (!paymentOk || stripeSession.status !== "complete") {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
+  }
+
+  // If this was a trial checkout, mark has_used_trial so the user cannot
+  // get another free trial in the future — even if they later cancel.
+  if (stripeSession.payment_status === "no_payment_required" && session.user.email) {
+    await sql`
+      INSERT INTO users (email, has_used_trial, created_at)
+      VALUES (${session.user.email}, true, NOW())
+      ON CONFLICT (email) DO UPDATE SET has_used_trial = true
+    `;
   }
 
   const res = NextResponse.json({ pro: true });
