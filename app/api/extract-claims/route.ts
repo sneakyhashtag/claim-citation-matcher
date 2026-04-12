@@ -8,6 +8,55 @@ import { claimExtractionModel } from "@/lib/models";
 
 const client = new Anthropic();
 
+type Claim = { claim: string; searchQuery: string };
+
+/** Strip markdown code fences then extract the JSON array by finding the
+ *  outermost [ … ] span. Throws if no valid array is found. */
+function parseClaimsArray(raw: string): Claim[] {
+  // Remove code fences: ```json ... ``` or ``` ... ```
+  const stripped = raw.replace(/```(?:json)?\s*([\s\S]*?)```/gi, "$1").trim();
+  const text = stripped.length > 0 ? stripped : raw;
+
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("No JSON array found in response");
+  }
+
+  const parsed: unknown = JSON.parse(text.slice(start, end + 1));
+  if (!Array.isArray(parsed)) throw new Error("Parsed value is not an array");
+  return parsed as Claim[];
+}
+
+const SYSTEM_NORMAL = `You are a research assistant that identifies factual claims in text that would benefit from academic citations.
+
+For each claim, return a JSON object with:
+- "claim": the exact or near-exact sentence/phrase from the text that makes the claim
+- "searchQuery": a concise academic search query (suitable for Google Scholar or PubMed) to find supporting papers
+
+Return ONLY a valid JSON array of these objects. No markdown, no explanation, just the JSON array.`;
+
+const SYSTEM_STRICT = `Return ONLY a valid JSON array. No markdown, no code fences, no explanation, no text before or after the array.
+Each element must have exactly two string fields: "claim" and "searchQuery".
+Start your response with [ and end with ].`;
+
+async function callClaude(text: string, model: string, strict: boolean): Promise<string> {
+  const message = await client.messages.stream({
+    model,
+    max_tokens: 2048,
+    system: strict ? SYSTEM_STRICT : SYSTEM_NORMAL,
+    messages: [
+      {
+        role: "user",
+        content: strict
+          ? `Extract all factual claims that need citations. Return ONLY a JSON array where each object has "claim" and "searchQuery". Start with [ and end with ].\n\n${text}`
+          : `Identify all factual claims in the following text that would need academic citations. Return them as a JSON array.\n\n${text}`,
+      },
+    ],
+  }).finalMessage();
+  return message.content.find((b) => b.type === "text")?.text ?? "";
+}
+
 export async function POST(req: NextRequest) {
   // ── 1. Parse and validate request body ────────────────────────────────────
   let text: string;
@@ -64,39 +113,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 5. Call the Anthropic API ──────────────────────────────────────────────
-  const stream = client.messages.stream({
-    model: claimExtractionModel(pro),
-    max_tokens: 2048,
-    system: `You are a research assistant that identifies factual claims in text that would benefit from academic citations.
+  // ── 5. Call the Anthropic API (with one retry using a stricter prompt) ───────
+  const model = claimExtractionModel(pro);
+  let raw = await callClaude(text, model, false);
 
-For each claim, return a JSON object with:
-- "claim": the exact or near-exact sentence/phrase from the text that makes the claim
-- "searchQuery": a concise academic search query (suitable for Google Scholar or PubMed) to find supporting papers
-
-Return ONLY a valid JSON array of these objects. No markdown, no explanation, just the JSON array.`,
-    messages: [
-      {
-        role: "user",
-        content: `Identify all factual claims in the following text that would need academic citations. Return them as a JSON array.\n\n${text}`,
-      },
-    ],
-  });
-
-  const message = await stream.finalMessage();
-  const raw = message.content.find((b) => b.type === "text")?.text ?? "";
-
-  let claims: { claim: string; searchQuery: string }[];
+  let claims: Claim[];
   try {
-    const stripped = raw.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
-    const match = stripped.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error("No JSON array found");
-    claims = JSON.parse(match[0]);
+    claims = parseClaimsArray(raw);
   } catch {
-    return NextResponse.json(
-      { error: "Failed to parse claims from model response", raw },
-      { status: 500 }
-    );
+    // Retry once with a strict prompt that forces bare JSON output
+    raw = await callClaude(text, model, true);
+    try {
+      claims = parseClaimsArray(raw);
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to parse claims from model response", raw },
+        { status: 500 }
+      );
+    }
   }
 
   // ── 6. Increment DB counter, update cookie cache, and respond ─────────────
