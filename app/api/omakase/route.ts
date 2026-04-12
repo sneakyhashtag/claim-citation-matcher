@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { checkIsPro } from "@/lib/pro-cookie";
 import type { RatedPaper } from "@/lib/rate-relevance";
 import { omakaseModel } from "@/lib/models";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const client = new Anthropic();
 
@@ -60,6 +61,16 @@ export async function POST(req: NextRequest) {
   const pro = checkIsPro(req, session.user.email);
   if (!pro) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+  }
+
+  // ── Rate limit: 10/min, 30/hr per Pro user ────────────────────────────────
+  {
+    const rl = await checkRateLimit(
+      `user:${session.user.email}`,
+      "omakase",
+      [{ windowType: "minute", limit: 10 }, { windowType: "hour", limit: 30 }]
+    );
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
   }
 
   // ── Parse body ─────────────────────────────────────────────────────────────

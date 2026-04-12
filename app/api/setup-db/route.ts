@@ -37,6 +37,22 @@ export async function GET() {
       )
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        id            BIGSERIAL PRIMARY KEY,
+        identifier    TEXT NOT NULL,
+        route         TEXT NOT NULL,
+        window_start  TIMESTAMPTZ NOT NULL,
+        request_count INTEGER NOT NULL DEFAULT 1,
+        UNIQUE (identifier, route, window_start)
+      )
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup
+        ON rate_limits (identifier, route, window_start)
+    `;
+
     // Idempotent column additions — safe to run on an existing database.
     await sql`
       ALTER TABLE users

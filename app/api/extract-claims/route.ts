@@ -2,9 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { writeCount } from "@/lib/usage-cookie";
-import { checkUsageDB, incrementUsageDB, DAILY_LIMIT } from "@/lib/db-usage";
+import { checkUsageDB, incrementUsageDB, DAILY_LIMIT, getIdentifier } from "@/lib/db-usage";
 import { checkIsPro } from "@/lib/pro-cookie";
 import { claimExtractionModel } from "@/lib/models";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const client = new Anthropic();
 
@@ -113,7 +114,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 5. Call the Anthropic API (with one retry using a stricter prompt) ───────
+  // ── 5. Rate limiting ──────────────────────────────────────────────────────────
+  {
+    const identifier = getIdentifier(req, session);
+    const rl = await checkRateLimit(
+      identifier,
+      "extract-claims",
+      session?.user
+        ? [{ windowType: "minute", limit: 20 }, { windowType: "hour", limit: 100 }]
+        : [{ windowType: "minute", limit: 5 },  { windowType: "hour", limit: 20 }]
+    );
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
+  }
+
+  // ── 6. Call the Anthropic API (with one retry using a stricter prompt) ───────
   const model = claimExtractionModel(pro);
   let raw = await callClaude(text, model, false);
 
@@ -133,7 +147,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 6. Increment DB counter, update cookie cache, and respond ─────────────
+  // ── 7. Increment DB counter, update cookie cache, and respond ─────────────
   if (!pro) {
     const { count: newCount, remaining } = await incrementUsageDB(req, session);
     const res = NextResponse.json({ claims, remaining, limit: DAILY_LIMIT });

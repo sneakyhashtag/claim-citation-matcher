@@ -2,6 +2,8 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sql } from "@/lib/db";
+import { getIdentifier } from "@/lib/db-usage";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -25,6 +27,15 @@ export async function POST(req: NextRequest) {
       { error: `STRIPE_${plan.toUpperCase()}_PRICE_ID is not configured` },
       { status: 500 }
     );
+  }
+
+  // Rate limit: 5 requests / minute to prevent checkout spam.
+  {
+    const identifier = getIdentifier(req, session);
+    const rl = await checkRateLimit(identifier, "checkout", [
+      { windowType: "minute", limit: 5 },
+    ]);
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
   }
 
   // Check whether this user has already used their free trial.

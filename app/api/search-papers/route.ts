@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Paper } from "@/lib/rate-relevance";
 import { lookupSJRQuartile } from "@/lib/sjr";
+import { auth } from "@/auth";
+import { getIdentifier } from "@/lib/db-usage";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 interface OpenAlexWork {
   id: string;
@@ -202,6 +205,14 @@ export async function GET(req: NextRequest) {
   if (!query || !query.trim()) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
+
+  // Rate limit: 30 requests / minute (shared across signed-in and guest users).
+  const session = await auth();
+  const identifier = getIdentifier(req, session);
+  const rl = await checkRateLimit(identifier, "search-papers", [
+    { windowType: "minute", limit: 30 },
+  ]);
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
 
   const [openAlexResult, semanticScholarResult] = await Promise.allSettled([
     fetchOpenAlex(query),
