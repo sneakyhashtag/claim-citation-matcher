@@ -2383,6 +2383,10 @@ function PlanModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(
+    "en-US", { month: "long", day: "numeric", year: "numeric" }
+  );
+
   return (
     <AnimatePresence>
       <>
@@ -2412,9 +2416,9 @@ function PlanModal({
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
               <div>
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
-                  Upgrade to Pro
+                  Start Your Free Trial
                 </h2>
-                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">Everything you need for serious research.</p>
+                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">7 days free, then choose your plan.</p>
               </div>
               <button
                 onClick={onClose}
@@ -2428,6 +2432,17 @@ function PlanModal({
             </div>
 
             <div className="overflow-y-auto">
+              {/* trial info banner */}
+              <div className="mx-6 mt-4 flex items-start gap-2.5 rounded-lg bg-emerald-500/10 light:bg-emerald-700/[0.08] border border-emerald-500/20 light:border-emerald-700/20 px-3.5 py-3">
+                <svg className="mt-px h-4 w-4 shrink-0 text-emerald-400 light:text-emerald-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
+                </svg>
+                <p className="text-xs text-emerald-300 light:text-emerald-800 leading-relaxed">
+                  <span className="font-semibold">Start your 7-day free trial.</span> You won&apos;t be charged until{" "}
+                  <span className="font-semibold">{trialEndDate}</span>. Cancel anytime before then for free.
+                </p>
+              </div>
+
               {/* feature list */}
               <div className="px-6 pt-5 pb-4">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] mb-3">
