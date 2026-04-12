@@ -2103,10 +2103,14 @@ function ThemeToggle({ theme, onToggle }: { theme: "dark" | "light"; onToggle: (
 
 function UserMenu({
   session,
+  isPro,
   onOpenHistory,
+  onCancelSubscription,
 }: {
   session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null };
+  isPro: boolean;
   onOpenHistory: () => void;
+  onCancelSubscription: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -2179,6 +2183,18 @@ function UserMenu({
               </svg>
               History
             </button>
+            {isPro && !["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session.user?.email ?? "") && (
+              <button
+                onClick={() => { setOpen(false); onCancelSubscription(); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400/80 light:text-red-700/80 hover:bg-red-500/[0.08] light:hover:bg-red-600/[0.06] hover:text-red-400 light:hover:text-red-700 transition-colors"
+                role="menuitem"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd"/>
+                </svg>
+                Cancel subscription
+              </button>
+            )}
             <button
               onClick={() => signOut()}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
@@ -2360,6 +2376,217 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </motion.div>
+        </div>
+      </>
+    </AnimatePresence>
+  );
+}
+
+// ── cancel subscription dialog ───────────────────────────────────────────────
+
+type CancelPreview = {
+  eligible_for_refund: boolean;
+  days_since_start: number;
+  refund_amount_cents: number;
+  current_period_end_iso: string;
+};
+
+function CancelDialog({
+  onClose,
+  onCancelled,
+}: {
+  onClose: () => void;
+  onCancelled: () => void;
+}) {
+  const [phase, setPhase] = useState<"loading" | "confirm" | "cancelling" | "done" | "error">("loading");
+  const [preview, setPreview] = useState<CancelPreview | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [result, setResult] = useState<{ refunded: boolean; refund_amount_cents: number; cancel_at: string } | null>(null);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    fetch("/api/cancel-subscription")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) { setErrorMsg(data.error); setPhase("error"); }
+        else { setPreview(data as CancelPreview); setPhase("confirm"); }
+      })
+      .catch(() => { setErrorMsg("Failed to load subscription info."); setPhase("error"); });
+  }, []);
+
+  const handleConfirm = async () => {
+    setPhase("cancelling");
+    try {
+      const r = await fetch("/api/cancel-subscription", { method: "POST" });
+      const data = await r.json();
+      if (data.error) { setErrorMsg(data.error); setPhase("error"); return; }
+      setResult(data);
+      setPhase("done");
+      onCancelled();
+    } catch {
+      setErrorMsg("Something went wrong. Please try again.");
+      setPhase("error");
+    }
+  };
+
+  const periodEndDate = preview
+    ? new Date(preview.current_period_end_iso).toLocaleDateString("en-US", {
+        month: "long", day: "numeric", year: "numeric",
+      })
+    : "";
+  const refundFormatted = preview
+    ? `$${(preview.refund_amount_cents / 100).toFixed(2)}`
+    : "";
+
+  return (
+    <AnimatePresence>
+      <>
+        <motion.div
+          key="cancel-backdrop"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-black/40 z-50 backdrop-blur-[2px]"
+          onClick={phase === "cancelling" ? undefined : onClose}
+        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <motion.div
+            key="cancel-modal"
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="pointer-events-auto w-full max-w-sm"
+            role="dialog" aria-modal="true"
+          >
+            <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
+              {/* header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)]">
+                <h2 className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
+                  {phase === "done" ? "Subscription cancelled" : "Cancel subscription"}
+                </h2>
+                {phase !== "cancelling" && (
+                  <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors" aria-label="Close">
+                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              <div className="px-5 py-5 space-y-4">
+                {/* loading */}
+                {phase === "loading" && (
+                  <div className="flex items-center justify-center py-6">
+                    <svg className="animate-spin h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  </div>
+                )}
+
+                {/* confirm */}
+                {phase === "confirm" && preview && (
+                  <>
+                    {preview.eligible_for_refund ? (
+                      <div className="rounded-lg bg-emerald-500/10 light:bg-emerald-700/[0.08] border border-emerald-500/20 light:border-emerald-700/20 px-4 py-3">
+                        <p className="text-sm font-medium text-emerald-300 light:text-emerald-800 mb-1">Full refund eligible</p>
+                        <p className="text-xs text-emerald-400/80 light:text-emerald-700/80 leading-relaxed">
+                          {preview.refund_amount_cents > 0
+                            ? `You subscribed ${preview.days_since_start} day${preview.days_since_start !== 1 ? "s" : ""} ago. You'll receive a full refund of ${refundFormatted} within 5–10 business days.`
+                            : `You're still in your free trial. Your subscription will be cancelled immediately with no charge.`}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg bg-amber-500/10 light:bg-amber-700/[0.06] border border-amber-500/20 light:border-amber-700/20 px-4 py-3">
+                        <p className="text-sm font-medium text-amber-300 light:text-amber-800 mb-1">No refund — access until {periodEndDate}</p>
+                        <p className="text-xs text-amber-400/80 light:text-amber-700/80 leading-relaxed">
+                          It&apos;s been {preview.days_since_start} day{preview.days_since_start !== 1 ? "s" : ""} since you subscribed (refunds are available within {7} days). Your Pro access will continue until {periodEndDate}.
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 light:text-[#8B5E3C]">
+                      Are you sure you want to cancel your Pro subscription?
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={onClose}
+                        className="flex-1 rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                      >
+                        Keep Pro
+                      </button>
+                      <button
+                        onClick={handleConfirm}
+                        className="flex-1 rounded-lg bg-red-500/15 border border-red-500/30 light:bg-red-600/10 light:border-red-600/25 px-3 py-2 text-sm font-medium text-red-400 light:text-red-700 hover:bg-red-500/25 light:hover:bg-red-600/15 transition-colors"
+                      >
+                        Yes, cancel
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* cancelling */}
+                {phase === "cancelling" && (
+                  <div className="flex items-center justify-center gap-3 py-6">
+                    <svg className="animate-spin h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span className="text-sm text-slate-400">Cancelling…</span>
+                  </div>
+                )}
+
+                {/* done */}
+                {phase === "done" && result && (
+                  <>
+                    <div className="rounded-lg bg-slate-500/10 light:bg-slate-700/[0.06] border border-slate-500/20 px-4 py-3">
+                      {result.refunded ? (
+                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                          Your subscription has been cancelled and a refund of{" "}
+                          <span className="font-semibold">${(result.refund_amount_cents / 100).toFixed(2)}</span>{" "}
+                          has been issued. It will appear within 5–10 business days.
+                        </p>
+                      ) : result.cancel_at === "immediate" ? (
+                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                          Your subscription has been cancelled immediately.
+                        </p>
+                      ) : (
+                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                          Your subscription has been cancelled. You&apos;ll retain Pro access until{" "}
+                          <span className="font-semibold">
+                            {new Date(result.cancel_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </span>.
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                    >
+                      Close
+                    </button>
+                  </>
+                )}
+
+                {/* error */}
+                {phase === "error" && (
+                  <>
+                    <p className="text-sm text-red-400 light:text-red-700">{errorMsg}</p>
+                    <button
+                      onClick={onClose}
+                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                    >
+                      Close
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </>
     </AnimatePresence>
@@ -2643,6 +2870,7 @@ export default function Home() {
   const [isPro, setIsPro] = useState(false);
 const [proSuccess, setProSuccess] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeHint, setShowUpgradeHint] = useState(false);
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
@@ -3058,6 +3286,17 @@ const [proSuccess, setProSuccess] = useState(false);
         />
       )}
 
+      {/* ── cancel subscription dialog ── */}
+      {showCancelDialog && (
+        <CancelDialog
+          onClose={() => setShowCancelDialog(false)}
+          onCancelled={() => {
+            setIsPro(false);
+            setShowCancelDialog(false);
+          }}
+        />
+      )}
+
       {/* ── history sidebar ── */}
       <AnimatePresence>
         {showHistory && (
@@ -3262,7 +3501,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
               {/* User menu (signed-in) or History + Sign in (guest) */}
               {session ? (
-                <UserMenu session={session} onOpenHistory={openHistory} />
+                <UserMenu session={session} isPro={isPro} onOpenHistory={openHistory} onCancelSubscription={() => setShowCancelDialog(true)} />
               ) : (
                 <>
                   <button

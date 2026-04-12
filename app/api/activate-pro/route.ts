@@ -28,7 +28,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  if (stripeSession.payment_status !== "paid" || stripeSession.status !== "complete") {
+  // "no_payment_required" covers trial subscriptions where no charge is made at checkout.
+  const paymentOk =
+    stripeSession.payment_status === "paid" ||
+    stripeSession.payment_status === "no_payment_required";
+  if (!paymentOk || stripeSession.status !== "complete") {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
   }
 
