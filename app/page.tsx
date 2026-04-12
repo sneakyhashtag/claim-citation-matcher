@@ -1988,6 +1988,76 @@ function RecencyFilter({
   );
 }
 
+// ── language filter ───────────────────────────────────────────────────────────
+
+type LangFilter = "all" | "en" | "zh" | "ja";
+
+const LANG_OPTIONS: { id: LangFilter; label: string }[] = [
+  { id: "all", label: "All languages" },
+  { id: "en",  label: "English" },
+  { id: "zh",  label: "中文" },
+  { id: "ja",  label: "日本語" },
+];
+
+function LanguageFilter({
+  value,
+  onChange,
+  isPro = false,
+  isSignedIn = false,
+  onUpgrade,
+}: {
+  value: LangFilter;
+  onChange: (f: LangFilter) => void;
+  isPro?: boolean;
+  isSignedIn?: boolean;
+  onUpgrade?: () => void;
+}) {
+  const [showProGate, setShowProGate] = useState(false);
+
+  const pillBase = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors";
+  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]";
+  const pillIdle = "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]";
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <circle cx="10" cy="10" r="8"/>
+          <path strokeLinecap="round" d="M2 10h16M10 2c-2 3-2 13 0 16M10 2c2 3 2 13 0 16"/>
+        </svg>
+        Language
+        {!isPro && <ProBadge />}
+      </span>
+      <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by language">
+        {LANG_OPTIONS.map(({ id, label }) => {
+          const active = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => isPro ? onChange(id) : setShowProGate((v) => !v)}
+              aria-pressed={active}
+              className={`${pillBase} ${active && isPro ? pillActive : pillIdle}`}
+            >
+              {label}
+            </button>
+          );
+        })}
+
+        <AnimatePresence>
+          {showProGate && !isPro && (
+            <ProGatePopover
+              isSignedIn={isSignedIn}
+              onUpgrade={onUpgrade ?? (() => {})}
+              onClose={() => setShowProGate(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 // ── claim card ────────────────────────────────────────────────────────────────
 
 function ClaimCard({
@@ -2841,6 +2911,7 @@ export default function Home() {
   const [currentClaims, setCurrentClaims] = useState<{ claim: string; searchQuery: string }[]>([]);
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
   const [customRange, setCustomRange] = useState<CustomRange>(null);
+  const [langFilter, setLangFilter] = useState<LangFilter>("all");
 
   // Keys of all papers already shown in the main results — used to deduplicate related papers
   const knownPaperKeys = useMemo(() => {
@@ -3125,6 +3196,52 @@ const [proSuccess, setProSuccess] = useState(false);
       setLoading(false);
     }
   };
+
+  // Re-fetch papers when langFilter changes (Pro only) — skips claim extraction
+  useEffect(() => {
+    if (!isPro) return;
+    if (currentClaims.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      setStatus("Filtering by language…");
+      try {
+        const langParam = langFilter !== "all" ? `&language=${langFilter}` : "";
+        const claimResults: ClaimResult[] = await Promise.all(
+          currentClaims.map(async (c): Promise<ClaimResult> => {
+            const { data: searchData } = await apiFetch<{ papers: RatedPaper[] }>(
+              `/api/search-papers?query=${encodeURIComponent(c.searchQuery)}${langParam}`
+            );
+            if (!searchData?.papers?.length) return { claim: c.claim, papers: [] };
+
+            const { data: rateData } = await apiFetch<{ papers: RatedPaper[] }>(
+              "/api/rate-relevance",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ claim: c.claim, papers: searchData.papers }),
+              }
+            );
+            if (!rateData) return { claim: c.claim, papers: [] };
+
+            return {
+              claim: c.claim,
+              papers: (rateData.papers ?? []).sort((a, b) => b.relevanceScore - a.relevanceScore),
+            };
+          })
+        );
+        if (!cancelled) {
+          setResults(claimResults);
+          setStatus("");
+        }
+      } catch {
+        if (!cancelled) setStatus("");
+      }
+    })();
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [langFilter]);
 
   // Scroll to results when they appear
   useEffect(() => {
@@ -3961,6 +4078,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         </div>
                       </div>
                       <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                      <LanguageFilter value={langFilter} onChange={setLangFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                     </div>
 
                     {/* ── Omakase Mode — 24px below date filter ─────────── */}

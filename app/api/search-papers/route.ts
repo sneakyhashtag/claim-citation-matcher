@@ -61,10 +61,13 @@ function normalizeDoi(doi: string | null): string | null {
   return doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase();
 }
 
-async function fetchOpenAlex(query: string): Promise<Paper[]> {
+async function fetchOpenAlex(query: string, language?: string): Promise<Paper[]> {
   const url = new URL("https://api.openalex.org/works");
   url.searchParams.set("search", query);
   url.searchParams.set("per_page", "5");
+  if (language && language !== "all") {
+    url.searchParams.set("filter", `language:${language}`);
+  }
   url.searchParams.set(
     "select",
     "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location,primary_topic,biblio"
@@ -201,6 +204,7 @@ async function fetchSemanticScholar(query: string): Promise<Paper[]> {
 
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("query");
+  const language = req.nextUrl.searchParams.get("language") ?? "all";
 
   if (!query || !query.trim()) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
@@ -215,8 +219,10 @@ export async function GET(req: NextRequest) {
   if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
 
   const [openAlexResult, semanticScholarResult] = await Promise.allSettled([
-    fetchOpenAlex(query),
-    fetchSemanticScholar(query),
+    fetchOpenAlex(query, language),
+    // Semantic Scholar does not support a direct language filter in their graph API;
+    // include results for all-language queries only.
+    language === "all" ? fetchSemanticScholar(query) : Promise.resolve([] as Paper[]),
   ]);
 
   const openAlexPapers =
