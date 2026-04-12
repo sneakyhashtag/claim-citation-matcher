@@ -59,12 +59,28 @@ export default function RootLayout({
         <Providers>
           {children}
           <footer className="border-t border-white/[0.05] light:border-[rgba(80,50,20,0.08)] py-4 px-6 text-center">
-            <Link
-              href="/legal"
-              className="text-[11px] text-slate-600 light:text-[#A67856] transition-colors hover:text-slate-400 light:hover:text-[#6B3A22]"
-            >
-              特定商取引法に基づく表記 / Commercial Disclosure
-            </Link>
+            <nav className="inline-flex items-center gap-3 text-[11px] text-slate-600 light:text-[#A67856]">
+              <Link
+                href="/legal"
+                className="transition-colors hover:text-slate-400 light:hover:text-[#6B3A22]"
+              >
+                Commercial Disclosure
+              </Link>
+              <span aria-hidden className="opacity-40">·</span>
+              <Link
+                href="/privacy"
+                className="transition-colors hover:text-slate-400 light:hover:text-[#6B3A22]"
+              >
+                Privacy Policy
+              </Link>
+              <span aria-hidden className="opacity-40">·</span>
+              <Link
+                href="/cookies"
+                className="transition-colors hover:text-slate-400 light:hover:text-[#6B3A22]"
+              >
+                Cookie Policy
+              </Link>
+            </nav>
           </footer>
         </Providers>
       </body>
