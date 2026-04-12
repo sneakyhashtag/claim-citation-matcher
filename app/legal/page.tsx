@@ -51,13 +51,13 @@ const rows: { ja: string; en: string; value: string }[] = [
     ja: "サービス提供時期",
     en: "Service delivery",
     value:
-      "お支払い完了後、即時ご利用いただけます。\nInstant access upon payment.",
+      "7日間の無料トライアル期間終了後、初回お支払いが完了した時点で即時ご利用いただけます。\nInstant access from the start of your 7-day free trial. Your card is not charged until the trial ends.",
   },
   {
     ja: "キャンセル・返金ポリシー",
     en: "Cancellation & Refund",
     value:
-      "アカウント設定からいつでもキャンセルできます。購入後7日以内かつサービス未利用の場合は返金いたします。7日経過後またはサービス利用済みの場合は返金できません。\nYou may cancel anytime from your account settings. Refunds are available within 7 days of purchase if the service has not been used. No refund after 7 days or if the service has been used.",
+      "アカウント設定からいつでもキャンセルできます。初回お支払い日から7日以内であれば全額返金いたします。7日経過後は当該請求期間分の返金はできませんが、次回更新日以降はご請求されません。\nFull refund available within 7 days of your first payment. After 7 days, subscriptions can be canceled but are non-refundable for the current billing period. You may cancel anytime from your account settings — access continues until the end of the paid period.",
   },
   {
     ja: "追加手数料",
