@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Paper, RatedPaper } from "@/lib/rate-relevance";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { TextAnimate } from "@/components/magicui/text-animate";
+import { getT, type Lang, detectLang, SUPPORTED_LANGS, type TFunction } from "@/lib/i18n";
+
+// ── i18n context ─────────────────────────────────────────────────────────────
+const LangContext = createContext<TFunction>((k) => k as string);
 
 const FREE_CHAR_LIMIT = 1000;
 const PRO_CHAR_LIMIT = 10000;
@@ -47,25 +51,26 @@ function toTitleCase(str: string): string {
   return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function pickGreeting(firstName: string): string {
+function pickGreeting(firstName: string, t: TFunction): string {
+  const p = { name: firstName };
   const hour = new Date().getHours();
   const timeGreeting =
-    hour >= 5 && hour < 12 ? `Good morning, ${firstName}.` :
-    hour >= 12 && hour < 17 ? `Good afternoon, ${firstName}.` :
-    hour >= 17 && hour < 21 ? `Good evening, ${firstName}.` :
-    `Working late, ${firstName}?`;
+    hour >= 5 && hour < 12 ? t("greet_morning", p) :
+    hour >= 12 && hour < 17 ? t("greet_afternoon", p) :
+    hour >= 17 && hour < 21 ? t("greet_evening", p) :
+    t("greet_late", p);
 
   const pool = [
-    `Welcome back, ${firstName}.`,
-    `Good to see you, ${firstName}.`,
-    `Hey ${firstName}, ready to research?`,
-    `What are we citing today, ${firstName}?`,
-    `Back for more papers, ${firstName}?`,
-    `Let's find some references, ${firstName}.`,
-    `Hi ${firstName}, what's the topic today?`,
-    `Research time, ${firstName}.`,
-    `${firstName}, let's get citing.`,
-    `What are we working on, ${firstName}?`,
+    t("greet_welcome", p),
+    t("greet_good_to_see", p),
+    t("greet_ready", p),
+    t("greet_citing", p),
+    t("greet_more_papers", p),
+    t("greet_find_refs", p),
+    t("greet_topic", p),
+    t("greet_research_time", p),
+    t("greet_get_citing", p),
+    t("greet_working_on", p),
     timeGreeting,
     timeGreeting, // weighted slightly higher
   ];
@@ -505,6 +510,77 @@ function triggerDownload(content: string, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+// ── language picker ───────────────────────────────────────────────────────────
+
+function LanguagePicker({ lang, onChange }: { lang: Lang; onChange: (l: Lang) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", down);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("mousedown", down);
+      document.removeEventListener("keydown", key);
+    };
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] backdrop-blur-sm transition-colors"
+        aria-label="Change language"
+        title="Change language"
+      >
+        <svg className="h-3.5 w-3.5 text-slate-300 light:text-slate-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden>
+          <circle cx="12" cy="12" r="10"/>
+          <path strokeLinecap="round" d="M2 12h20M12 2c-2.5 4-2.5 16 0 20M12 2c2.5 4 2.5 16 0 20"/>
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute right-0 mt-1.5 w-36 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
+            role="menu"
+          >
+            {SUPPORTED_LANGS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                onClick={() => { onChange(id); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
+                  lang === id
+                    ? "text-white light:text-[#2C1810] bg-white/[0.08] light:bg-[rgba(44,24,16,0.07)]"
+                    : "text-slate-400 light:text-[#6B4226] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-200 light:hover:text-[#2C1810]"
+                }`}
+              >
+                {label}
+                {lang === id && (
+                  <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                  </svg>
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── export menu ───────────────────────────────────────────────────────────────
 
 function ExportMenu({
@@ -518,6 +594,7 @@ function ExportMenu({
   isSignedIn: boolean;
   onUpgrade: () => void;
 }) {
+  const t = useContext(LangContext);
   const [open, setOpen] = useState(false);
   const [showProGate, setShowProGate] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -619,7 +696,7 @@ function ExportMenu({
             <path d="M7 11V7a5 5 0 0110 0v4"/>
           </svg>
         )}
-        Export
+        {t("export_btn")}
         {isPro ? (
           <svg className={`h-2.5 w-2.5 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
@@ -651,7 +728,7 @@ function ExportMenu({
             role="menu"
           >
             <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
-              Download as
+              {t("download_as")}
             </p>
             {EXPORT_OPTIONS.map(({ type, label, ext, icon }) => (
               <button
@@ -1878,6 +1955,7 @@ function RecencyFilter({
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
+  const t = useContext(LangContext);
   const [showProGate, setShowProGate] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [draftFrom, setDraftFrom] = useState("");
@@ -1909,8 +1987,9 @@ function RecencyFilter({
       </span>
       <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by publication date">
         {/* Preset filter pills */}
-        {YEAR_FILTERS.filter(f => f.id !== "custom").map(({ id, label }) => {
+        {YEAR_FILTERS.filter(f => f.id !== "custom").map(({ id }) => {
           const active = value === id;
+          const label = t(`filter_${id}` as Parameters<typeof t>[0]);
           return (
             <button
               key={id}
@@ -1934,7 +2013,7 @@ function RecencyFilter({
           >
             {value === "custom" && customRange
               ? `${customRange.from}–${customRange.to}`
-              : "Custom"}
+              : t("filter_custom")}
           </button>
 
           {/* Custom year range picker */}
@@ -2014,6 +2093,7 @@ function LanguageFilter({
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
+  const t = useContext(LangContext);
   const [showProGate, setShowProGate] = useState(false);
 
   const pillBase = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors";
@@ -2027,12 +2107,14 @@ function LanguageFilter({
           <circle cx="10" cy="10" r="8"/>
           <path strokeLinecap="round" d="M2 10h16M10 2c-2 3-2 13 0 16M10 2c2 3 2 13 0 16"/>
         </svg>
-        Language
+        {t("lang_filter_label")}
         {!isPro && <ProBadge />}
       </span>
       <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by language">
-        {LANG_OPTIONS.map(({ id, label }) => {
+        {LANG_OPTIONS.map(({ id, label: staticLabel }) => {
           const active = value === id;
+          // "All languages" and "English" are translatable; "中文"/"日本語" stay in their own script
+          const label = id === "all" ? t("lang_all") : id === "en" ? t("lang_en") : staticLabel;
           return (
             <button
               key={id}
@@ -2184,6 +2266,7 @@ function UserMenu({
   onOpenHistory: () => void;
   onCancelSubscription: () => void;
 }) {
+  const t = useContext(LangContext);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -2253,7 +2336,7 @@ function UserMenu({
               <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
               </svg>
-              History
+              {t("search_history")}
             </button>
             {isPro && !["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session.user?.email ?? "") && (
               <button
@@ -2276,7 +2359,7 @@ function UserMenu({
                 <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
                 <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
               </svg>
-              Sign out
+              {t("sign_out")}
             </button>
           </motion.div>
         )}
@@ -2998,6 +3081,21 @@ const [proSuccess, setProSuccess] = useState(false);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
+  // ── Language ────────────────────────────────────────────────────────────────
+  const [lang, setLang] = useState<Lang>("en");
+
+  // Load language: saved preference or browser default
+  useEffect(() => {
+    const saved = localStorage.getItem("rf_lang") as Lang | null;
+    if (saved === "en" || saved === "zh" || saved === "ja") setLang(saved);
+    else setLang(detectLang());
+  }, []);
+
+  // Persist language choice
+  useEffect(() => { localStorage.setItem("rf_lang", lang); }, [lang]);
+
+  const t = useMemo(() => getT(lang), [lang]);
+
   const fetchUsage = async () => {
     const { data } = await apiFetch<{ count: number; remaining: number; limit: number }>("/api/usage");
     if (data) setUsage(data);
@@ -3116,7 +3214,7 @@ const [proSuccess, setProSuccess] = useState(false);
     currentHistoryId.current = null;
 
     try {
-      setStatus("Extracting claims…");
+      setStatus(t("status_extracting"));
 
       const { data: claimsData, error: claimsError } = await apiFetch<{
         claims: { claim: string; searchQuery: string }[];
@@ -3149,7 +3247,7 @@ const [proSuccess, setProSuccess] = useState(false);
       }
 
       setCurrentClaims(claims);
-      setStatus(`Found ${claims.length} claim${claims.length > 1 ? "s" : ""}. Searching for papers…`);
+      setStatus(claims.length === 1 ? t("status_found_one") : t("status_found_many", { n: claims.length }));
 
       const claimResults: ClaimResult[] = await Promise.all(
         claims.map(async (c): Promise<ClaimResult> => {
@@ -3206,7 +3304,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
     let cancelled = false;
     (async () => {
-      setStatus("Filtering by language…");
+      setStatus(t("status_filtering"));
       try {
         const langParam = langFilter !== "all" ? `&language=${langFilter}` : "";
         const claimResults: ClaimResult[] = await Promise.all(
@@ -3265,15 +3363,16 @@ const [proSuccess, setProSuccess] = useState(false);
   }, [omakaseResult]);
 
   const greeting = useMemo(
-    () => session?.user?.name ? pickGreeting(toTitleCase(session.user.name).split(" ")[0]) : null,
+    () => session?.user?.name ? pickGreeting(toTitleCase(session.user.name).split(" ")[0], t) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [session?.user?.name]
+    [session?.user?.name, t]
   );
 
   const hasActivity = loading || error !== "" || results.length > 0;
   const isCentered = !ready && !hasActivity;
 
   return (
+    <LangContext.Provider value={t}>
     <>
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
@@ -3609,6 +3708,7 @@ const [proSuccess, setProSuccess] = useState(false);
               exit={{ opacity: 0 }}
               className="fixed top-4 right-4 z-30 flex items-center gap-2"
             >
+              <LanguagePicker lang={lang} onChange={setLang} />
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
               {/* Upgrade to Pro / Pro badge — signed-in users only */}
@@ -3629,7 +3729,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
-                    {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                    {upgrading ? "Redirecting…" : t("upgrade_to_pro")}
                   </button>
                 )
               )}
@@ -3647,7 +3747,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
                     </svg>
-                    <span className="hidden sm:inline">History</span>
+                    <span className="hidden sm:inline">{t("search_history")}</span>
                   </button>
                   <button
                     onClick={() => signIn("google")}
@@ -3656,7 +3756,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
                     </svg>
-                    Sign in
+                    {t("sign_in")}
                   </button>
                 </>
               )}
@@ -3699,7 +3799,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                   className="mt-3 text-lg font-light text-slate-400 light:text-[#6B4226] tracking-wide sm:text-xl"
                 >
-                  Real papers, not hallucinated ones.
+                  {t("tagline")}
                 </motion.p>
               )}
 
@@ -3712,7 +3812,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="mt-4 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
-                  {greeting ?? "Paste a paragraph to find academic citations for each factual claim."}
+                  {greeting ?? t("subtitle_app")}
                 </motion.p>
               )}
               {ready && stage === "auth" && (
@@ -3723,7 +3823,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="mt-4 text-sm text-slate-400 light:text-[#4A2E1A]"
                 >
-                  Find academic citations for every factual claim in your writing.
+                  {t("subtitle_auth")}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -3733,7 +3833,8 @@ const [proSuccess, setProSuccess] = useState(false);
 
             {/* ── auth stage ── */}
             {ready && stage === "auth" && (
-              <div className="fixed top-4 right-4 z-30">
+              <div className="fixed top-4 right-4 z-30 flex items-center gap-2">
+                <LanguagePicker lang={lang} onChange={setLang} />
                 <ThemeToggle theme={theme} onToggle={toggleTheme} />
               </div>
             )}
@@ -3757,12 +3858,12 @@ const [proSuccess, setProSuccess] = useState(false);
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  Sign in with Google
+                  {t("sign_in_google")}
                 </button>
 
                 <div className="flex items-center gap-3 w-full max-w-xs">
                   <div className="flex-1 h-px bg-white/10 light:bg-[rgba(44,24,16,0.1)]" />
-                  <span className="text-xs text-slate-500 light:text-[#6B4226]">or</span>
+                  <span className="text-xs text-slate-500 light:text-[#6B4226]">{t("or")}</span>
                   <div className="flex-1 h-px bg-white/10 light:bg-[rgba(44,24,16,0.1)]" />
                 </div>
 
@@ -3770,7 +3871,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   onClick={() => setStage("app")}
                   className="w-full max-w-xs rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.12)] bg-white/8 light:bg-[rgba(44,24,16,0.05)] px-6 py-3 text-sm font-medium text-slate-300 light:text-[#4A2E1A] hover:bg-white/12 light:hover:bg-[rgba(44,24,16,0.07)] hover:text-white light:hover:text-[#2C1810] transition-colors"
                 >
-                  Continue as Guest
+                  {t("continue_guest")}
                 </button>
 
                 <button
@@ -3781,7 +3882,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                   </svg>
-                  How to use
+                  {t("how_to_use")}
                 </button>
               </motion.div>
             )}
@@ -3799,7 +3900,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <textarea
                       value={text}
                       onChange={(e) => { setText(e.target.value.slice(0, charLimit)); setUploadError(""); }}
-                      placeholder="Paste your paragraph here…"
+                      placeholder={t("placeholder")}
                       aria-label="Paragraph input"
                       className={`parchment-textarea w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-[rgba(255,252,234,0.75)] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-[#2C1810] placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
                         !isPro && text.length >= FREE_CHAR_LIMIT
@@ -3824,7 +3925,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   {/* Free-user limit warning */}
                   {!isPro && text.length >= FREE_CHAR_LIMIT && (
                     <p className="text-xs text-red-400 light:text-red-500">
-                      Free accounts are limited to 1,000 characters.{" "}
+                      {t("free_limit_msg")}{" "}
                       {session ? (
                         <>
                           <button
@@ -3832,9 +3933,9 @@ const [proSuccess, setProSuccess] = useState(false);
                             onClick={() => setShowPlanModal(true)}
                             className="underline underline-offset-2 hover:text-amber-400 transition-colors"
                           >
-                            Upgrade to Pro
+                            {t("upgrade_to_pro")}
                           </button>{" "}
-                          for up to 10,000 characters.
+                          {t("for_more_chars")}
                         </>
                       ) : (
                         <>
@@ -3843,9 +3944,9 @@ const [proSuccess, setProSuccess] = useState(false);
                             onClick={() => signIn()}
                             className="underline underline-offset-2 hover:text-amber-400 transition-colors"
                           >
-                            Sign in
+                            {t("sign_in")}
                           </button>{" "}
-                          to unlock Pro features.
+                          {t("to_unlock_pro")}
                         </>
                       )}
                     </p>
@@ -3913,7 +4014,7 @@ const [proSuccess, setProSuccess] = useState(false);
                               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v1A1.5 1.5 0 004.5 19h11A1.5 1.5 0 0017 17.5v-1M10 3v10m0-10L7 6m3-3l3 3"/>
                             </svg>
                           )}
-                          {extracting ? "Extracting…" : "Upload"}
+                          {extracting ? t("extracting_file") : t("upload")}
                         </button>
 
                         {/* Upgrade hint popover for free users */}
@@ -3933,7 +4034,7 @@ const [proSuccess, setProSuccess] = useState(false);
                                 className="absolute left-0 top-full mt-2 z-20 w-64 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.16)] glass-panel shadow-xl px-4 py-3"
                               >
                                 <p className="text-xs text-slate-300 light:text-[#4A2E1A] leading-relaxed">
-                                  Uploading documents is a Pro feature.{" "}
+                                  {t("upload_pro_feature")}{" "}
                                   {session ? (
                                     <>
                                       <button
@@ -3941,9 +4042,9 @@ const [proSuccess, setProSuccess] = useState(false);
                                         onClick={() => { setShowUpgradeHint(false); setShowPlanModal(true); }}
                                         className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
                                       >
-                                        Upgrade to Pro
+                                        {t("upgrade_to_pro")}
                                       </button>{" "}
-                                      to upload PDFs, Word docs, and images.
+                                      {t("to_upload_docs")}
                                     </>
                                   ) : (
                                     <>
@@ -3952,9 +4053,9 @@ const [proSuccess, setProSuccess] = useState(false);
                                         onClick={() => { setShowUpgradeHint(false); signIn(); }}
                                         className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
                                       >
-                                        Sign in
+                                        {t("sign_in")}
                                       </button>{" "}
-                                      to unlock Pro features including file uploads.
+                                      {t("sign_in_unlock_uploads")}
                                     </>
                                   )}
                                 </p>
@@ -3970,7 +4071,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         disabled={loading}
                         className="link-example text-sm text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
-                        Try an example
+                        {t("try_example")}
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
@@ -3979,7 +4080,7 @@ const [proSuccess, setProSuccess] = useState(false);
                           <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                           </svg>
-                          Pro — unlimited searches
+                          {t("pro_unlimited")}
                         </span>
                       ) : (
                         <span className={`text-xs font-medium tabular-nums px-2 py-1 rounded-md ${
@@ -3989,7 +4090,7 @@ const [proSuccess, setProSuccess] = useState(false);
                             ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
                             : "bg-white/8 light:bg-[rgba(44,24,16,0.05)] text-slate-400 light:text-[#6B4226]"
                         }`}>
-                          {usage.remaining}/3 searches left today
+                          {t("searches_left", { n: usage.remaining })}
                         </span>
                       )}
                       <button
@@ -3997,7 +4098,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
                         className="btn-submit flex items-center justify-center px-5 py-2 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {loading ? "Analyzing…" : "Submit"}
+                        {loading ? t("analyzing") : t("submit")}
                       </button>
                     </div>
                   </div>
@@ -4044,9 +4145,9 @@ const [proSuccess, setProSuccess] = useState(false);
                             onClick={() => setShowPlanModal(true)}
                             className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
                           >
-                            Upgrade to Pro
+                            {t("upgrade_to_pro")}
                           </button>{" "}
-                          for unlimited access.
+                          {t("to_unlock_unlimited")}
                         </>
                       ) : (
                         <>
@@ -4055,9 +4156,9 @@ const [proSuccess, setProSuccess] = useState(false);
                             onClick={() => signIn()}
                             className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-800 transition-colors"
                           >
-                            Sign in
+                            {t("sign_in")}
                           </button>{" "}
-                          to unlock Pro features with unlimited searches.
+                          {t("to_unlock_unlimited")}
                         </>
                       )}
                     </p>
@@ -4083,7 +4184,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
-                            {results.length} claim{results.length > 1 ? "s" : ""} found
+                            {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
                           </h2>
                           <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                         </div>
@@ -4188,5 +4289,6 @@ const [proSuccess, setProSuccess] = useState(false);
         </main>
       </motion.div>
     </>
+    </LangContext.Provider>
   );
 }
