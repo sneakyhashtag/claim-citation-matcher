@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Paper, RatedPaper } from "@/lib/rate-relevance";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { TextAnimate } from "@/components/magicui/text-animate";
 
@@ -3993,17 +3992,13 @@ const [proSuccess, setProSuccess] = useState(false);
                           {usage.remaining}/3 searches left today
                         </span>
                       )}
-                      <ShimmerButton
+                      <button
                         type="submit"
                         disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
-                        shimmerColor={theme === "light" ? "#ffffff" : "rgba(180,200,255,0.7)"}
-                        background={theme === "light" ? "rgba(44,24,16,1)" : "rgba(255,255,255,1)"}
-                        borderRadius="8px"
-                        shimmerDuration="3s"
-                        className="px-5 py-2 text-sm font-semibold text-gray-950 light:text-[rgba(248,246,234,0.95)] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="btn-submit flex items-center justify-center px-5 py-2 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
-                      </ShimmerButton>
+                      </button>
                     </div>
                   </div>
                 </form>
