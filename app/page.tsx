@@ -5,6 +5,9 @@ import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Paper, RatedPaper } from "@/lib/rate-relevance";
+import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { BorderBeam } from "@/components/magicui/border-beam";
+import { TextAnimate } from "@/components/magicui/text-animate";
 
 const FREE_CHAR_LIMIT = 1000;
 const PRO_CHAR_LIMIT = 10000;
@@ -3665,17 +3668,26 @@ const [proSuccess, setProSuccess] = useState(false);
         <main className="relative z-10 mx-auto w-full max-w-2xl">
           <motion.div
             layout
-            className={`${hasActivity ? "mb-8 text-left" : ready ? "mb-8 text-center" : "mb-0 text-center"}`}
+            className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready ? "mb-8 text-center" : "mb-0 text-center"}`}
           >
-            <motion.h1
+            <BorderBeam
+              colorFrom={theme === "light" ? "#92400e" : "#3b82f6"}
+              colorTo={theme === "light" ? "#d97706" : "#8b5cf6"}
+              duration={10}
+              size={80}
+              borderWidth={1}
+            />
+            <TextAnimate
+              as="h1"
+              by="word"
+              animation="blurInUp"
+              startOnView={false}
+              once
               layout
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
               className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-[#2C1810] sm:text-5xl leading-tight tracking-tight light:letterpress-title"
             >
               Reference Finder
-            </motion.h1>
+            </TextAnimate>
 
             <AnimatePresence>
               {/* Landing tagline — visible only during the initial hold, fades out when ready */}
@@ -3981,13 +3993,17 @@ const [proSuccess, setProSuccess] = useState(false);
                           {usage.remaining}/3 searches left today
                         </span>
                       )}
-                      <button
+                      <ShimmerButton
                         type="submit"
                         disabled={!text.trim() || loading || extracting || (!isPro && usage.remaining === 0)}
-                        className="btn-submit flex items-center justify-center px-5 py-2 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-sm font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
+                        shimmerColor={theme === "light" ? "#ffffff" : "rgba(180,200,255,0.7)"}
+                        background={theme === "light" ? "rgba(44,24,16,1)" : "rgba(255,255,255,1)"}
+                        borderRadius="8px"
+                        shimmerDuration="3s"
+                        className="px-5 py-2 text-sm font-semibold text-gray-950 light:text-[rgba(248,246,234,0.95)] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? "Analyzing…" : "Submit"}
-                      </button>
+                      </ShimmerButton>
                     </div>
                   </div>
                 </form>
