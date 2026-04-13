@@ -52,7 +52,18 @@ export async function POST(req: NextRequest) {
     payment_method_collection: "always",
     line_items: [{ price: priceId, quantity: 1 }],
     // Only offer the trial if the user hasn't used one before.
-    ...(hasUsedTrial ? {} : { subscription_data: { trial_period_days: 7 } }),
+    // trial_settings.end_behavior.missing_payment_method = "cancel" ensures
+    // Stripe validates the card at signup — if auth fails the trial won't start.
+    ...(hasUsedTrial
+      ? {}
+      : {
+          subscription_data: {
+            trial_period_days: 7,
+            trial_settings: {
+              end_behavior: { missing_payment_method: "cancel" },
+            },
+          },
+        }),
     success_url: `${BASE_URL}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE_URL}/`,
   };
