@@ -781,7 +781,7 @@ function getTier(score: number): {
   excerptLabelClass: string;
 } {
   if (score >= 5) return {
-    label: "Direct",
+    label: "tier_direct",
     cardClass: "bg-green-500/[0.07] light:bg-[rgba(30,70,32,0.05)] border-green-500/25 light:border-[rgba(30,70,32,0.22)]",
     badgeClass: "bg-green-500/15 text-green-400 light:bg-[rgba(30,70,32,0.11)] light:border-[rgba(30,70,32,0.32)] light:text-[#1E4620]",
     excerptBorderClass: "border-l-green-500/50 light:border-l-[rgba(30,70,32,0.40)]",
@@ -790,7 +790,7 @@ function getTier(score: number): {
     excerptLabelClass: "text-green-500/60 light:text-[rgba(30,70,32,0.55)]",
   };
   if (score >= 4) return {
-    label: "High",
+    label: "tier_high",
     cardClass: "bg-blue-500/[0.07] light:bg-[rgba(42,48,112,0.05)] border-blue-500/25 light:border-[rgba(42,48,112,0.2)]",
     badgeClass: "bg-blue-500/15 text-blue-400 light:bg-[rgba(42,48,112,0.09)] light:border-[rgba(42,48,112,0.28)] light:text-[#2A3070]",
     excerptBorderClass: "border-l-blue-500/50 light:border-l-[rgba(42,48,112,0.38)]",
@@ -799,7 +799,7 @@ function getTier(score: number): {
     excerptLabelClass: "text-blue-500/60 light:text-[rgba(42,48,112,0.55)]",
   };
   return {
-    label: "Moderate",
+    label: "tier_moderate",
     cardClass: "bg-amber-500/[0.06] light:bg-[rgba(107,58,0,0.05)] border-amber-500/20 light:border-[rgba(107,58,0,0.2)]",
     badgeClass: "bg-amber-500/15 text-amber-400 light:bg-[rgba(107,58,0,0.09)] light:border-[rgba(107,58,0,0.26)] light:text-[#6B3A00]",
     excerptBorderClass: "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.38)]",
@@ -841,6 +841,7 @@ function ProGatePopover({
   onUpgrade: () => void;
   onClose: () => void;
 }) {
+  const t = useContext(LangContext);
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
@@ -888,7 +889,7 @@ function ProGatePopover({
 
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white light:text-[#1a0f00] mb-1.5">
-              Pro feature
+              {t("pro_feature")}
             </p>
             <p className="text-xs text-[#94a3b8] light:text-[#4a3010] leading-relaxed">
               {isSignedIn ? (
@@ -898,9 +899,9 @@ function ProGatePopover({
                     onClick={() => { onClose(); onUpgrade(); }}
                     className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
                   >
-                    Upgrade to Pro
+                    {t("pro_gate_upgrade_link")}
                   </button>
-                  {" "}to unlock this feature.
+                  {" "}{t("pro_gate_upgrade_suffix")}
                 </>
               ) : (
                 <>
@@ -909,9 +910,9 @@ function ProGatePopover({
                     onClick={() => { onClose(); onUpgrade(); }}
                     className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
                   >
-                    Sign in
+                    {t("pro_gate_signin_link")}
                   </button>
-                  {" "}and upgrade to Pro to unlock this feature.
+                  {" "}{t("pro_gate_signin_suffix")}
                 </>
               )}
             </p>
@@ -958,6 +959,7 @@ function OmakaseCitationPicker({
   onSelect: (style: OmakaseStyleId) => void;
   onClose: () => void;
 }) {
+  const t = useContext(LangContext);
   return (
     <>
       {/* Backdrop */}
@@ -990,10 +992,10 @@ function OmakaseCitationPicker({
           <div className="flex items-start justify-between mb-5">
             <div>
               <h2 className="text-base font-semibold text-slate-100 light:text-[#2C1810] letterpress-title">
-                Choose citation style
+                {t("choose_style")}
               </h2>
               <p className="mt-0.5 text-xs text-slate-500 light:text-[#8B5E3C]">
-                Your paragraph will be rewritten with inline citations.
+                {t("rewrite_inline_desc")}
               </p>
             </div>
             <button
@@ -1103,6 +1105,7 @@ function OmakaseResultSection({
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
 
+  const t = useContext(LangContext);
   const refText  = referenceList.map((r, i) => `${i + 1}. ${r}`).join("\n");
   const allText  = `${rewrittenParagraph}\n\nReferences\n${refText}`;
   const para     = useCopyButton(() => rewrittenParagraph);
@@ -1135,7 +1138,7 @@ function OmakaseResultSection({
           </svg>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-slate-100 light:text-[#2C1810] letterpress-title truncate">
-              Omakase rewrite
+              {t("omakase_rewrite_title")}
             </h2>
             <p className="text-[10px] text-slate-500 light:text-[#8B5E3C]">
               {styleName} · {referenceList.length} reference{referenceList.length !== 1 ? "s" : ""}
@@ -1159,10 +1162,10 @@ function OmakaseResultSection({
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between gap-4 mb-3">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
-            Rewritten paragraph
+            {t("rewritten_paragraph")}
           </h3>
           <button type="button" onClick={para.copy} className={btnGhost}>
-            {para.copied ? <><CheckIcon />Copied!</> : <><CopyIcon />Copy paragraph</>}
+            {para.copied ? <><CheckIcon />{t("copied")}</> : <><CopyIcon />{t("copy_paragraph")}</>}
           </button>
         </div>
         <p className="text-sm leading-[1.85] text-slate-200 light:text-[#2C1810]">
@@ -1192,10 +1195,10 @@ function OmakaseResultSection({
         <div className="px-5 pt-4 pb-5 bg-white/[0.015] light:bg-[rgba(44,24,16,0.025)]">
           <div className="flex items-center justify-between gap-4 mb-3">
             <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
-              References
+              {t("references")}
             </h3>
             <button type="button" onClick={refs.copy} className={btnGhost}>
-              {refs.copied ? <><CheckIcon />Copied!</> : <><CopyIcon />Copy references</>}
+              {refs.copied ? <><CheckIcon />{t("copied")}</> : <><CopyIcon />{t("copy_references")}</>}
             </button>
           </div>
           <ol className="flex flex-col gap-2">
@@ -1215,12 +1218,12 @@ function OmakaseResultSection({
       <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.09)]
                       bg-white/[0.015] light:bg-[rgba(44,24,16,0.018)]">
         <p className="text-[10px] text-slate-600 light:text-[#A67856] hidden sm:block">
-          Citations are highlighted in the paragraph above.
+          {t("citations_highlighted")}
         </p>
         <button type="button" onClick={all.copy} className={btnAmber}>
           {all.copied
-            ? <><CheckIcon />Copied!</>
-            : <><CopyIcon />Copy all</>}
+            ? <><CheckIcon />{t("copied")}</>
+            : <><CopyIcon />{t("copy_all")}</>}
         </button>
       </div>
     </motion.div>
@@ -1230,6 +1233,7 @@ function OmakaseResultSection({
 // ── Omakase loading overlay ────────────────────────────────────────────────────
 
 function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
+  const t = useContext(LangContext);
   return (
     <>
       <motion.div
@@ -1261,10 +1265,10 @@ function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">
-              Rewriting with {styleName} citations…
+              {t("rewriting_with_style", { style: styleName })}
             </p>
             <p className="mt-1 text-xs text-slate-500 light:text-[#8B5E3C]">
-              Inserting references from your matched papers
+              {t("inserting_refs")}
             </p>
           </div>
         </div>
@@ -1276,10 +1280,11 @@ function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
 // ── small components ──────────────────────────────────────────────────────────
 
 function ScoreBadge({ score }: { score: number }) {
+  const t = useContext(LangContext);
   const { label, badgeClass } = getTier(score);
   return (
     <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${badgeClass}`}>
-      {label}
+      {t(label as Parameters<typeof t>[0])}
     </span>
   );
 }
@@ -1295,6 +1300,7 @@ const CITATION_FORMATS = [
 ] as const;
 
 function CitationMenu({ paper }: { paper: Paper }) {
+  const t = useContext(LangContext);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -1322,12 +1328,12 @@ function CitationMenu({ paper }: { paper: Paper }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1 text-xs text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] transition-colors"
-        title="Copy citation"
+        title={t("copy_citation")}
       >
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 3H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3M8 3a2 2 0 002 2h2a2 2 0 002-2M8 3a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
-        Cite
+        {t("cite_btn")}
         <svg className={`h-2.5 w-2.5 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
         </svg>
@@ -1344,7 +1350,7 @@ function CitationMenu({ paper }: { paper: Paper }) {
             role="menu"
           >
             <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
-              Copy citation
+              {t("copy_citation_header")}
             </p>
             {CITATION_FORMATS.map(({ id, label, fn }) => {
               const isCopied = copied === id;
@@ -1467,6 +1473,7 @@ function sjrQuartileStyle(q: string): { colorClass: string } {
 // ── shared paper stats row ────────────────────────────────────────────────────
 
 function PaperStatBadges({ paper }: { paper: Paper }) {
+  const t = useContext(LangContext);
   return (
     <div className="mt-2 flex flex-wrap gap-1.5">
       {paper.citationCount != null && paper.citationCount > 0 && (
@@ -1532,7 +1539,7 @@ function PaperStatBadges({ paper }: { paper: Paper }) {
           <StatBadge
             colorClass={colorClass}
             text={label}
-            title="SJR quartile from Scimago Journal Rankings — the official ranking for this journal."
+            title={t("sjr_tooltip")}
             icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"/>
@@ -1579,6 +1586,7 @@ function PaperCard({
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
+  const t = useContext(LangContext);
   const [relatedOpen, setRelatedOpen] = useState(false);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedPapers, setRelatedPapers] = useState<Paper[] | null>(null);
@@ -1701,10 +1709,10 @@ function PaperCard({
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
                   <path d="M10.28 2.28a.75.75 0 0 0-1.06 0L4.5 6.997 2.78 5.28a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l5.25-5.25a.75.75 0 0 0 0-1.06Z"/>
                 </svg>
-                Abstract Match
+                {t("abstract_match")}
               </span>
               <span className={`text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
-                Matching sentence from abstract
+                {t("matching_from_abstract")}
               </span>
               <MatchTypeInfoIcon />
             </div>
@@ -1727,10 +1735,10 @@ function PaperCard({
                   <circle cx="6" cy="6" r="4.5"/>
                   <path d="M6 4v2.5M6 8v.5"/>
                 </svg>
-                Topic Match
+                {t("topic_match")}
               </span>
               <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500/70 light:text-[rgba(80,60,30,0.55)]">
-                How this paper relates
+                {t("how_paper_relates")}
               </span>
               <MatchTypeInfoIcon />
             </div>
@@ -1773,8 +1781,8 @@ function PaperCard({
                 </svg>
               )}
               {isPro
-                ? (relatedLoading ? "Searching…" : relatedOpen && relatedPapers !== null ? "Hide related" : "Find more like this")
-                : "Find more like this"}
+                ? (relatedLoading ? t("searching") : relatedOpen && relatedPapers !== null ? t("hide_related") : t("find_more"))
+                : t("find_more")}
               {!isPro && <ProBadge />}
             </button>
             <AnimatePresence>
@@ -1803,7 +1811,7 @@ function PaperCard({
             <div className="mt-1 ml-3 border-l-2 border-white/[0.08] light:border-[rgba(44,24,16,0.12)] pl-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
-                  Related papers
+                  {t("related_papers_section")}
                 </p>
                 <button
                   type="button"
@@ -1814,7 +1822,7 @@ function PaperCard({
                   <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.5l11-11M15.5 15.5l-11-11" />
                   </svg>
-                  Collapse
+                  {t("collapse")}
                 </button>
               </div>
               {relatedLoading && (
@@ -1823,7 +1831,7 @@ function PaperCard({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
-                  <span className="text-xs text-slate-500 light:text-[#8B5E3C]">Searching for related papers…</span>
+                  <span className="text-xs text-slate-500 light:text-[#8B5E3C]">{t("searching_related")}</span>
                 </div>
               )}
               {relatedError && (
@@ -1833,11 +1841,11 @@ function PaperCard({
                 const visible = relatedPapers.filter((p) => paperInRange(p.year, yearFilter, customRange));
                 const hidden = relatedPapers.length - visible.length;
                 if (relatedPapers.length === 0) return (
-                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">No related papers found.</p>
+                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">{t("no_related_found")}</p>
                 );
                 if (visible.length === 0) return (
                   <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">
-                    No related papers match the selected date filter.
+                    {t("no_related")}
                     {hidden > 0 && <span className="ml-1 text-slate-600 light:text-[#A67856]">({hidden} hidden)</span>}
                   </p>
                 );
@@ -1848,7 +1856,7 @@ function PaperCard({
                     ))}
                     {hidden > 0 && (
                       <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
-                        {hidden} older paper{hidden !== 1 ? "s" : ""} hidden by date filter.
+                        {hidden === 1 ? t("hidden_by_date_one") : t("hidden_by_date_many", { n: hidden })}
                       </p>
                     )}
                   </div>
@@ -1982,7 +1990,7 @@ function RecencyFilter({
           <rect x="3" y="4" width="14" height="13" rx="2"/>
           <path strokeLinecap="round" d="M3 8h14M7 2v4M13 2v4"/>
         </svg>
-        Published
+        {t("published")}
         {!isPro && <ProBadge />}
       </span>
       <div className={`relative flex items-center gap-1 flex-wrap ${!isPro ? "opacity-75" : ""}`} role="group" aria-label="Filter papers by publication date">
@@ -2024,7 +2032,7 @@ function RecencyFilter({
               <div className="absolute left-0 top-full mt-2 z-20 flex items-center gap-1.5 rounded-xl border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] bg-[#161b2e] light:bg-[rgba(248,246,234,0.99)] shadow-[0_8px_32px_rgba(0,0,0,0.45)] light:shadow-[0_4px_20px_rgba(80,50,20,0.12)] px-3 py-2.5 whitespace-nowrap">
                 <input
                   type="number"
-                  placeholder="From"
+                  placeholder={t("from_year")}
                   value={draftFrom}
                   onChange={(e) => setDraftFrom(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleApply()}
@@ -2035,7 +2043,7 @@ function RecencyFilter({
                 <span className="text-slate-600 light:text-[#8B5E3C] text-xs select-none">–</span>
                 <input
                   type="number"
-                  placeholder="To"
+                  placeholder={t("to_year")}
                   value={draftTo}
                   onChange={(e) => setDraftTo(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleApply()}
@@ -2048,7 +2056,7 @@ function RecencyFilter({
                   onClick={handleApply}
                   className="rounded-lg bg-white/[0.10] light:bg-[rgba(44,24,16,0.08)] border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] px-2.5 py-1 text-xs font-medium text-slate-200 light:text-[#2C1810] hover:bg-white/[0.16] light:hover:bg-[rgba(44,24,16,0.13)] transition-colors"
                 >
-                  Apply
+                  {t("apply")}
                 </button>
               </div>
             </>
@@ -2165,6 +2173,7 @@ function ClaimCard({
   isSignedIn?: boolean;
   onUpgrade?: () => void;
 }) {
+  const t = useContext(LangContext);
   const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter, customRange));
   const hiddenCount = result.papers.length - visiblePapers.length;
 
@@ -2190,7 +2199,7 @@ function ClaimCard({
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
             {index + 1}
           </span>
-          <span className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Claim</span>
+          <span className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("claim_label")}</span>
         </div>
         <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-relaxed">
           &ldquo;{result.claim}&rdquo;
@@ -2201,14 +2210,14 @@ function ClaimCard({
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
           <p className="text-xs text-slate-500 light:text-[#6B4226]">
-            No relevant papers found for this claim.
+            {t("no_relevant_papers")}
           </p>
         ) : visiblePapers.length === 0 ? (
           <p className="text-xs text-slate-500 light:text-[#6B4226]">
-            No papers match the selected date filter.
+            {t("no_papers_date_filter")}
             {hiddenCount > 0 && (
               <span className="ml-1 text-slate-600 light:text-[#A67856]">
-                ({hiddenCount} paper{hiddenCount !== 1 ? "s" : ""} hidden)
+                {hiddenCount === 1 ? t("papers_hidden_one") : t("papers_hidden_many", { n: hiddenCount })}
               </span>
             )}
           </p>
@@ -2219,7 +2228,7 @@ function ClaimCard({
             ))}
             {hiddenCount > 0 && (
               <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
-                {hiddenCount} older paper{hiddenCount !== 1 ? "s" : ""} hidden by date filter.
+                {hiddenCount === 1 ? t("older_papers_hidden_one") : t("older_papers_hidden_many", { n: hiddenCount })}
               </p>
             )}
           </div>
@@ -2347,7 +2356,7 @@ function UserMenu({
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd"/>
                 </svg>
-                Cancel subscription
+                {t("cancel_subscription")}
               </button>
             )}
             <button
@@ -2371,6 +2380,7 @@ function UserMenu({
 // ── how to use modal ──────────────────────────────────────────────────────────
 
 function HowToUseModal({ onClose }: { onClose: () => void }) {
+  const t = useContext(LangContext);
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handleKey);
@@ -2405,7 +2415,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
               <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
-                How it works
+                {t("how_it_works_title")}
               </h2>
               <button
                 onClick={onClose}
@@ -2421,24 +2431,19 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
             {/* body */}
             <div className="px-6 py-5 space-y-5 overflow-y-auto">
               <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">
-                Paste any academic paragraph and Reference Finder automatically finds citations for it — no searching required. It identifies each factual claim, queries OpenAlex and Semantic Scholar in parallel, and returns ranked papers with one-click APA citations.
+                {t("how_it_works_intro")}
               </p>
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide mb-2.5">How it works</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide mb-2.5">{t("how_it_works_steps")}</p>
                 <ol className="space-y-3">
-                  {[
-                    { icon: "1", text: "Paste any paragraph containing factual claims — research writing, essay drafts, literature reviews, or anything that needs citations." },
-                    { icon: "2", text: "Claude scans your text and extracts each individual claim that would benefit from academic backing." },
-                    { icon: "3", text: "Each claim is searched against OpenAlex and Semantic Scholar in parallel, covering 250 million+ real academic works across all fields." },
-                    { icon: "4", text: "Results are rated for relevance and ranked. Copy any paper's APA citation with one click." },
-                  ].map(({ icon, text }) => (
-                    <li key={icon} className="flex items-start gap-3">
+                  {(["how_step_1", "how_step_2", "how_step_3", "how_step_4"] as const).map((key, idx) => (
+                    <li key={key} className="flex items-start gap-3">
                       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-slate-100 light:text-[#2C1810] text-xs font-medium shrink-0 mt-0.5">
-                        {icon}
+                        {idx + 1}
                       </span>
-                      <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">{text}</p>
+                      <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">{t(key)}</p>
                     </li>
                   ))}
                 </ol>
@@ -2446,85 +2451,85 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
               {/* paper badges */}
               <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Paper stat badges</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("paper_stats_title")}</p>
                 <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
-                  Each paper card shows stat badges that help you judge paper quality at a glance. Higher numbers on all of these mean a stronger, more reputable paper.
+                  {t("paper_stats_intro")}
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-[#7A2000]">Flame — total citations.</strong> How many times this paper has been cited. Glows orange when ≥ 500, signalling a highly cited work.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-[#7A2000]">{t("badge_flame_title")}</strong> {t("badge_flame_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-[#4B1460]">Star — influential citations.</strong> Citations that actually mattered — papers that meaningfully built on this work, as identified by Semantic Scholar.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-[#4B1460]">{t("badge_star_title")}</strong> {t("badge_star_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-[#0F3264]">Bar chart — journal h-index.</strong> Measures journal prestige: a journal with h-index 50 has published at least 50 papers each cited at least 50 times.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-[#0F3264]">{t("badge_bar_title")}</strong> {t("badge_bar_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-[#004B46]">IF — impact factor proxy.</strong> The 2-year mean citedness from OpenAlex: the average number of times recent articles in this journal were cited over the past two years. This is a free, openly computed equivalent of the traditional Impact Factor. Only shown for OpenAlex sources where data is available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-[#004B46]">{t("badge_if_title")}</strong> {t("badge_if_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-300 text-sm shrink-0 leading-none mt-0.5 font-semibold">Q</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-300 light:text-[#0A4620]">Q1–Q4 — SJR journal quartile.</strong> The official quartile from Scimago Journal Rankings (SJR), sourced from the public SJR dataset. Q1 is the top 25% of journals in a field by SJR score, Q4 is the bottom 25%. Lookup uses ISSN first, then journal name. Only shown when the journal is found in the SJR index.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-300 light:text-[#0A4620]">{t("badge_q_title")}</strong> {t("badge_q_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-[#0A3C19]">Book — research field.</strong> The subject area or discipline the paper belongs to. Only shown when available.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-[#0A3C19]">{t("badge_book_title")}</strong> {t("badge_book_desc")}</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
               <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Relevance tiers</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("relevance_tiers_title")}</p>
                 <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
-                  Papers are ranked by relevance with three color-coded tiers.
+                  {t("relevance_tiers_intro")}
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-[#1E4620]">Direct</strong> — the paper directly supports the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-[#1E4620]">{t("tier_direct")}</strong> — {t("tier_direct_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-[#2A3070]">High</strong> — closely related and useful context for the claim.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-[#2A3070]">{t("tier_high")}</strong> — {t("tier_high_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-[#6B3A00]">Moderate</strong> — touches on the topic but is not a direct match.</span>
+                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-[#6B3A00]">{t("tier_moderate")}</strong> — {t("tier_moderate_desc")}</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">Good to know</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("good_to_know_title")}</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
                   <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">Any language.</strong> Paste paragraphs in any language — the app will find English-language papers for your claims.
+                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_lang_title")}</strong> {t("gk_lang_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
                   <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">10 free searches per day.</strong> The counter resets at midnight UTC and is tracked by a secure signed cookie.
+                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_daily_title")}</strong> {t("gk_daily_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
                   <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">Sign in or continue as guest.</strong> Sign in with Google to save your search history across sessions, or use the app as a guest — history is still saved in your browser.
+                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_signin_title")}</strong> {t("gk_signin_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
                   <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">Try an example.</strong> Not sure where to start? Click the button below the text box to load a sample paragraph. Click again for a different field.
+                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_example_title")}</strong> {t("gk_example_desc")}
                   </p>
                 </div>
               </div>
@@ -2553,6 +2558,7 @@ function CancelDialog({
   onClose: () => void;
   onCancelled: () => void;
 }) {
+  const t = useContext(LangContext);
   const [phase, setPhase] = useState<"loading" | "confirm" | "cancelling" | "done" | "error">("loading");
   const [preview, setPreview] = useState<CancelPreview | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -2622,7 +2628,7 @@ function CancelDialog({
               {/* header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)]">
                 <h2 className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
-                  {phase === "done" ? "Subscription cancelled" : "Cancel subscription"}
+                  {phase === "done" ? t("sub_cancelled_title") : t("cancel_sub_title")}
                 </h2>
                 {phase !== "cancelling" && (
                   <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors" aria-label="Close">
@@ -2649,36 +2655,36 @@ function CancelDialog({
                   <>
                     {preview.eligible_for_refund ? (
                       <div className="rounded-lg bg-emerald-500/10 light:bg-emerald-700/[0.08] border border-emerald-500/20 light:border-emerald-700/20 px-4 py-3">
-                        <p className="text-sm font-medium text-emerald-300 light:text-emerald-800 mb-1">Full refund eligible</p>
+                        <p className="text-sm font-medium text-emerald-300 light:text-emerald-800 mb-1">{t("full_refund_eligible")}</p>
                         <p className="text-xs text-emerald-400/80 light:text-emerald-700/80 leading-relaxed">
                           {preview.refund_amount_cents > 0
                             ? `You subscribed ${preview.days_since_start} day${preview.days_since_start !== 1 ? "s" : ""} ago. You'll receive a full refund of ${refundFormatted} within 5–10 business days.`
-                            : `You're still in your free trial. Your subscription will be cancelled immediately with no charge.`}
+                            : t("trial_cancel_msg")}
                         </p>
                       </div>
                     ) : (
                       <div className="rounded-lg bg-amber-500/10 light:bg-amber-700/[0.06] border border-amber-500/20 light:border-amber-700/20 px-4 py-3">
-                        <p className="text-sm font-medium text-amber-300 light:text-amber-800 mb-1">No refund — access until {periodEndDate}</p>
+                        <p className="text-sm font-medium text-amber-300 light:text-amber-800 mb-1">{t("no_refund_access_until", { date: periodEndDate })}</p>
                         <p className="text-xs text-amber-400/80 light:text-amber-700/80 leading-relaxed">
                           It&apos;s been {preview.days_since_start} day{preview.days_since_start !== 1 ? "s" : ""} since you subscribed (refunds are available within {7} days). Your Pro access will continue until {periodEndDate}.
                         </p>
                       </div>
                     )}
                     <p className="text-xs text-slate-500 light:text-[#8B5E3C]">
-                      Are you sure you want to cancel your Pro subscription?
+                      {t("sure_cancel_sub")}
                     </p>
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={onClose}
                         className="flex-1 rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                       >
-                        Keep Pro
+                        {t("keep_pro")}
                       </button>
                       <button
                         onClick={handleConfirm}
                         className="flex-1 rounded-lg bg-red-500/15 border border-red-500/30 light:bg-red-600/10 light:border-red-600/25 px-3 py-2 text-sm font-medium text-red-400 light:text-red-700 hover:bg-red-500/25 light:hover:bg-red-600/15 transition-colors"
                       >
-                        Yes, cancel
+                        {t("yes_cancel")}
                       </button>
                     </div>
                   </>
@@ -2691,7 +2697,7 @@ function CancelDialog({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
-                    <span className="text-sm text-slate-400">Cancelling…</span>
+                    <span className="text-sm text-slate-400">{t("cancelling")}</span>
                   </div>
                 )}
 
@@ -2722,7 +2728,7 @@ function CancelDialog({
                       onClick={onClose}
                       className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                     >
-                      Close
+                      {t("close")}
                     </button>
                   </>
                 )}
@@ -2735,7 +2741,7 @@ function CancelDialog({
                       onClick={onClose}
                       className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                     >
-                      Close
+                      {t("close")}
                     </button>
                   </>
                 )}
@@ -2767,6 +2773,7 @@ function PlanModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  const t = useContext(LangContext);
   const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(
     "en-US", { month: "long", day: "numeric", year: "numeric" }
   );
@@ -2800,10 +2807,10 @@ function PlanModal({
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
               <div>
                 <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
-                  {hasUsedTrial ? "Upgrade to Pro" : "Start Your Free Trial"}
+                  {hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
                 </h2>
                 <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">
-                  {hasUsedTrial ? "Choose your billing cycle below." : "7 days free, then choose your plan."}
+                  {hasUsedTrial ? t("upgrade_billing_sub") : t("trial_billing_sub")}
                 </p>
               </div>
               <button
@@ -2825,7 +2832,7 @@ function PlanModal({
                     <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                   </svg>
                   <p className="text-xs text-amber-300 light:text-amber-800 leading-relaxed">
-                    <span className="font-semibold">You&apos;ve already used your free trial.</span> This will be a paid subscription from day one.
+                    <span className="font-semibold">{t("trial_used_banner_title")}</span> {t("trial_used_banner_sub")}
                   </p>
                 </div>
               ) : (
@@ -2834,8 +2841,8 @@ function PlanModal({
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
                   </svg>
                   <p className="text-xs text-emerald-300 light:text-emerald-800 leading-relaxed">
-                    <span className="font-semibold">Start your 7-day free trial.</span> You won&apos;t be charged until{" "}
-                    <span className="font-semibold">{trialEndDate}</span>. Cancel anytime before then for free.
+                    <span className="font-semibold">{t("trial_start_banner_title")}</span>{" "}
+                    {t("trial_start_banner_sub", { date: trialEndDate })}
                   </p>
                 </div>
               )}
@@ -2843,28 +2850,28 @@ function PlanModal({
               {/* feature list */}
               <div className="px-6 pt-5 pb-4">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] mb-3">
-                  What you unlock
+                  {t("what_you_unlock")}
                 </p>
                 <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
                   {([
-                    ["Unlimited searches", "3/day on free"],
-                    ["10,000 char limit", "1,000 on free"],
-                    ["Document upload", "PDFs, Word, images"],
-                    ["Omakase mode", "Auto-rewrite with citations"],
-                    ["Export results", "BibTeX, RIS, plain text"],
-                    ["Date filter", "Narrow by publication year"],
-                    ["Find more like this", "Discover related papers"],
-                    ["All future features", "Included automatically"],
-                  ] as [string, string][]).map(([title, sub]) => (
-                    <li key={title} className="flex items-start gap-2">
+                    ["feat_unlimited", "feat_unlimited_sub"],
+                    ["feat_char_limit", "feat_char_limit_sub"],
+                    ["feat_upload", "feat_upload_sub"],
+                    ["feat_omakase", "feat_omakase_sub"],
+                    ["feat_export", "feat_export_sub"],
+                    ["feat_date_filter", "feat_date_filter_sub"],
+                    ["feat_find_more", "feat_find_more_sub"],
+                    ["feat_future", "feat_future_sub"],
+                  ] as [string, string][]).map(([titleKey, subKey]) => (
+                    <li key={titleKey} className="flex items-start gap-2">
                       <span className="mt-0.5 shrink-0 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/15 light:bg-emerald-700/10">
                         <svg className="h-2.5 w-2.5 text-emerald-400 light:text-emerald-700" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                           <polyline points="2 6 5 9 10 3"/>
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-200 light:text-[#2C1810] leading-tight">{title}</p>
-                        <p className="text-[10px] text-slate-500 light:text-[#8B5E3C] leading-tight mt-0.5">{sub}</p>
+                        <p className="text-xs font-medium text-slate-200 light:text-[#2C1810] leading-tight">{t(titleKey as Parameters<typeof t>[0])}</p>
+                        <p className="text-[10px] text-slate-500 light:text-[#8B5E3C] leading-tight mt-0.5">{t(subKey as Parameters<typeof t>[0])}</p>
                       </div>
                     </li>
                   ))}
@@ -2886,11 +2893,11 @@ function PlanModal({
                                hover:border-white/25 light:hover:border-[rgba(80,50,20,0.26)] hover:bg-white/[0.04] light:hover:bg-black/[0.03]
                                transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="text-xs font-semibold text-slate-400 light:text-[#6B4226] uppercase tracking-wide mb-3">Monthly</p>
+                    <p className="text-xs font-semibold text-slate-400 light:text-[#6B4226] uppercase tracking-wide mb-3">{t("plan_monthly")}</p>
                     <div className="mt-auto">
                       <p className="text-2xl font-bold text-slate-100 light:text-[#2C1810] leading-none">$2.99</p>
-                      <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] mt-1">per month</p>
-                      <p className="text-[10px] text-slate-600 light:text-[#A67856] mt-2.5">Billed monthly</p>
+                      <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] mt-1">{t("plan_per_month")}</p>
+                      <p className="text-[10px] text-slate-600 light:text-[#A67856] mt-2.5">{t("plan_billed_monthly")}</p>
                     </div>
                   </button>
 
@@ -2905,19 +2912,19 @@ function PlanModal({
                   >
                     {/* Save badge */}
                     <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-amber-500 light:bg-amber-600 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide whitespace-nowrap shadow-sm">
-                      Save 2 months
+                      {t("plan_save_2mo")}
                     </span>
-                    <p className="text-xs font-semibold text-amber-400 light:text-amber-700 uppercase tracking-wide mb-3">Yearly</p>
+                    <p className="text-xs font-semibold text-amber-400 light:text-amber-700 uppercase tracking-wide mb-3">{t("plan_yearly")}</p>
                     <div className="mt-auto">
                       <p className="text-2xl font-bold text-amber-300 light:text-amber-800 leading-none">$29.99</p>
-                      <p className="text-[11px] text-amber-500/80 light:text-amber-700/70 mt-1">per year</p>
+                      <p className="text-[11px] text-amber-500/80 light:text-amber-700/70 mt-1">{t("plan_per_year")}</p>
                       <p className="text-[10px] text-amber-600/70 light:text-amber-800/60 mt-2.5">≈ $2.50 / month</p>
                     </div>
                   </button>
                 </div>
 
                 {upgrading && (
-                  <p className="text-center text-xs text-slate-500 mt-3">Redirecting to checkout…</p>
+                  <p className="text-center text-xs text-slate-500 mt-3">{t("plan_redirecting")}</p>
                 )}
               </div>
             </div>
@@ -3562,12 +3569,12 @@ const [proSuccess, setProSuccess] = useState(false);
                 <div className="flex items-center justify-between px-5 pt-5 pb-4">
                   <div>
                     <h2 className="text-base font-bold text-slate-100 light:text-[#2C1810] tracking-tight">
-                      Search History
+                      {t("history_title")}
                     </h2>
                     <p className="text-xs text-slate-500 light:text-[#8B5E3C] mt-0.5">
                       {history.length === 0
-                        ? "No searches yet"
-                        : `${history.length} search${history.length !== 1 ? "es" : ""}`}
+                        ? t("no_searches_yet")
+                        : t("history_count", { n: history.length })}
                     </p>
                   </div>
 
@@ -3590,20 +3597,20 @@ const [proSuccess, setProSuccess] = useState(false);
                       /* Confirmation prompt */
                       <div className="flex items-center justify-between rounded-lg bg-red-500/[0.09] light:bg-red-50 border border-red-500/20 light:border-red-200 px-3 py-2">
                         <span className="text-xs text-red-400 light:text-red-600 font-medium">
-                          Delete all history?
+                          {t("delete_all_confirm")}
                         </span>
                         <div className="flex items-center gap-2 ml-3">
                           <button
                             onClick={clearHistory}
                             className="px-2.5 py-1 rounded-md text-xs font-semibold bg-red-500/20 light:bg-red-100 text-red-400 light:text-red-600 hover:bg-red-500/30 light:hover:bg-red-200 transition-colors"
                           >
-                            Delete
+                            {t("delete")}
                           </button>
                           <button
                             onClick={() => setShowClearConfirm(false)}
                             className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/[0.08] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
                           >
-                            Cancel
+                            {t("cancel_btn")}
                           </button>
                         </div>
                       </div>
@@ -3615,7 +3622,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         <svg className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                           <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
                         </svg>
-                        Clear all
+                        {t("clear_all")}
                       </button>
                     )}
                   </div>
@@ -3629,8 +3636,8 @@ const [proSuccess, setProSuccess] = useState(false);
                     <svg className="h-8 w-8 text-slate-600 light:text-[#A67856] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <p className="text-sm font-medium text-slate-500 light:text-[#8B5E3C]">No searches yet</p>
-                    <p className="text-xs text-slate-600 light:text-[#A67856] mt-1">Your analyses will appear here</p>
+                    <p className="text-sm font-medium text-slate-500 light:text-[#8B5E3C]">{t("no_searches_yet")}</p>
+                    <p className="text-xs text-slate-600 light:text-[#A67856] mt-1">{t("history_analyses")}</p>
                   </div>
                 ) : (
                   <ul className="flex flex-col gap-2">
