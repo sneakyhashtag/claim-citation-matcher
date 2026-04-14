@@ -551,7 +551,7 @@ function LanguagePicker({ lang, onChange }: { lang: Lang; onChange: (l: Lang) =>
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-1.5 w-36 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
+            className="absolute right-0 mt-1.5 w-36 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
             role="menu"
           >
             {SUPPORTED_LANGS.map(({ id, label }) => (
@@ -724,7 +724,7 @@ function ExportMenu({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 4 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute top-full left-0 mt-1.5 z-30 w-52 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
+            className="absolute top-full left-0 mt-1.5 z-30 w-52 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
             role="menu"
           >
             <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
@@ -873,7 +873,7 @@ function ProGatePopover({
         transition={{ duration: 0.15, ease: "easeOut" }}
         style={{ backdropFilter: "none", WebkitBackdropFilter: "none" }}
         className="rounded-2xl px-5 py-4
-                   bg-[#1a2035] light:bg-[#faf8f2]
+                   bg-[#1a1a1a] light:bg-[#faf8f2]
                    border-2 border-[#2e3a5a] light:border-[#b89660]
                    shadow-[0_8px_40px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]
                    light:shadow-[0_8px_32px_rgba(124,78,24,0.25),0_2px_6px_rgba(124,78,24,0.12)]"
@@ -1124,7 +1124,7 @@ function OmakaseResultSection({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl border border-amber-500/[0.18] light:border-[rgba(120,80,30,0.18)] bg-[#0b0d1a] light:bg-[rgba(253,250,243,1)] shadow-[0_0_0_1px_rgba(251,191,36,0.04),0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_4px_24px_rgba(100,60,10,0.10)] overflow-hidden"
+      className="rounded-2xl border border-amber-500/[0.18] light:border-[rgba(120,80,30,0.18)] bg-[#0f0f0f] light:bg-[rgba(253,250,243,1)] shadow-[0_0_0_1px_rgba(251,191,36,0.04),0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_4px_24px_rgba(100,60,10,0.10)] overflow-hidden"
     >
       {/* Amber gradient top-line accent */}
       <div className="h-px bg-gradient-to-r from-transparent via-amber-500/50 light:via-amber-700/35 to-transparent" />
@@ -1346,7 +1346,7 @@ function CitationMenu({ paper }: { paper: Paper }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 4 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute bottom-full left-0 mb-2 z-30 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
+            className="absolute bottom-full left-0 mb-2 z-30 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
             role="menu"
           >
             <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
@@ -2029,7 +2029,7 @@ function RecencyFilter({
             <>
               {/* Backdrop to close on outside click */}
               <div className="fixed inset-0 z-10" onClick={() => setShowCustomPicker(false)} />
-              <div className="absolute left-0 top-full mt-2 z-20 flex items-center gap-1.5 rounded-xl border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] bg-[#161b2e] light:bg-[rgba(248,246,234,0.99)] shadow-[0_8px_32px_rgba(0,0,0,0.45)] light:shadow-[0_4px_20px_rgba(80,50,20,0.12)] px-3 py-2.5 whitespace-nowrap">
+              <div className="absolute left-0 top-full mt-2 z-20 flex items-center gap-1.5 rounded-xl border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] bg-[#181818] light:bg-[rgba(248,246,234,0.99)] shadow-[0_8px_32px_rgba(0,0,0,0.45)] light:shadow-[0_4px_20px_rgba(80,50,20,0.12)] px-3 py-2.5 whitespace-nowrap">
                 <input
                   type="number"
                   placeholder={t("from_year")}
@@ -2328,7 +2328,7 @@ function UserMenu({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141828] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
+            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
             role="menu"
           >
             <div className="px-3 py-2 border-b border-white/[0.08] light:border-[rgba(80,50,20,0.09)]">
@@ -3559,7 +3559,7 @@ const [proSuccess, setProSuccess] = useState(false);
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
-              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#0e1120] light:bg-[#EAE9C8] border-l border-white/[0.08] light:border-[rgba(80,50,20,0.12)] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(80,50,20,0.12)]"
+              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#111111] light:bg-[#EAE9C8] border-l border-white/[0.08] light:border-[rgba(80,50,20,0.12)] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(80,50,20,0.12)]"
               role="complementary"
               aria-label="Search history"
             >
@@ -3645,7 +3645,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       <li key={entry.id}>
                         <button
                           onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-[rgba(80,50,20,0.12)] bg-[#161b2e] light:bg-[rgba(248,246,234,0.85)] px-4 py-4 transition-all duration-150 hover:bg-[#1d2440] light:hover:bg-[rgba(248,246,234,1)] hover:border-white/[0.18] light:hover:border-[rgba(80,50,20,0.2)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(80,50,20,0.1)] group"
+                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-[rgba(80,50,20,0.12)] bg-[#181818] light:bg-[rgba(248,246,234,0.85)] px-4 py-4 transition-all duration-150 hover:bg-[#222222] light:hover:bg-[rgba(248,246,234,1)] hover:border-white/[0.18] light:hover:border-[rgba(80,50,20,0.2)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(80,50,20,0.1)] group"
                         >
                           {/* Preview — single line, truncates with ellipsis */}
                           <p className="text-sm font-medium text-slate-200 light:text-[#2C1810] truncate group-hover:text-white light:group-hover:text-[#2C1810] transition-colors">
