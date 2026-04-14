@@ -25,7 +25,67 @@ function errorMessage(code: string | null | undefined): string {
   return ERROR_MESSAGES[code] ?? ERROR_MESSAGES.Default;
 }
 
-// Icon helpers ─────────────────────────────────────────────────────────────────
+// ── Inline Lucide-style icons ──────────────────────────────────────────────────
+
+function FileTextIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"
+      strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+}
+
+function BrainIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"
+      strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.66z" />
+      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.66z" />
+    </svg>
+  );
+}
+
+function DatabaseIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"
+      strokeLinejoin="round" className={className} aria-hidden>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    </svg>
+  );
+}
+
+function BarChartIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"
+      strokeLinejoin="round" className={className} aria-hidden>
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  );
+}
+
+function QuoteIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"
+      strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 2v7c0 1.25.75 2 2 2h3c1.25 0 2 .75 2 2" />
+      <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 2v7c0 1.25.75 2 2 2h3c1.25 0 2 .75 2 2" />
+    </svg>
+  );
+}
 
 function BookIcon() {
   return (
@@ -57,7 +117,96 @@ function GoogleLogo() {
   );
 }
 
-// Page ─────────────────────────────────────────────────────────────────────────
+// ── How-it-works steps ─────────────────────────────────────────────────────────
+
+type Step = {
+  Icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  desc: string;
+};
+
+const STEPS: Step[] = [
+  {
+    Icon: FileTextIcon,
+    label: "Paste",
+    desc: "Drop any academic paragraph in any language — English, 中文, or 日本語.",
+  },
+  {
+    Icon: BrainIcon,
+    label: "Extract",
+    desc: "AI identifies each factual claim in your writing that needs a citation.",
+  },
+  {
+    Icon: DatabaseIcon,
+    label: "Search",
+    desc: "Real papers pulled from OpenAlex and Semantic Scholar — never hallucinated.",
+  },
+  {
+    Icon: BarChartIcon,
+    label: "Rank",
+    desc: "Every result shows citation count, h-index, Impact Factor, and Scimago quartile.",
+  },
+  {
+    Icon: QuoteIcon,
+    label: "Cite",
+    desc: "Copy in APA, MLA, Chicago, IEEE, or let Omakase rewrite your paragraph with citations.",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <div className="mt-6 w-full max-w-sm">
+      {/* section heading */}
+      <p className="mb-4 text-center text-[11px] uppercase tracking-[0.14em] text-slate-500 light:text-[#2C1810]/45 font-medium">
+        How it works
+      </p>
+
+      {/* steps */}
+      <div className="rounded-xl border border-slate-700/40 light:border-[#2C1810]/10 bg-slate-900/50 light:bg-[#F8F6EA]/70 px-5 py-4">
+        {STEPS.map((step, i) => (
+          <div key={step.label} className="flex gap-3.5">
+            {/* icon + connector */}
+            <div className="flex flex-col items-center">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 light:bg-amber-500/12 border border-amber-500/20 light:border-amber-600/20 text-amber-400 light:text-amber-700">
+                <step.Icon />
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className="my-0.5 w-px flex-1 bg-slate-700/40 light:bg-[#2C1810]/10" style={{ minHeight: "16px" }} />
+              )}
+            </div>
+
+            {/* text */}
+            <div className={i < STEPS.length - 1 ? "pb-3.5" : ""}>
+              <p className="text-[12px] font-semibold text-slate-200 light:text-[#2C1810] leading-none mb-0.5">
+                {step.label}
+              </p>
+              <p className="text-[12px] text-slate-400 light:text-[#2C1810]/60 leading-relaxed">
+                {step.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* callout */}
+      <div className="mt-3 rounded-xl border border-amber-500/18 light:border-amber-600/20 bg-amber-500/[0.06] light:bg-amber-500/[0.07] px-4 py-3">
+        <p className="text-[12px] leading-relaxed text-slate-300 light:text-[#2C1810]/70">
+          <span className="font-semibold text-amber-400 light:text-amber-700">
+            What makes Reference Finder different:{" "}
+          </span>
+          Omakase Mode auto-rewrites your paragraph with proper in-text citations
+          in any style, and every paper is matched claim-by-claim — not by keyword.
+        </p>
+      </div>
+
+      <p className="mt-5 mb-1 text-center text-[11px] text-slate-600 light:text-[#2C1810]/30">
+        Free to try · No card required
+      </p>
+    </div>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
 
 function SignInForm() {
   const searchParams = useSearchParams();
@@ -104,18 +253,18 @@ function SignInForm() {
     (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#080a12] px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-700/50 bg-slate-900/80 px-8 py-9 shadow-2xl">
+    <div className="min-h-screen flex flex-col items-center justify-start px-4 pt-10 pb-16 bg-[#0a0a0a] light:bg-[#EDEDD3]">
+      <div className="w-full max-w-sm rounded-xl border border-slate-700/50 light:border-[#2C1810]/12 bg-slate-900/80 light:bg-[#F8F6EA] px-8 py-9 shadow-2xl light:shadow-[0_4px_24px_rgba(44,24,16,0.10)]">
 
         {/* header */}
         <div className="mb-7 text-center">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/15">
             <BookIcon />
           </div>
-          <h1 className="text-lg font-semibold text-slate-100">
+          <h1 className="text-lg font-semibold text-slate-100 light:text-[#2C1810]">
             Sign in to Reference Finder
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 light:text-[#2C1810]/50">
             Find citations for any academic claim
           </p>
         </div>
@@ -140,7 +289,7 @@ function SignInForm() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-600/60 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-500/80 hover:bg-slate-800 active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-600/60 light:border-[#2C1810]/15 bg-slate-800/60 light:bg-white/60 px-4 py-2.5 text-sm font-medium text-slate-200 light:text-[#2C1810] transition hover:border-slate-500/80 light:hover:border-[#2C1810]/25 hover:bg-slate-800 light:hover:bg-white/80 active:scale-[0.98]"
         >
           <GoogleLogo />
           Continue with Google
@@ -148,9 +297,9 @@ function SignInForm() {
 
         {/* divider */}
         <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-700/60" />
-          <span className="text-[11px] uppercase tracking-widest text-slate-500">or</span>
-          <div className="h-px flex-1 bg-slate-700/60" />
+          <div className="h-px flex-1 bg-slate-700/60 light:bg-[#2C1810]/10" />
+          <span className="text-[11px] uppercase tracking-widest text-slate-500 light:text-[#2C1810]/35">or</span>
+          <div className="h-px flex-1 bg-slate-700/60 light:bg-[#2C1810]/10" />
         </div>
 
         {/* email / password form */}
@@ -158,7 +307,7 @@ function SignInForm() {
           <div>
             <label
               htmlFor="email"
-              className="mb-1 block text-xs font-medium text-slate-400"
+              className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60"
             >
               Email
             </label>
@@ -169,7 +318,7 @@ function SignInForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+              className="w-full rounded-lg border border-slate-600/60 light:border-[#2C1810]/15 bg-slate-800/60 light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-500 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/30 light:focus:ring-amber-600/20"
               placeholder="you@example.com"
             />
           </div>
@@ -177,7 +326,7 @@ function SignInForm() {
           <div>
             <label
               htmlFor="password"
-              className="mb-1 block text-xs font-medium text-slate-400"
+              className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60"
             >
               Password
             </label>
@@ -188,7 +337,7 @@ function SignInForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+              className="w-full rounded-lg border border-slate-600/60 light:border-[#2C1810]/15 bg-slate-800/60 light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-500 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/30 light:focus:ring-amber-600/20"
               placeholder="••••••••"
             />
           </div>
@@ -196,23 +345,26 @@ function SignInForm() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
         {/* register link */}
-        <p className="mt-5 text-center text-xs text-slate-500">
+        <p className="mt-5 text-center text-xs text-slate-500 light:text-[#2C1810]/50">
           Don&apos;t have an account?{" "}
           <Link
             href={registerHref}
-            className="font-medium text-amber-400 transition-colors hover:text-amber-300"
+            className="font-medium text-amber-400 light:text-amber-700 transition-colors hover:text-amber-300 light:hover:text-amber-600"
           >
             Create one
           </Link>
         </p>
       </div>
+
+      {/* how-it-works explainer */}
+      <HowItWorks />
     </div>
   );
 }
