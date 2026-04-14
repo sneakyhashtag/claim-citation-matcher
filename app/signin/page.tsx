@@ -157,27 +157,27 @@ function HowItWorks() {
   return (
     <div className="mt-6 w-full max-w-sm">
       {/* section heading */}
-      <p className="mb-4 text-center text-[11px] uppercase tracking-[0.14em] text-slate-500 light:text-[#2C1810]/45 font-medium">
+      <p className="mb-4 text-center text-[11px] uppercase tracking-[0.14em] text-slate-400 light:text-[#2C1810]/45 font-medium">
         How it works
       </p>
 
       {/* steps */}
-      <div className="rounded-xl border border-slate-700/40 light:border-[#2C1810]/10 bg-slate-900/50 light:bg-[#F8F6EA]/70 px-5 py-4">
+      <div className="rounded-xl border border-[#2a2a2a] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/70 px-5 py-4">
         {STEPS.map((step, i) => (
           <div key={step.label} className="flex gap-3.5">
             {/* icon + connector */}
             <div className="flex flex-col items-center">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 light:bg-amber-500/12 border border-amber-500/20 light:border-amber-600/20 text-amber-400 light:text-amber-700">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/[0.12] light:bg-amber-500/10 border border-amber-500/30 light:border-amber-600/20 text-amber-400 light:text-amber-700">
                 <step.Icon />
               </div>
               {i < STEPS.length - 1 && (
-                <div className="my-0.5 w-px flex-1 bg-slate-700/40 light:bg-[#2C1810]/10" style={{ minHeight: "16px" }} />
+                <div className="my-1 w-px flex-1 bg-[#2a2a2a] light:bg-[#2C1810]/10" style={{ minHeight: "14px" }} />
               )}
             </div>
 
             {/* text */}
-            <div className={i < STEPS.length - 1 ? "pb-3.5" : ""}>
-              <p className="text-[12px] font-semibold text-slate-200 light:text-[#2C1810] leading-none mb-0.5">
+            <div className={i < STEPS.length - 1 ? "pb-4" : ""}>
+              <p className="text-[12px] font-semibold text-slate-100 light:text-[#2C1810] leading-none mb-1">
                 {step.label}
               </p>
               <p className="text-[12px] text-slate-400 light:text-[#2C1810]/60 leading-relaxed">
@@ -189,7 +189,7 @@ function HowItWorks() {
       </div>
 
       {/* callout */}
-      <div className="mt-3 rounded-xl border border-amber-500/18 light:border-amber-600/20 bg-amber-500/[0.06] light:bg-amber-500/[0.07] px-4 py-3">
+      <div className="mt-3 rounded-xl border border-amber-500/25 light:border-amber-600/20 bg-amber-500/[0.07] light:bg-amber-500/[0.07] px-4 py-3">
         <p className="text-[12px] leading-relaxed text-slate-300 light:text-[#2C1810]/70">
           <span className="font-semibold text-amber-400 light:text-amber-700">
             What makes Reference Finder different:{" "}
