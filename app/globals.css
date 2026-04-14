@@ -49,9 +49,9 @@ body {
   50%       { transform: translate(20px, 30px) scale(1.08); }
 }
 
-.orb-1 { animation: orbDrift1 14s ease-in-out infinite; }
-.orb-2 { animation: orbDrift2 18s ease-in-out infinite; }
-.orb-3 { animation: orbDrift3 22s ease-in-out infinite; }
+.orb-1 { animation: orbDrift1 14s ease-in-out infinite; opacity: 0; }
+.orb-2 { animation: orbDrift2 18s ease-in-out infinite; opacity: 0; }
+.orb-3 { animation: orbDrift3 22s ease-in-out infinite; opacity: 0; }
 
 /* ── Noise texture overlay ───────────────────────────────────────────────── */
 
@@ -180,7 +180,7 @@ html.light .paper-card:hover {
 .dot-pattern {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
   background-size: 26px 26px;
-  opacity: 0.22;
+  opacity: 0; /* hidden in dark mode */
 }
 
 html.light .dot-pattern {
@@ -192,12 +192,7 @@ html.light .dot-pattern {
 /* ── Edge vignette ───────────────────────────────────────────────────────── */
 
 .vignette {
-  background: radial-gradient(
-    ellipse at 50% 35%,
-    transparent 45%,
-    rgba(0, 0, 0, 0.65) 75%,
-    rgba(0, 0, 0, 0.92) 100%
-  );
+  background: none; /* no gradient in dark mode — matte black is already solid */
   pointer-events: none;
 }
 
