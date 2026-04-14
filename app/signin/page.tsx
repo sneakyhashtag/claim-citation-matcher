@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -45,7 +45,6 @@ function GoogleLogo() {
   );
 }
 
-// Step icons — Lucide-style inline SVGs
 function FileTextIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
@@ -142,8 +141,7 @@ function SignInForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>(() => errorMessage(urlError));
-
-  useEffect(() => { setError(""); }, [email, password]);
+  const [showEmail, setShowEmail] = useState(false);
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault();
@@ -163,29 +161,50 @@ function SignInForm() {
     (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
 
   return (
-    // Outer: vertically + horizontally centered, two-column on lg+
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0a0a0a] light:bg-[#EDEDD3]">
-      <div className="w-full max-w-3xl flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-center">
+    <div className="min-h-screen flex items-start justify-center px-4 pt-10 pb-16 bg-[#0a0a0a] light:bg-[#EDEDD3]">
+      <div className="w-full max-w-4xl flex flex-col items-center gap-8">
 
-        {/* ── Left: sign-in card ── */}
-        <div className="w-full lg:w-[340px] shrink-0 rounded-xl border border-[#252525] light:border-[#2C1810]/12 bg-[#111111] light:bg-[#F8F6EA] px-8 py-8 shadow-2xl light:shadow-[0_4px_24px_rgba(44,24,16,0.10)]">
-
-          {/* header */}
-          <div className="mb-6 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
-              <BookIcon />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-100 light:text-[#2C1810]">
-              Sign in to Reference Finder
-            </h1>
-            <p className="mt-1 text-xs text-slate-500 light:text-[#2C1810]/50">
-              Find citations for any academic claim
-            </p>
+        {/* ── 1. Header ── */}
+        <div className="text-center">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
+            <BookIcon />
           </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-100 light:text-[#2C1810]">
+            Reference Finder
+          </h1>
+          <p className="mt-2 text-sm text-slate-400 light:text-[#2C1810]/55 max-w-xs mx-auto leading-relaxed">
+            Find academic citations for every factual claim in your writing
+          </p>
+        </div>
+
+        {/* ── 2. Step cards ── */}
+        <div id="how-it-works" className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
+          {STEPS.map((step) => (
+            <div
+              key={step.label}
+              className="flex flex-col gap-2.5 rounded-xl border border-[#252525] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/80 px-4 py-4"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-amber-500/30 light:border-amber-600/20 bg-amber-500/10 light:bg-amber-500/[0.08] text-amber-400 light:text-amber-700">
+                  <step.Icon />
+                </div>
+                <p className="text-[12px] font-semibold text-slate-100 light:text-[#2C1810] leading-none">
+                  {step.label}
+                </p>
+              </div>
+              <p className="text-[11.5px] leading-relaxed text-slate-400 light:text-[#2C1810]/58">
+                {step.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── 3. Sign-in buttons + form ── */}
+        <div className="w-full max-w-sm flex flex-col gap-3">
 
           {/* error banner */}
           {error && (
-            <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
+            <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
               {error}
               {error.includes("create one") && (
                 <> <Link href={registerHref} className="underline underline-offset-2 hover:text-red-300">Create an account</Link></>
@@ -203,110 +222,98 @@ function SignInForm() {
             Continue with Google
           </button>
 
+          {/* email toggle */}
+          <button
+            type="button"
+            onClick={() => setShowEmail((v) => !v)}
+            className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/12 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
+          >
+            {showEmail ? "Hide email sign-in" : "Sign in with email"}
+          </button>
+
+          {/* collapsible email / password form */}
+          {showEmail && (
+            <form onSubmit={handleCredentials} className="flex flex-col gap-3">
+              <div>
+                <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
+                  Email
+                </label>
+                <input
+                  id="email" type="email" autoComplete="email" required
+                  value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                  className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
+                  Password
+                </label>
+                <input
+                  id="password" type="password" autoComplete="current-password" required
+                  value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button
+                type="submit" disabled={loading}
+                className="w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Signing in…" : "Sign in"}
+              </button>
+              <p className="text-center text-xs text-slate-500 light:text-[#2C1810]/50">
+                Don&apos;t have an account?{" "}
+                <Link href={registerHref} className="font-medium text-amber-400 light:text-amber-700 transition-colors hover:text-amber-300 light:hover:text-amber-600">
+                  Create one
+                </Link>
+              </p>
+            </form>
+          )}
+
+          {/* divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
+            <span className="text-[11px] uppercase tracking-widest text-slate-600 light:text-[#2C1810]/35">or</span>
+            <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
+          </div>
+
           {/* Continue as Guest */}
           <Link
             href={callbackUrl}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/10 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/10 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
           >
             Continue as Guest
           </Link>
 
-          {/* divider */}
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
-            <span className="text-[11px] uppercase tracking-widest text-slate-600 light:text-[#2C1810]/35">or sign in with email</span>
-            <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
-          </div>
-
-          {/* email / password form */}
-          <form onSubmit={handleCredentials} className="space-y-3">
-            <div>
-              <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                Email
-              </label>
-              <input
-                id="email" type="email" autoComplete="email" required
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                Password
-              </label>
-              <input
-                id="password" type="password" autoComplete="current-password" required
-                value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
-                placeholder="••••••••"
-              />
-            </div>
-            <button
-              type="submit" disabled={loading}
-              className="mt-1 w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          {/* How to use anchor */}
+          <div className="flex justify-center">
+            <a
+              href="#how-it-works"
+              className="flex items-center gap-1.5 text-xs text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-[#2C1810] transition-colors"
             >
-              {loading ? "Signing in…" : "Sign in"}
-            </button>
-          </form>
+              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              How to use
+            </a>
+          </div>
+        </div>
 
-          <p className="mt-5 text-center text-xs text-slate-500 light:text-[#2C1810]/50">
-            Don&apos;t have an account?{" "}
-            <Link href={registerHref} className="font-medium text-amber-400 light:text-amber-700 transition-colors hover:text-amber-300 light:hover:text-amber-600">
-              Create one
-            </Link>
+        {/* ── 4. Differentiator callout ── */}
+        <div className="w-full max-w-sm rounded-xl border border-amber-500/20 light:border-amber-600/18 bg-amber-500/[0.06] light:bg-amber-600/[0.06] px-4 py-3">
+          <p className="text-[11.5px] leading-relaxed text-slate-300 light:text-[#2C1810]/68">
+            <span className="font-semibold text-amber-400 light:text-amber-700">
+              What makes Reference Finder different:{" "}
+            </span>
+            Omakase Mode auto-rewrites your paragraph with proper in-text citations in any style,
+            and every paper is matched claim-by-claim — not by keyword.
           </p>
         </div>
 
-        {/* ── Right: how-it-works ── */}
-        <div className="w-full lg:w-[320px] shrink-0">
-
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.13em] text-slate-500 light:text-[#2C1810]/40 text-center lg:text-left">
-            How it works
-          </p>
-
-          {/* steps card */}
-          <div className="rounded-xl border border-[#252525] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/80 px-4 py-4">
-            {STEPS.map((step, i) => (
-              <div key={step.label} className="flex gap-3">
-                {/* icon column */}
-                <div className="flex flex-col items-center">
-                  <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border border-amber-500/30 light:border-amber-600/20 bg-amber-500/10 light:bg-amber-500/8 text-amber-400 light:text-amber-700">
-                    <step.Icon />
-                  </div>
-                  {i < STEPS.length - 1 && (
-                    <div className="my-1 w-px bg-[#2a2a2a] light:bg-[#2C1810]/10" style={{ height: 12 }} />
-                  )}
-                </div>
-
-                {/* text */}
-                <div className={i < STEPS.length - 1 ? "pb-3" : ""}>
-                  <p className="text-[12px] font-semibold text-slate-100 light:text-[#2C1810] leading-none mb-[3px]">
-                    {step.label}
-                  </p>
-                  <p className="text-[11.5px] leading-relaxed text-slate-400 light:text-[#2C1810]/58">
-                    {step.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* callout */}
-          <div className="mt-3 rounded-xl border border-amber-500/20 light:border-amber-600/18 bg-amber-500/[0.06] light:bg-amber-600/[0.06] px-4 py-3">
-            <p className="text-[11.5px] leading-relaxed text-slate-300 light:text-[#2C1810]/68">
-              <span className="font-semibold text-amber-400 light:text-amber-700">
-                What makes Reference Finder different:{" "}
-              </span>
-              Omakase Mode auto-rewrites your paragraph with proper in-text citations in any style,
-              and every paper is matched claim-by-claim — not by keyword.
-            </p>
-          </div>
-
-          <p className="mt-4 text-center lg:text-left text-[11px] text-slate-600 light:text-[#2C1810]/30">
-            Free to try · No card required
-          </p>
-        </div>
+        <p className="text-[11px] text-slate-600 light:text-[#2C1810]/30">
+          Free to try · No card required
+        </p>
 
       </div>
     </div>
