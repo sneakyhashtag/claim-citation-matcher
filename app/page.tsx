@@ -3902,7 +3902,7 @@ const [proSuccess, setProSuccess] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, !!session]);
 
-  const toggleSavePaper = async (paper: RatedPaper) => {
+  const toggleSavePaper = (paper: RatedPaper) => {
     const normalize = (doi: string | null | undefined) =>
       doi ? doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
     const paperDoi = normalize(paper.doi);
@@ -3914,15 +3914,20 @@ const [proSuccess, setProSuccess] = useState(false);
     });
 
     if (existing) {
-      // Unsave
+      // ── Unsave (optimistic) ──────────────────────────────────────────────────
+      setSavedPapers((prev) => prev.filter((p) => p.id !== existing.id));
       if (session) {
-        apiFetch(`/api/saved-papers/${existing.id}`, { method: "DELETE" });
+        apiFetch(`/api/saved-papers/${existing.id}`, { method: "DELETE" }).then(({ error }) => {
+          if (error) {
+            // Revert on failure
+            setSavedPapers((prev) => [existing, ...prev]);
+          }
+        });
       } else {
         lsRemoveSavedPaper(existing.id);
       }
-      setSavedPapers((prev) => prev.filter((p) => p.id !== existing.id));
     } else {
-      // Save
+      // ── Save (optimistic) ────────────────────────────────────────────────────
       const payload = {
         doi: paper.doi ?? null,
         title: paper.title ?? "Untitled",
@@ -3930,20 +3935,34 @@ const [proSuccess, setProSuccess] = useState(false);
         year: paper.year ?? null,
         journal: paper.journal ?? null,
       };
+      const tempId = `temp_${Date.now()}`;
+      const optimistic: SavedPaper = { ...payload, id: tempId, createdAt: new Date().toISOString() };
+      // Update state immediately so the icon changes right away
+      setSavedPapers((prev) => [optimistic, ...prev]);
+
       if (session) {
         apiFetch<{ id: string; createdAt: string }>("/api/saved-papers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }).then(({ data }) => {
+        }).then(({ data, error }) => {
           if (data?.id) {
-            setSavedPapers((prev) => [{ ...payload, id: data.id, createdAt: data.createdAt }, ...prev]);
+            // Replace temp entry with the server-assigned ID
+            setSavedPapers((prev) =>
+              prev.map((p) => p.id === tempId ? { ...p, id: data.id, createdAt: data.createdAt } : p)
+            );
+          } else {
+            // Revert on API failure
+            setSavedPapers((prev) => prev.filter((p) => p.id !== tempId));
+            console.error("[saved-papers] save failed:", error);
           }
         });
       } else {
-        const id = lsAddSavedPaper(payload);
-        setSavedPapers(lsGetSavedPapers());
-        void id;
+        // Guest: persist to localStorage and swap temp entry for the real ls id
+        const realId = lsAddSavedPaper(payload);
+        setSavedPapers((prev) =>
+          prev.map((p) => p.id === tempId ? { ...p, id: realId } : p)
+        );
       }
     }
   };
