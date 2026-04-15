@@ -264,6 +264,58 @@ const translations = {
     greet_afternoon: "Good afternoon, {name}.",
     greet_evening: "Good evening, {name}.",
     greet_late: "Working late, {name}?",
+
+    // Sign-in step cards
+    step_paste_label: "Paste",
+    step_paste_desc: "Drop any academic paragraph in any language \u2014 English, \u4e2d\u6587, or \u65e5\u672c\u8a9e.",
+    step_extract_label: "Extract",
+    step_extract_desc: "AI identifies each factual claim in your writing that needs a citation.",
+    step_search_label: "Search",
+    step_search_desc: "Real papers pulled from OpenAlex and Semantic Scholar \u2014 never hallucinated.",
+    step_rank_label: "Rank",
+    step_rank_desc: "Every result shows citation count, h-index, Impact Factor, and Scimago quartile.",
+    step_cite_label: "Cite",
+    step_cite_desc: "Copy in APA, MLA, Chicago, IEEE, or let Omakase rewrite your paragraph with citations.",
+
+    // Differentiator callout + footer
+    differentiator_heading: "What makes Reference Finder different:",
+    differentiator_body: "Omakase Mode auto-rewrites your paragraph with proper in-text citations in any style, and every paper is matched claim-by-claim \u2014 not by keyword.",
+    free_to_try: "Free to try \u00b7 No card required",
+
+    // Email sign-in form
+    email_signin_show: "Sign in with email",
+    email_signin_hide: "Hide email sign-in",
+    email_label: "Email",
+    password_label: "Password",
+    signing_in: "Signing in\u2026",
+
+    // Sidebar controls
+    new_search: "New Search",
+    sidebar_searches: "Searches",
+    sidebar_saved: "Saved",
+    sidebar_starred: "Starred",
+    sidebar_recent: "Recent",
+    no_saved_papers: "No saved papers yet \u2014 bookmark papers from your search results.",
+    manage_subscription: "Manage subscription",
+
+    // Sidebar tab row
+    new_search_tab: "New search\u2026",
+    aria_star: "Star",
+    aria_unstar: "Unstar",
+    aria_delete_tab: "Delete tab",
+    aria_remove_paper: "Remove saved paper",
+    aria_collapse_sidebar: "Collapse sidebar",
+
+    // Daily limit banner
+    daily_limit_reached: "You\u2019ve reached your daily limit of 3 free searches.",
+
+    // Auth error messages
+    auth_err_email_not_found: "No account found with this email address.",
+    auth_err_google_only: "This email uses Google sign-in. Use \u201cContinue with Google\u201d above.",
+    auth_err_wrong_password: "Incorrect password. Please try again.",
+    auth_err_credentials: "Incorrect email or password.",
+    auth_err_oauth_linked: "This email is already linked to a different sign-in method.",
+    auth_err_default: "Something went wrong. Please try again.",
   },
 
   zh: {
@@ -493,6 +545,58 @@ const translations = {
     greet_afternoon: "下午好，{name}。",
     greet_evening: "晚上好，{name}。",
     greet_late: "工作到这么晚，{name}？",
+
+    // Sign-in step cards
+    step_paste_label: "粘贴",
+    step_paste_desc: "粘贴任何语言的学术段落——英文、中文或日本語均可。",
+    step_extract_label: "提取",
+    step_extract_desc: "AI 识别您写作中每个需要引用的事实性主张。",
+    step_search_label: "搜索",
+    step_search_desc: "从 OpenAlex 和 Semantic Scholar 获取真实论文——绝无 AI 幻觉。",
+    step_rank_label: "排名",
+    step_rank_desc: "每条结果显示引用次数、h 指数、影响因子和 Scimago 四分位。",
+    step_cite_label: "引用",
+    step_cite_desc: "以 APA、MLA、Chicago、IEEE 格式复制，或让 Omakase 为您改写段落并添加引用。",
+
+    // Differentiator callout + footer
+    differentiator_heading: "Reference Finder 的独特之处：",
+    differentiator_body: "Omakase 模式可自动将您的段落改写为任何格式的内联引用版本，且每篇论文均按主张逐条匹配——而非关键词搜索。",
+    free_to_try: "免费试用 · 无需信用卡",
+
+    // Email sign-in form
+    email_signin_show: "使用邮箱登录",
+    email_signin_hide: "隐藏邮箱登录",
+    email_label: "邮箱",
+    password_label: "密码",
+    signing_in: "登录中…",
+
+    // Sidebar controls
+    new_search: "新建搜索",
+    sidebar_searches: "搜索记录",
+    sidebar_saved: "已保存",
+    sidebar_starred: "已加星标",
+    sidebar_recent: "最近",
+    no_saved_papers: "暂无已保存的论文——从搜索结果中收藏论文。",
+    manage_subscription: "管理订阅",
+
+    // Sidebar tab row
+    new_search_tab: "新搜索…",
+    aria_star: "加星标",
+    aria_unstar: "取消星标",
+    aria_delete_tab: "删除标签",
+    aria_remove_paper: "移除已保存的论文",
+    aria_collapse_sidebar: "收起侧边栏",
+
+    // Daily limit banner
+    daily_limit_reached: "您已达到今日 3 次免费搜索的上限。",
+
+    // Auth error messages
+    auth_err_email_not_found: "未找到此邮箱地址对应的账户。",
+    auth_err_google_only: "此邮箱使用 Google 登录。请点击上方的\u300c使用 Google 登录\u300d按钮。",
+    auth_err_wrong_password: "密码错误，请重试。",
+    auth_err_credentials: "邮箱或密码错误。",
+    auth_err_oauth_linked: "此邮箱已与其他登录方式关联。",
+    auth_err_default: "出现错误，请重试。",
   },
 
   ja: {
@@ -722,11 +826,63 @@ const translations = {
     greet_afternoon: "こんにちは、{name} さん。",
     greet_evening: "こんばんは、{name} さん。",
     greet_late: "遅くまで働いていますね、{name} さん？",
+
+    // Sign-in step cards
+    step_paste_label: "貼り付け",
+    step_paste_desc: "英語・中文・日本語など、どの言語の学術段落でも貼り付けられます。",
+    step_extract_label: "抽出",
+    step_extract_desc: "AI があなたの文章から引用が必要な各事実的主張を識別します。",
+    step_search_label: "検索",
+    step_search_desc: "OpenAlex と Semantic Scholar から実際の論文を取得——AI の幻覚は一切なし。",
+    step_rank_label: "ランク付け",
+    step_rank_desc: "各結果には引用数・h 指数・インパクトファクター・Scimago 四分位が表示されます。",
+    step_cite_label: "引用",
+    step_cite_desc: "APA・MLA・Chicago・IEEE 形式でコピー、またはおまかせで引用付き段落に書き直します。",
+
+    // Differentiator callout + footer
+    differentiator_heading: "Reference Finder が他と違う点：",
+    differentiator_body: "おまかせモードは段落をあらゆるスタイルの適切なインライン引用付きで自動書き直しし、すべての論文はキーワードではなく主張ごとにマッチングされます。",
+    free_to_try: "無料で試せます · カード不要",
+
+    // Email sign-in form
+    email_signin_show: "メールでサインイン",
+    email_signin_hide: "メールサインインを非表示",
+    email_label: "メールアドレス",
+    password_label: "パスワード",
+    signing_in: "サインイン中…",
+
+    // Sidebar controls
+    new_search: "新規検索",
+    sidebar_searches: "検索",
+    sidebar_saved: "保存済み",
+    sidebar_starred: "スター付き",
+    sidebar_recent: "最近",
+    no_saved_papers: "保存済みの論文はまだありません — 検索結果から論文をブックマークしてください。",
+    manage_subscription: "サブスクリプションを管理",
+
+    // Sidebar tab row
+    new_search_tab: "新規検索…",
+    aria_star: "スターを付ける",
+    aria_unstar: "スターを外す",
+    aria_delete_tab: "タブを削除",
+    aria_remove_paper: "保存済みの論文を削除",
+    aria_collapse_sidebar: "サイドバーを折りたたむ",
+
+    // Daily limit banner
+    daily_limit_reached: "本日の無料検索 3 回の上限に達しました。",
+
+    // Auth error messages
+    auth_err_email_not_found: "このメールアドレスに関連するアカウントが見つかりません。",
+    auth_err_google_only: "このメールは Google サインインを使用しています。上の「Google でサインイン」をご利用ください。",
+    auth_err_wrong_password: "パスワードが正しくありません。もう一度お試しください。",
+    auth_err_credentials: "メールアドレスまたはパスワードが正しくありません。",
+    auth_err_oauth_linked: "このメールアドレスは別のサインイン方法にすでに関連付けられています。",
+    auth_err_default: "エラーが発生しました。もう一度お試しください。",
   },
 } as const
 
 type TranslationDict = typeof translations.en
-type TKey = keyof TranslationDict
+export type TKey = keyof TranslationDict
 
 export type TFunction = (key: TKey, params?: Record<string, string | number>) => string
 

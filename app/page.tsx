@@ -1,13 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Paper, RatedPaper } from "@/lib/rate-relevance";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { TextAnimate } from "@/components/magicui/text-animate";
-import { getT, type Lang, detectLang, SUPPORTED_LANGS, type TFunction } from "@/lib/i18n";
+import { getT, type Lang, detectLang, SUPPORTED_LANGS, type TFunction, type TKey } from "@/lib/i18n";
 
 // ── i18n context ─────────────────────────────────────────────────────────────
 const LangContext = createContext<TFunction>((k) => k as string);
@@ -141,10 +141,10 @@ const YEAR_FILTERS: { id: YearFilter; label: string }[] = [
 
 // ── Onboarding step cards ─────────────────────────────────────────────────────
 
-const ONBOARDING_STEPS = [
+const ONBOARDING_STEPS: { labelKey: TKey; descKey: TKey; Icon: () => ReactElement }[] = [
   {
-    label: "Paste",
-    desc: "Drop any academic paragraph in any language — English, 中文, or 日本語.",
+    labelKey: "step_paste_label",
+    descKey: "step_paste_desc",
     Icon: () => (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -155,8 +155,8 @@ const ONBOARDING_STEPS = [
     ),
   },
   {
-    label: "Extract",
-    desc: "AI identifies each factual claim in your writing that needs a citation.",
+    labelKey: "step_extract_label",
+    descKey: "step_extract_desc",
     Icon: () => (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.66z" />
@@ -165,8 +165,8 @@ const ONBOARDING_STEPS = [
     ),
   },
   {
-    label: "Search",
-    desc: "Real papers pulled from OpenAlex and Semantic Scholar — never hallucinated.",
+    labelKey: "step_search_label",
+    descKey: "step_search_desc",
     Icon: () => (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <ellipse cx="12" cy="5" rx="9" ry="3" />
@@ -176,8 +176,8 @@ const ONBOARDING_STEPS = [
     ),
   },
   {
-    label: "Rank",
-    desc: "Every result shows citation count, h-index, Impact Factor, and Scimago quartile.",
+    labelKey: "step_rank_label",
+    descKey: "step_rank_desc",
     Icon: () => (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <line x1="18" y1="20" x2="18" y2="10" />
@@ -187,8 +187,8 @@ const ONBOARDING_STEPS = [
     ),
   },
   {
-    label: "Cite",
-    desc: "Copy in APA, MLA, Chicago, IEEE, or let Omakase rewrite your paragraph with citations.",
+    labelKey: "step_cite_label",
+    descKey: "step_cite_desc",
     Icon: () => (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 2v7c0 1.25.75 2 2 2h3c1.25 0 2 .75 2 2" />
@@ -196,15 +196,15 @@ const ONBOARDING_STEPS = [
       </svg>
     ),
   },
-] as const;
+];
 
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  EmailNotFound: "No account found with this email address.",
-  GoogleOnly: 'This email uses Google sign-in. Use "Continue with Google" above.',
-  WrongPassword: "Incorrect password. Please try again.",
-  CredentialsSignin: "Incorrect email or password.",
-  OAuthAccountNotLinked: "This email is already linked to a different sign-in method.",
-  Default: "Something went wrong. Please try again.",
+const AUTH_ERROR_KEYS: Record<string, TKey> = {
+  EmailNotFound: "auth_err_email_not_found",
+  GoogleOnly: "auth_err_google_only",
+  WrongPassword: "auth_err_wrong_password",
+  CredentialsSignin: "auth_err_credentials",
+  OAuthAccountNotLinked: "auth_err_oauth_linked",
+  Default: "auth_err_default",
 };
 
 function paperInRange(year: number | null, filter: YearFilter, customRange?: CustomRange): boolean {
@@ -3251,7 +3251,7 @@ function SidebarInner({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Collapse sidebar"
+          aria-label={t("aria_collapse_sidebar")}
           className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#2C1810] hover:bg-white/[0.08] light:hover:bg-black/[0.06] transition-colors"
         >
           <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -3308,7 +3308,7 @@ function SidebarInner({
               <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
-              {upgrading ? "Redirecting…" : t("upgrade_to_pro")}
+              {upgrading ? t("plan_redirecting") : t("upgrade_to_pro")}
             </button>
           )}
 
@@ -3319,7 +3319,7 @@ function SidebarInner({
               onClick={onCancelSubscription}
               className="mt-2 w-full text-center text-[10px] text-slate-600 light:text-[#A67856] hover:text-slate-400 light:hover:text-[#6B4226] underline underline-offset-2 transition-colors"
             >
-              Manage subscription
+              {t("manage_subscription")}
             </button>
           )}
         </div>
@@ -3335,7 +3335,7 @@ function SidebarInner({
           <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
           </svg>
-          New Search
+          {t("new_search")}
         </button>
         <div className="flex rounded-lg overflow-hidden border border-white/[0.09] light:border-[rgba(80,50,20,0.13)]">
           {(["searches", "saved"] as const).map((view, i) => (
@@ -3349,8 +3349,8 @@ function SidebarInner({
                   : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
               }`}
             >
-              {view === "searches" ? "Searches" : (
-                <>Saved{savedPapers.length > 0 && <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>}</>
+              {view === "searches" ? t("sidebar_searches") : (
+                <>{t("sidebar_saved")}{savedPapers.length > 0 && <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>}</>
               )}
             </button>
           ))}
@@ -3366,20 +3366,20 @@ function SidebarInner({
             {starredTabs.length > 0 && (
               <>
                 <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
-                  Starred
+                  {t("sidebar_starred")}
                 </p>
                 {starredTabs.map((tab) => (
                   <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
                 ))}
                 {recentTabs.length > 0 && (
                   <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
-                    Recent
+                    {t("sidebar_recent")}
                   </p>
                 )}
               </>
             )}
             {starredTabs.length === 0 && recentTabs.length === 0 && (
-              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">No searches yet</p>
+              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">{t("no_searches_yet")}</p>
             )}
             {recentTabs.map((tab) => (
               <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
@@ -3392,7 +3392,7 @@ function SidebarInner({
           <div className="px-2 py-1 flex flex-col gap-0.5">
             {savedPapers.length === 0 ? (
               <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
-                No saved papers yet — bookmark papers from your search results.
+                {t("no_saved_papers")}
               </p>
             ) : (
               savedPapers.map((paper) => (
@@ -3423,7 +3423,7 @@ function SidebarInner({
                   <button
                     type="button"
                     onClick={() => onRemoveSavedPaper(paper.id)}
-                    aria-label="Remove saved paper"
+                    aria-label={t("aria_remove_paper")}
                     className="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
                   >
                     <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -3452,7 +3452,7 @@ function SidebarInner({
             <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
             </svg>
-            How to use
+            {t("how_to_use")}
           </button>
         </nav>
       </div>
@@ -3465,7 +3465,7 @@ function SidebarInner({
             <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
             <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
           </svg>
-          Sign out
+          {t("sign_out")}
         </button>
       </div>
     </div>
@@ -3487,6 +3487,7 @@ function SidebarTabRow({
   onStar: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useContext(LangContext);
   const isActive = activeTabId === tab.id;
   return (
     <div
@@ -3500,7 +3501,7 @@ function SidebarTabRow({
       <button
         type="button"
         onClick={() => onStar(tab.id)}
-        aria-label={tab.starred ? "Unstar" : "Star"}
+        aria-label={tab.starred ? t("aria_unstar") : t("aria_star")}
         className={`shrink-0 ml-1.5 flex items-center justify-center w-5 h-5 rounded transition-colors ${
           tab.starred
             ? "text-amber-400 light:text-amber-600"
@@ -3523,7 +3524,7 @@ function SidebarTabRow({
             ? "text-slate-100 light:text-[#2C1810]"
             : "text-slate-400 light:text-[#6B4226]"
         }`}>
-          {tab.preview || "New search…"}
+          {tab.preview || t("new_search_tab")}
         </span>
       </button>
 
@@ -3531,7 +3532,7 @@ function SidebarTabRow({
       <button
         type="button"
         onClick={() => onDelete(tab.id)}
-        aria-label="Delete tab"
+        aria-label={t("aria_delete_tab")}
         className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
       >
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -3981,7 +3982,7 @@ const [proSuccess, setProSuccess] = useState(false);
     const result = await signIn("credentials", { email: authEmail, password: authPassword, redirect: false });
     setAuthLoading(false);
     if (result?.error) {
-      setAuthError(AUTH_ERROR_MESSAGES[result.error] ?? AUTH_ERROR_MESSAGES.Default);
+      setAuthError(AUTH_ERROR_KEYS[result.error] ?? AUTH_ERROR_KEYS.Default);
     }
     // On success the session update triggers setStage("app") via the existing useEffect
   };
@@ -4755,7 +4756,7 @@ const [proSuccess, setProSuccess] = useState(false);
                 <div className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
                   {ONBOARDING_STEPS.map((step) => (
                     <div
-                      key={step.label}
+                      key={step.labelKey}
                       className="flex flex-col gap-2.5 rounded-xl border border-[#252525] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/80 px-4 py-4"
                     >
                       <div className="flex items-center gap-2">
@@ -4763,11 +4764,11 @@ const [proSuccess, setProSuccess] = useState(false);
                           <step.Icon />
                         </div>
                         <p className="text-[12px] font-semibold text-slate-100 light:text-[#2C1810] leading-none">
-                          {step.label}
+                          {t(step.labelKey)}
                         </p>
                       </div>
                       <p className="text-[11.5px] leading-relaxed text-slate-400 light:text-[#2C1810]/58">
-                        {step.desc}
+                        {t(step.descKey)}
                       </p>
                     </div>
                   ))}
@@ -4779,7 +4780,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   {/* auth error */}
                   {authError && (
                     <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
-                      {authError}
+                      {t(authError as TKey)}
                     </div>
                   )}
 
@@ -4805,7 +4806,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     onClick={() => setShowEmailForm((v) => !v)}
                     className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/12 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
                   >
-                    {showEmailForm ? "Hide email sign-in" : "Sign in with email"}
+                    {showEmailForm ? t("email_signin_hide") : t("email_signin_show")}
                   </button>
 
                   {/* Collapsible email / password form */}
@@ -4813,7 +4814,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3">
                       <div>
                         <label htmlFor="auth-email" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                          Email
+                          {t("email_label")}
                         </label>
                         <input
                           id="auth-email" type="email" autoComplete="email" required
@@ -4825,7 +4826,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       </div>
                       <div>
                         <label htmlFor="auth-password" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                          Password
+                          {t("password_label")}
                         </label>
                         <input
                           id="auth-password" type="password" autoComplete="current-password" required
@@ -4839,7 +4840,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         type="submit" disabled={authLoading}
                         className="w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {authLoading ? "Signing in…" : "Sign in"}
+                        {authLoading ? t("signing_in") : t("sign_in")}
                       </button>
                     </form>
                   )}
@@ -4879,15 +4880,14 @@ const [proSuccess, setProSuccess] = useState(false);
                 <div className="w-full max-w-sm rounded-xl border border-amber-500/20 light:border-amber-600/18 bg-amber-500/[0.06] light:bg-amber-600/[0.06] px-4 py-3">
                   <p className="text-[11.5px] leading-relaxed text-slate-300 light:text-[#2C1810]/68">
                     <span className="font-semibold text-amber-400 light:text-amber-700">
-                      What makes Reference Finder different:{" "}
+                      {t("differentiator_heading")}{" "}
                     </span>
-                    Omakase Mode auto-rewrites your paragraph with proper in-text citations in any style,
-                    and every paper is matched claim-by-claim — not by keyword.
+                    {t("differentiator_body")}
                   </p>
                 </div>
 
                 <p className="text-[11px] text-slate-600 light:text-[#2C1810]/30">
-                  Free to try · No card required
+                  {t("free_to_try")}
                 </p>
 
               </motion.div>
@@ -5136,7 +5136,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                     </svg>
                     <p className="text-sm text-slate-300 light:text-[#4A2E1A]">
-                      You&apos;ve reached your daily limit of 3 free searches.{" "}
+                      {t("daily_limit_reached")}{" "}
                       {session ? (
                         <>
                           <button
