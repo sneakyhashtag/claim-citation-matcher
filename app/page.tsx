@@ -104,6 +104,17 @@ interface HistoryEntry {
   omakase?: OmakaseHistoryData;
 }
 
+interface SearchTab {
+  id: string;
+  preview: string;
+  paragraph: string;
+  claims: { claim: string; searchQuery: string }[];
+  results: ClaimResult[];
+  omakase?: OmakaseHistoryData | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── recency filter ────────────────────────────────────────────────────────────
 
 type YearFilter = "all" | "5yr" | "3yr" | "1yr" | "custom";
@@ -3058,6 +3069,48 @@ function lsClearHistory(): void {
   }
 }
 
+// ── localStorage tabs ────────────────────────────────────────────────────────
+
+const LS_TABS_KEY = "rf_tabs";
+const MAX_TAB_ENTRIES = 30;
+
+function lsGetTabs(): SearchTab[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_TABS_KEY) ?? "[]") as SearchTab[];
+  } catch {
+    return [];
+  }
+}
+
+function lsSaveTabs(tabs: SearchTab[]): void {
+  try {
+    localStorage.setItem(LS_TABS_KEY, JSON.stringify(tabs.slice(0, MAX_TAB_ENTRIES)));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+function lsAddTab(tab: Omit<SearchTab, "id" | "createdAt" | "updatedAt">): string {
+  const id = Date.now().toString();
+  const now = new Date().toISOString();
+  const newTab: SearchTab = { ...tab, id, createdAt: now, updatedAt: now };
+  lsSaveTabs([newTab, ...lsGetTabs()]);
+  return id;
+}
+
+function lsUpdateTab(id: string, patch: Partial<Omit<SearchTab, "id" | "createdAt">>): void {
+  const tabs = lsGetTabs().map((t) =>
+    t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t
+  );
+  // Re-sort so the updated tab bubbles to the top
+  tabs.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  lsSaveTabs(tabs);
+}
+
+function lsDeleteTab(id: string): void {
+  lsSaveTabs(lsGetTabs().filter((t) => t.id !== id));
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -3285,6 +3338,86 @@ const [proSuccess, setProSuccess] = useState(false);
     setSidebarOpen(!!session);
   }, [!!session]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Tabs ─────────────────────────────────────────────────────────────────────
+  const [tabs, setTabs] = useState<SearchTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+
+  // Load tabs on mount (guest) or when session becomes available (signed-in)
+  useEffect(() => {
+    if (stage !== "app") return;
+    if (session) {
+      apiFetch<{ tabs: SearchTab[] }>("/api/tabs").then(({ data }) => {
+        setTabs(data?.tabs ?? []);
+      });
+    } else {
+      setTabs(lsGetTabs());
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, !!session]);
+
+  const startNewSearch = async () => {
+    // Clear UI
+    setText("");
+    setResults([]);
+    setCurrentClaims([]);
+    setOmakaseResult(null);
+    setError("");
+    currentHistoryId.current = null;
+
+    // Create a blank tab
+    if (session) {
+      const { data } = await apiFetch<{ id: string; createdAt: string; updatedAt: string }>("/api/tabs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preview: "New search…", paragraph: "", claims: [], results: [] }),
+      });
+      if (data?.id) {
+        const newTab: SearchTab = {
+          id: data.id,
+          preview: "New search…",
+          paragraph: "",
+          claims: [],
+          results: [],
+          omakase: null,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+        };
+        setTabs((prev) => [newTab, ...prev]);
+        setActiveTabId(data.id);
+      }
+    } else {
+      const id = lsAddTab({ preview: "New search…", paragraph: "", claims: [], results: [], omakase: null });
+      setTabs(lsGetTabs());
+      setActiveTabId(id);
+    }
+  };
+
+  const loadTab = (tab: SearchTab) => {
+    setText(tab.paragraph);
+    setCurrentClaims(tab.claims);
+    setResults(tab.results);
+    setOmakaseResult(tab.omakase ?? null);
+    setError("");
+    currentHistoryId.current = null;
+    setActiveTabId(tab.id);
+  };
+
+  const deleteTab = async (tabId: string) => {
+    if (session) {
+      await apiFetch(`/api/tabs/${tabId}`, { method: "DELETE" });
+    } else {
+      lsDeleteTab(tabId);
+    }
+    setTabs((prev) => prev.filter((t) => t.id !== tabId));
+    if (activeTabId === tabId) {
+      setActiveTabId(null);
+      setText("");
+      setResults([]);
+      setCurrentClaims([]);
+      setOmakaseResult(null);
+    }
+  };
+
   // ── Auth-stage email sign-in ────────────────────────────────────────────────
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -3386,6 +3519,60 @@ const [proSuccess, setProSuccess] = useState(false);
       setResults(claimResults);
       setStatus("");
       await fetchUsage();
+
+      // Build the tab preview from the first ~60 chars of the paragraph
+      const tabPreview = text.split("\n")[0].slice(0, 60) + (text.length > 60 ? "…" : "");
+
+      // Save/update tab: if there's an active tab overwrite it, else create a new one
+      const currentActiveTabId = activeTabId;
+      if (session) {
+        if (currentActiveTabId) {
+          apiFetch(`/api/tabs/${currentActiveTabId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ preview: tabPreview, paragraph: text, claims, results: claimResults }),
+          });
+          setTabs((prev) => {
+            const updated = prev.map((t) =>
+              t.id === currentActiveTabId
+                ? { ...t, preview: tabPreview, paragraph: text, claims, results: claimResults, updatedAt: new Date().toISOString() }
+                : t
+            );
+            updated.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+            return updated;
+          });
+        } else {
+          apiFetch<{ id: string; createdAt: string; updatedAt: string }>("/api/tabs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ preview: tabPreview, paragraph: text, claims, results: claimResults }),
+          }).then(({ data }) => {
+            if (data?.id) {
+              const newTab: SearchTab = {
+                id: data.id,
+                preview: tabPreview,
+                paragraph: text,
+                claims,
+                results: claimResults,
+                omakase: null,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt,
+              };
+              setTabs((prev) => [newTab, ...prev]);
+              setActiveTabId(data.id);
+            }
+          });
+        }
+      } else {
+        if (currentActiveTabId) {
+          lsUpdateTab(currentActiveTabId, { preview: tabPreview, paragraph: text, claims, results: claimResults });
+          setTabs(lsGetTabs());
+        } else {
+          const newId = lsAddTab({ preview: tabPreview, paragraph: text, claims, results: claimResults, omakase: null });
+          setTabs(lsGetTabs());
+          setActiveTabId(newId);
+        }
+      }
 
       // Save history: DB for signed-in users (cross-device), localStorage for guests
       if (session) {
@@ -3866,8 +4053,65 @@ const [proSuccess, setProSuccess] = useState(false);
               </div>
             )}
 
+            {/* New Search button */}
+            <div className="px-3 pt-2 pb-1 shrink-0">
+              <button
+                type="button"
+                onClick={startNewSearch}
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-200 light:text-[#2C1810] bg-white/[0.08] light:bg-black/[0.07] hover:bg-white/[0.13] light:hover:bg-black/[0.11] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
+                </svg>
+                New Search
+              </button>
+            </div>
+
+            {/* Tabs list */}
+            <div className="flex-1 overflow-y-auto px-2 py-1 flex flex-col gap-0.5 min-h-0">
+              {tabs.length === 0 && (
+                <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
+                  No searches yet
+                </p>
+              )}
+              {tabs.map((tab) => (
+                <div
+                  key={tab.id}
+                  className={`group relative flex items-center gap-1 w-full rounded-lg transition-colors ${
+                    activeTabId === tab.id
+                      ? "bg-white/[0.10] light:bg-black/[0.09]"
+                      : "hover:bg-white/[0.06] light:hover:bg-black/[0.05]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => loadTab(tab)}
+                    className="flex-1 min-w-0 px-3 py-2 text-left"
+                  >
+                    <span className={`block text-xs truncate leading-snug ${
+                      activeTabId === tab.id
+                        ? "text-slate-100 light:text-[#2C1810]"
+                        : "text-slate-400 light:text-[#6B4226]"
+                    }`}>
+                      {tab.preview || "New search…"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTab(tab.id)}
+                    aria-label="Delete tab"
+                    className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+
             {/* Nav items */}
-            <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5 overflow-y-auto">
+            <nav className="px-2 py-3 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)] shrink-0">
               <button
                 type="button"
                 onClick={openHistory}

@@ -53,6 +53,25 @@ export async function GET() {
         ON rate_limits (identifier, route, window_start)
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS search_tabs (
+        id          BIGSERIAL PRIMARY KEY,
+        user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        preview     TEXT,
+        paragraph   TEXT,
+        claims      JSONB,
+        results     JSONB,
+        omakase_result JSONB,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_search_tabs_user
+        ON search_tabs (user_id, updated_at DESC)
+    `;
+
     // Idempotent column additions — safe to run on an existing database.
     await sql`
       ALTER TABLE users
