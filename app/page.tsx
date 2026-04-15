@@ -95,15 +95,6 @@ interface OmakaseHistoryData {
   label: string;
 }
 
-interface HistoryEntry {
-  id: string;
-  paragraph: string;
-  claims: { claim: string; searchQuery: string }[];
-  results: ClaimResult[];
-  createdAt: string;
-  omakase?: OmakaseHistoryData;
-}
-
 interface SearchTab {
   id: string;
   preview: string;
@@ -2384,121 +2375,6 @@ function ThemeToggle({ theme, onToggle }: { theme: "dark" | "light"; onToggle: (
   );
 }
 
-// ── user menu (floating, top-right) ───────────────────────────────────────────
-
-function UserMenu({
-  session,
-  isPro,
-  onOpenHistory,
-  onCancelSubscription,
-}: {
-  session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null };
-  isPro: boolean;
-  onOpenHistory: () => void;
-  onCancelSubscription: () => void;
-}) {
-  const t = useContext(LangContext);
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, []);
-
-  const name = toTitleCase(session.user?.name ?? "Account");
-  const firstName = name.split(" ")[0];
-  const image = session.user?.image;
-  const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="parchment-pill flex items-center gap-2 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors"
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={name} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
-        ) : (
-          <span className="h-6 w-6 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#4A2E1A] text-xs font-medium flex items-center justify-center">
-            {initials}
-          </span>
-        )}
-        <span className="text-sm font-medium text-slate-200 light:text-[#2C1810] max-w-[120px] truncate hidden sm:block">
-          {firstName}
-        </span>
-        <svg className={`h-3.5 w-3.5 text-slate-400 light:text-[#8B5E3C] transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
-        </svg>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-xl py-1 z-50"
-            role="menu"
-          >
-            <div className="px-3 py-2 border-b border-white/[0.08] light:border-[rgba(80,50,20,0.09)]">
-              <p className="text-xs font-medium text-slate-100 light:text-[#2C1810] truncate">{name}</p>
-              {session.user?.email && (
-                <p className="text-xs text-slate-400 light:text-[#8B5E3C] truncate">{session.user.email}</p>
-              )}
-            </div>
-            <button
-              onClick={() => { setOpen(false); onOpenHistory(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
-              role="menuitem"
-            >
-              <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-              </svg>
-              {t("search_history")}
-            </button>
-            {isPro && !["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session.user?.email ?? "") && (
-              <button
-                onClick={() => { setOpen(false); onCancelSubscription(); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400/80 light:text-red-700/80 hover:bg-red-500/[0.08] light:hover:bg-red-600/[0.06] hover:text-red-400 light:hover:text-red-700 transition-colors"
-                role="menuitem"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd"/>
-                </svg>
-                {t("cancel_subscription")}
-              </button>
-            )}
-            <button
-              onClick={() => signOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
-              role="menuitem"
-            >
-              <svg className="h-4 w-4 text-slate-500 light:text-[#A67856]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
-                <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-1.04a.75.75 0 10-1.06-1.062l-2.25 2.25a.75.75 0 000 1.06l2.25 2.25a.75.75 0 101.06-1.06L8.704 10.75H18.25A.75.75 0 0019 10z" clipRule="evenodd"/>
-              </svg>
-              {t("sign_out")}
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 // ── how to use modal ──────────────────────────────────────────────────────────
 
 function HowToUseModal({ onClose }: { onClose: () => void }) {
@@ -3060,58 +2936,6 @@ function PlanModal({
 
 // ── localStorage history ──────────────────────────────────────────────────────
 
-const LS_HISTORY_KEY = "rf_history";
-const MAX_HISTORY_ENTRIES = 50;
-
-function lsGetHistory(): HistoryEntry[] {
-  try {
-    return JSON.parse(
-      localStorage.getItem(LS_HISTORY_KEY) ?? "[]"
-    ) as HistoryEntry[];
-  } catch {
-    return [];
-  }
-}
-
-function lsAddHistory(
-  entry: Omit<HistoryEntry, "id" | "createdAt">
-): string {
-  const id = Date.now().toString();
-  try {
-    const next: HistoryEntry = {
-      ...entry,
-      id,
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem(
-      LS_HISTORY_KEY,
-      JSON.stringify([next, ...lsGetHistory()].slice(0, MAX_HISTORY_ENTRIES))
-    );
-  } catch {
-    // localStorage unavailable (e.g. private browsing with storage blocked)
-  }
-  return id;
-}
-
-function lsUpdateHistory(id: string, patch: Partial<HistoryEntry>): void {
-  try {
-    const updated = lsGetHistory().map((e) =>
-      e.id === id ? { ...e, ...patch } : e
-    );
-    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(updated));
-  } catch {
-    // localStorage unavailable
-  }
-}
-
-function lsClearHistory(): void {
-  try {
-    localStorage.removeItem(LS_HISTORY_KEY);
-  } catch {
-    // ignore
-  }
-}
-
 // ── localStorage tabs ────────────────────────────────────────────────────────
 
 const LS_TABS_KEY = "rf_tabs";
@@ -3209,7 +3033,6 @@ function SidebarInner({
   onStarTab,
   onDeleteTab,
   onRemoveSavedPaper,
-  onOpenHistory,
   onHowTo,
   onUpgrade,
   onCancelSubscription,
@@ -3229,7 +3052,6 @@ function SidebarInner({
   onStarTab: (id: string) => void;
   onDeleteTab: (id: string) => void;
   onRemoveSavedPaper: (id: string) => void;
-  onOpenHistory: () => void;
   onHowTo: () => void;
   onUpgrade: () => void;
   onCancelSubscription: () => void;
@@ -3440,13 +3262,6 @@ function SidebarInner({
 
         {/* Nav items */}
         <nav className="px-2 py-2 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)]">
-          <button type="button" onClick={onOpenHistory}
-            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
-            <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-            </svg>
-            {t("search_history")}
-          </button>
           <button type="button" onClick={onHowTo}
             className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
             <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -3588,11 +3403,6 @@ export default function Home() {
   }, [results]);
   const [error, setError] = useState("");
 
-  // History sidebar
-  const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
-
   // Modals
   const [showHowTo, setShowHowTo] = useState(false);
 
@@ -3615,8 +3425,6 @@ const [proSuccess, setProSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadBtnRef = useRef<HTMLButtonElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  // Tracks the id of the most-recently saved history entry so Omakase can patch it
-  const currentHistoryId = useRef<string | null>(null);
   // Ref attached to the Omakase result card for reliable scroll-into-view
   const omakaseResultRef = useRef<HTMLDivElement>(null);
 
@@ -3728,38 +3536,6 @@ const [proSuccess, setProSuccess] = useState(false);
     return () => clearTimeout(t);
   }, [proSuccess]);
 
-  const openHistory = async () => {
-    if (session) {
-      // Signed-in: load from DB (cross-device history)
-      const { data } = await apiFetch<{ entries: HistoryEntry[] }>("/api/history");
-      setHistory(data?.entries ?? []);
-    } else {
-      // Guest: load from localStorage
-      setHistory(lsGetHistory());
-    }
-    setShowHistory(true);
-  };
-
-  const clearHistory = async () => {
-    if (session) {
-      await apiFetch("/api/history", { method: "DELETE" });
-    } else {
-      lsClearHistory();
-    }
-    setHistory([]);
-    setShowClearConfirm(false);
-  };
-
-  const loadHistoryEntry = (entry: HistoryEntry) => {
-    setText(entry.paragraph);
-    setCurrentClaims(entry.claims);
-    setResults(entry.results);
-    setOmakaseResult(entry.omakase ?? null);
-    currentHistoryId.current = entry.id;
-    setError("");
-    setShowHistory(false);
-  };
-
   const isSignedIn = !!session?.user;
 
   // ── Left sidebar ─────────────────────────────────────────────────────────────
@@ -3804,7 +3580,6 @@ const [proSuccess, setProSuccess] = useState(false);
     setCurrentClaims([]);
     setOmakaseResult(null);
     setError("");
-    currentHistoryId.current = null;
 
     // Create a blank tab
     if (session) {
@@ -3840,7 +3615,6 @@ const [proSuccess, setProSuccess] = useState(false);
     setResults(tab.results);
     setOmakaseResult(tab.omakase ?? null);
     setError("");
-    currentHistoryId.current = null;
     setActiveTabId(tab.id);
   };
 
@@ -4004,7 +3778,6 @@ const [proSuccess, setProSuccess] = useState(false);
     setYearFilter("all");
     setOmakaseResult(null);
     setCustomRange(null);
-    currentHistoryId.current = null;
 
     try {
       setStatus(t("status_extracting"));
@@ -4124,18 +3897,6 @@ const [proSuccess, setProSuccess] = useState(false);
         }
       }
 
-      // Save history: DB for signed-in users (cross-device), localStorage for guests
-      if (session) {
-        apiFetch<{ id: string; createdAt: string }>("/api/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paragraph: text, claims, results: claimResults }),
-        }).then(({ data }) => {
-          if (data?.id) currentHistoryId.current = data.id;
-        });
-      } else {
-        currentHistoryId.current = lsAddHistory({ paragraph: text, claims, results: claimResults });
-      }
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setStatus("");
@@ -4307,18 +4068,6 @@ const [proSuccess, setProSuccess] = useState(false);
                     label: entry.label,
                   };
                   setOmakaseResult(omakaseData);
-                  // Patch the existing history entry with the Omakase output
-                  if (currentHistoryId.current) {
-                    if (session) {
-                      apiFetch(`/api/history/${currentHistoryId.current}`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ omakase: omakaseData }),
-                      });
-                    } else {
-                      lsUpdateHistory(currentHistoryId.current, { omakase: omakaseData });
-                    }
-                  }
                 }
               } catch {
                 setOmakaseError("Network error — please check your connection and try again.");
@@ -4391,158 +4140,6 @@ const [proSuccess, setProSuccess] = useState(false);
         />
       )}
 
-      {/* ── history sidebar ── */}
-      <AnimatePresence>
-        {showHistory && (
-          <>
-            {/* backdrop */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setShowHistory(false)}
-            />
-            {/* panel */}
-            <motion.aside
-              key="sidebar"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
-              className="fixed top-0 right-0 h-full w-full max-w-[380px] z-50 flex flex-col bg-[#111111] light:bg-[#EAE9C8] border-l border-white/[0.08] light:border-[rgba(80,50,20,0.12)] shadow-[-8px_0_32px_rgba(0,0,0,0.45)] light:shadow-[-8px_0_32px_rgba(80,50,20,0.12)]"
-              role="complementary"
-              aria-label="Search history"
-            >
-              {/* Header */}
-              <div className="border-b border-white/[0.08] light:border-[rgba(80,50,20,0.09)] shrink-0">
-                {/* Title row */}
-                <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                  <div>
-                    <h2 className="text-base font-bold text-slate-100 light:text-[#2C1810] tracking-tight">
-                      {t("history_title")}
-                    </h2>
-                    <p className="text-xs text-slate-500 light:text-[#8B5E3C] mt-0.5">
-                      {history.length === 0
-                        ? t("no_searches_yet")
-                        : t("history_count", { n: history.length })}
-                    </p>
-                  </div>
-
-                  {/* Close button — prominent X in top-right */}
-                  <button
-                    onClick={() => { setShowHistory(false); setShowClearConfirm(false); }}
-                    className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 light:text-[#8B5E3C] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.10] light:hover:bg-black/[0.07] transition-colors"
-                    aria-label="Close history"
-                  >
-                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Clear all row — only shown when history exists */}
-                {history.length > 0 && (
-                  <div className="px-5 pb-3">
-                    {showClearConfirm ? (
-                      /* Confirmation prompt */
-                      <div className="flex items-center justify-between rounded-lg bg-red-500/[0.09] light:bg-red-50 border border-red-500/20 light:border-red-200 px-3 py-2">
-                        <span className="text-xs text-red-400 light:text-red-600 font-medium">
-                          {t("delete_all_confirm")}
-                        </span>
-                        <div className="flex items-center gap-2 ml-3">
-                          <button
-                            onClick={clearHistory}
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold bg-red-500/20 light:bg-red-100 text-red-400 light:text-red-600 hover:bg-red-500/30 light:hover:bg-red-200 transition-colors"
-                          >
-                            {t("delete")}
-                          </button>
-                          <button
-                            onClick={() => setShowClearConfirm(false)}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/[0.08] light:hover:bg-[rgba(44,24,16,0.05)] transition-colors"
-                          >
-                            {t("cancel_btn")}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setShowClearConfirm(true)}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400/70 light:text-rose-600/70 hover:text-rose-400 light:hover:text-rose-600 transition-colors group"
-                      >
-                        <svg className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                          <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
-                        </svg>
-                        {t("clear_all")}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Entry list */}
-              <div className="flex-1 overflow-y-auto px-4 py-4">
-                {history.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <svg className="h-8 w-8 text-slate-600 light:text-[#A67856] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p className="text-sm font-medium text-slate-500 light:text-[#8B5E3C]">{t("no_searches_yet")}</p>
-                    <p className="text-xs text-slate-600 light:text-[#A67856] mt-1">{t("history_analyses")}</p>
-                  </div>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {history.map((entry) => (
-                      <li key={entry.id}>
-                        <button
-                          onClick={() => loadHistoryEntry(entry)}
-                          className="w-full text-left rounded-xl border border-white/[0.09] light:border-[rgba(80,50,20,0.12)] bg-[#181818] light:bg-[rgba(248,246,234,0.85)] px-4 py-4 transition-all duration-150 hover:bg-[#222222] light:hover:bg-[rgba(248,246,234,1)] hover:border-white/[0.18] light:hover:border-[rgba(80,50,20,0.2)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.35)] light:hover:shadow-[0_2px_12px_rgba(80,50,20,0.1)] group"
-                        >
-                          {/* Preview — single line, truncates with ellipsis */}
-                          <p className="text-sm font-medium text-slate-200 light:text-[#2C1810] truncate group-hover:text-white light:group-hover:text-[#2C1810] transition-colors">
-                            {entry.paragraph}
-                          </p>
-
-                          {/* Metadata row */}
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-xs text-slate-500 light:text-[#8B5E3C]">
-                              <span className="inline-flex items-center gap-1">
-                                <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-                                </svg>
-                                {entry.claims.length} claim{entry.claims.length !== 1 ? "s" : ""}
-                              </span>
-                              <span className="text-slate-700 light:text-slate-300">·</span>
-                              <span>{new Date(entry.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-                              {entry.omakase && (
-                                <span className="inline-flex items-center gap-1 text-amber-500/80 light:text-amber-700/70">
-                                  <span className="text-slate-700 light:text-slate-300">·</span>
-                                  <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                    <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
-                                    <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
-                                  </svg>
-                                  {entry.omakase.label}
-                                </span>
-                              )}
-                            </div>
-                            {/* Arrow hint — appears on hover */}
-                            <svg className="h-3.5 w-3.5 text-slate-600 light:text-[#A67856] opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd"/>
-                            </svg>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
       {/* ── page shell: sidebar + main content pushed side-by-side ── */}
       <div className="flex min-h-screen">
 
@@ -4569,7 +4166,6 @@ const [proSuccess, setProSuccess] = useState(false);
                 else lsRemoveSavedPaper(id);
                 setSavedPapers((prev) => prev.filter((p) => p.id !== id));
               }}
-              onOpenHistory={openHistory}
               onHowTo={() => setShowHowTo(true)}
               onUpgrade={handleUpgradeClick}
               onCancelSubscription={() => setShowCancelDialog(true)}
@@ -4614,7 +4210,6 @@ const [proSuccess, setProSuccess] = useState(false);
                     else lsRemoveSavedPaper(id);
                     setSavedPapers((prev) => prev.filter((p) => p.id !== id));
                   }}
-                  onOpenHistory={() => { openHistory(); setSidebarOpen(false); }}
                   onHowTo={() => { setShowHowTo(true); setSidebarOpen(false); }}
                   onUpgrade={handleUpgradeClick}
                   onCancelSubscription={() => setShowCancelDialog(true)}
