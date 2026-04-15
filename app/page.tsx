@@ -3277,6 +3277,14 @@ const [proSuccess, setProSuccess] = useState(false);
 
   const isSignedIn = !!session?.user;
 
+  // ── Left sidebar ─────────────────────────────────────────────────────────────
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Auto-open when user signs in, close when they sign out
+  useEffect(() => {
+    setSidebarOpen(!!session);
+  }, [!!session]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Auth-stage email sign-in ────────────────────────────────────────────────
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -3479,7 +3487,7 @@ const [proSuccess, setProSuccess] = useState(false);
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
 
-      {/* ── help button — top-left, symmetrical to top-right nav ── */}
+      {/* ── top-left button: hamburger (signed-in app stage) or help (otherwise) ── */}
       <AnimatePresence>
         {ready && (
           <motion.div
@@ -3488,16 +3496,29 @@ const [proSuccess, setProSuccess] = useState(false);
             exit={{ opacity: 0 }}
             className="fixed top-4 left-4 z-30"
           >
-            <button
-              type="button"
-              onClick={() => setShowHowTo(true)}
-              aria-label="How to use"
-              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-              </svg>
-            </button>
+            {stage === "app" && isSignedIn && !sidebarOpen ? (
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sidebar"
+                className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                </svg>
+              </button>
+            ) : stage === "app" && isSignedIn ? null : (
+              <button
+                type="button"
+                onClick={() => setShowHowTo(true)}
+                aria-label="How to use"
+                className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
+              >
+                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                </svg>
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -3785,11 +3806,113 @@ const [proSuccess, setProSuccess] = useState(false);
         )}
       </AnimatePresence>
 
-      {/* ── main page ── */}
-      <motion.div
-        layout
-        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
-      >
+      {/* ── page shell: sidebar + main content pushed side-by-side ── */}
+      <div className="flex min-h-screen">
+
+        {/* ── Left sidebar ── */}
+        <motion.aside
+          animate={{ width: isSignedIn && stage === "app" && ready ? (sidebarOpen ? 240 : 0) : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.9 }}
+          className="shrink-0 overflow-hidden border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)] bg-[#111111] light:bg-[#E5E4C4] relative z-20"
+          aria-hidden={!sidebarOpen}
+        >
+          {/* Inner wrapper — always 240 px wide so content doesn't squash during animation */}
+          <div className="w-[240px] flex flex-col min-h-screen">
+
+            {/* Header row: label + collapse button */}
+            <div className="flex items-center justify-between px-4 pt-[18px] pb-2 shrink-0">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 light:text-[#A67856]">
+                Menu
+              </span>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Collapse sidebar"
+                className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#2C1810] hover:bg-white/[0.08] light:hover:bg-black/[0.06] transition-colors"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Profile */}
+            {session && (
+              <div className="px-4 py-4 border-b border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
+                <div className="flex items-center gap-3">
+                  {session.user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="w-9 h-9 rounded-full shrink-0 object-cover ring-1 ring-white/10 light:ring-[rgba(80,50,20,0.12)]"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 ring-1 ring-amber-500/20">
+                      <span className="text-sm font-semibold text-amber-400 light:text-amber-700">
+                        {(session.user?.name ?? session.user?.email ?? "?")[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] truncate leading-snug">
+                      {session.user?.name ?? session.user?.email ?? "User"}
+                    </p>
+                    <p className="text-xs text-slate-500 light:text-[#8B5E3C] mt-0.5">
+                      {isPro ? "Pro" : "Free"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Nav items */}
+            <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5 overflow-y-auto">
+              <button
+                type="button"
+                onClick={openHistory}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                </svg>
+                {t("search_history")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowHowTo(true)}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                </svg>
+                How to use
+              </button>
+            </nav>
+
+            {/* Sign out */}
+            <div className="px-2 pt-3 pb-4 border-t border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
+                  <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
+                </svg>
+                Sign out
+              </button>
+            </div>
+
+          </div>
+        </motion.aside>
+
+        {/* ── Main content area (pushed right by sidebar) ── */}
+        <motion.div
+          layout
+          className={`noise-overlay relative flex-1 min-w-0 bg-[var(--page-bg)] px-4 sm:px-6 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
+        >
         {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
           {/* Dot grid pattern */}
@@ -3866,7 +3989,7 @@ const [proSuccess, setProSuccess] = useState(false);
           )}
         </AnimatePresence>
 
-        <main className="relative z-10 mx-auto w-full max-w-2xl lg:max-w-[calc(100vw-12rem)]">
+        <main className="relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)]">
           <motion.div
             layout
             className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
@@ -4491,7 +4614,9 @@ const [proSuccess, setProSuccess] = useState(false);
 
           </AnimatePresence>
         </main>
-      </motion.div>
+        </motion.div>
+        {/* end flex shell */}
+      </div>
     </>
     </LangContext.Provider>
   );
