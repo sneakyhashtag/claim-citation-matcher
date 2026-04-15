@@ -3190,6 +3190,288 @@ function lsRemoveSavedPaper(id: string): void {
   lsSaveSavedPapers(lsGetSavedPapers().filter((p) => p.id !== id));
 }
 
+// ── SidebarInner ─────────────────────────────────────────────────────────────
+// Renders the full sidebar content. Used by both the desktop push sidebar and
+// the mobile drawer overlay so content never has to be duplicated.
+
+function SidebarInner({
+  session,
+  isPro,
+  upgrading,
+  tabs,
+  activeTabId,
+  savedPapers,
+  sidebarView,
+  setSidebarView,
+  onClose,
+  onNewSearch,
+  onLoadTab,
+  onStarTab,
+  onDeleteTab,
+  onRemoveSavedPaper,
+  onOpenHistory,
+  onHowTo,
+  onUpgrade,
+  onCancelSubscription,
+  onSignOut,
+}: {
+  session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null } | null;
+  isPro: boolean;
+  upgrading: boolean;
+  tabs: SearchTab[];
+  activeTabId: string | null;
+  savedPapers: SavedPaper[];
+  sidebarView: "searches" | "saved";
+  setSidebarView: (v: "searches" | "saved") => void;
+  onClose: () => void;
+  onNewSearch: () => void;
+  onLoadTab: (tab: SearchTab) => void;
+  onStarTab: (id: string) => void;
+  onDeleteTab: (id: string) => void;
+  onRemoveSavedPaper: (id: string) => void;
+  onOpenHistory: () => void;
+  onHowTo: () => void;
+  onUpgrade: () => void;
+  onCancelSubscription: () => void;
+  onSignOut: () => void;
+}) {
+  const t = useContext(LangContext);
+  const starredTabs = tabs.filter((tab) => tab.starred);
+  const recentTabs  = tabs.filter((tab) => !tab.starred);
+  const isAdmin = ["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session?.user?.email ?? "");
+
+  return (
+    <div className="flex flex-col h-full">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0">
+        <span className="text-sm font-semibold text-slate-200 light:text-[#2C1810] tracking-tight select-none">
+          Reference Finder
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Collapse sidebar"
+          className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#2C1810] hover:bg-white/[0.08] light:hover:bg-black/[0.06] transition-colors"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      {/* ── Profile + plan ── */}
+      {session && (
+        <div className="px-4 pb-4 shrink-0 border-b border-white/[0.07] light:border-[rgba(80,50,20,0.09)]">
+          <div className="flex items-center gap-3 mb-3">
+            {session.user?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.image}
+                alt=""
+                className="w-9 h-9 rounded-full shrink-0 object-cover ring-1 ring-white/10 light:ring-[rgba(80,50,20,0.12)]"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 ring-1 ring-amber-500/20">
+                <span className="text-sm font-semibold text-amber-400 light:text-amber-700">
+                  {(session.user?.name ?? session.user?.email ?? "?")[0].toUpperCase()}
+                </span>
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] truncate leading-snug">
+                  {session.user?.name ?? session.user?.email ?? "User"}
+                </p>
+                {isPro && (
+                  <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-amber-500/35 bg-amber-500/[0.12] px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-amber-400 light:text-amber-700">
+                    Pro
+                  </span>
+                )}
+              </div>
+              {session.user?.name && session.user?.email && (
+                <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] truncate mt-0.5">
+                  {session.user.email}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Upgrade to Pro button — free users only */}
+          {!isPro && (
+            <button
+              type="button"
+              onClick={onUpgrade}
+              disabled={upgrading}
+              className="btn-upgrade w-full flex items-center justify-center gap-2 rounded-lg border border-amber-500/30 light:border-amber-700/35 bg-amber-500/[0.10] light:bg-amber-500/[0.07] px-3 py-2 text-xs font-semibold text-amber-400 light:text-amber-700 hover:bg-amber-500/[0.17] light:hover:bg-amber-500/[0.11] transition-colors disabled:opacity-50"
+            >
+              <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+              {upgrading ? "Redirecting…" : t("upgrade_to_pro")}
+            </button>
+          )}
+
+          {/* Manage subscription link — Pro non-admin users */}
+          {isPro && !isAdmin && (
+            <button
+              type="button"
+              onClick={onCancelSubscription}
+              className="mt-2 w-full text-center text-[10px] text-slate-600 light:text-[#A67856] hover:text-slate-400 light:hover:text-[#6B4226] underline underline-offset-2 transition-colors"
+            >
+              Manage subscription
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── New Search + Searches/Saved toggle ── */}
+      <div className="px-3 pt-3 pb-2 flex flex-col gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={onNewSearch}
+          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-200 light:text-[#2C1810] bg-white/[0.08] light:bg-black/[0.07] hover:bg-white/[0.13] light:hover:bg-black/[0.11] transition-colors text-left"
+        >
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
+          </svg>
+          New Search
+        </button>
+        <div className="flex rounded-lg overflow-hidden border border-white/[0.09] light:border-[rgba(80,50,20,0.13)]">
+          {(["searches", "saved"] as const).map((view, i) => (
+            <button
+              key={view}
+              type="button"
+              onClick={() => setSidebarView(view)}
+              className={`flex-1 py-1.5 text-xs font-medium transition-colors ${i > 0 ? "border-l border-white/[0.09] light:border-[rgba(80,50,20,0.13)]" : ""} ${
+                sidebarView === view
+                  ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
+                  : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
+              }`}
+            >
+              {view === "searches" ? "Searches" : (
+                <>Saved{savedPapers.length > 0 && <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>}</>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Scrollable content ── */}
+      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+
+        {/* Searches view */}
+        {sidebarView === "searches" && (
+          <div className="px-2 py-1 flex flex-col gap-0.5">
+            {starredTabs.length > 0 && (
+              <>
+                <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
+                  Starred
+                </p>
+                {starredTabs.map((tab) => (
+                  <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
+                ))}
+                {recentTabs.length > 0 && (
+                  <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
+                    Recent
+                  </p>
+                )}
+              </>
+            )}
+            {starredTabs.length === 0 && recentTabs.length === 0 && (
+              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">No searches yet</p>
+            )}
+            {recentTabs.map((tab) => (
+              <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
+            ))}
+          </div>
+        )}
+
+        {/* Saved Papers view */}
+        {sidebarView === "saved" && (
+          <div className="px-2 py-1 flex flex-col gap-0.5">
+            {savedPapers.length === 0 ? (
+              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
+                No saved papers yet — bookmark papers from your search results.
+              </p>
+            ) : (
+              savedPapers.map((paper) => (
+                <div key={paper.id} className="group flex items-start gap-1 w-full rounded-lg hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors px-1 py-1.5">
+                  <div className="flex-1 min-w-0">
+                    {paper.doi ? (
+                      <a href={paper.doi} target="_blank" rel="noopener noreferrer"
+                        className="block text-xs font-medium text-slate-300 light:text-[#2C1810] hover:text-amber-400 light:hover:text-[#8B2500] transition-colors leading-snug line-clamp-2">
+                        {paper.title}
+                      </a>
+                    ) : (
+                      <span className="block text-xs font-medium text-slate-300 light:text-[#2C1810] leading-snug line-clamp-2">
+                        {paper.title}
+                      </span>
+                    )}
+                    <p className="mt-0.5 text-[10px] text-slate-600 light:text-[#A67856] truncate">
+                      {[
+                        paper.authors.length > 0
+                          ? paper.authors.length <= 2 ? paper.authors.join(", ") : `${paper.authors[0]} et al.`
+                          : null,
+                        paper.year,
+                      ].filter(Boolean).join(" · ")}
+                    </p>
+                    {paper.journal && (
+                      <p className="text-[10px] text-slate-700 light:text-[#B0906A] italic truncate">{paper.journal}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveSavedPaper(paper.id)}
+                    aria-label="Remove saved paper"
+                    className="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
+                    </svg>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Nav items */}
+        <nav className="px-2 py-2 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)]">
+          <button type="button" onClick={onOpenHistory}
+            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
+            <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+            </svg>
+            {t("search_history")}
+          </button>
+          <button type="button" onClick={onHowTo}
+            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
+            <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+            </svg>
+            How to use
+          </button>
+        </nav>
+      </div>
+
+      {/* ── Sign out ── */}
+      <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
+        <button type="button" onClick={onSignOut}
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-500 light:text-[#8B5E3C] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
+            <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
+          </svg>
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── SidebarTabRow ─────────────────────────────────────────────────────────────
 
 function SidebarTabRow({
@@ -3486,6 +3768,16 @@ const [proSuccess, setProSuccess] = useState(false);
   useEffect(() => {
     setSidebarOpen(!!session);
   }, [!!session]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Detect mobile breakpoint: < 1024px → overlay drawer, ≥ 1024px → push sidebar
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsMobile(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<SearchTab[]>([]);
@@ -4234,250 +4526,84 @@ const [proSuccess, setProSuccess] = useState(false);
       {/* ── page shell: sidebar + main content pushed side-by-side ── */}
       <div className="flex min-h-screen">
 
-        {/* ── Left sidebar ── */}
+        {/* ── Left sidebar — desktop push (lg+) ── */}
         <motion.aside
-          animate={{ width: isSignedIn && stage === "app" && ready ? (sidebarOpen ? 240 : 0) : 0 }}
+          animate={{ width: !isMobile && isSignedIn && stage === "app" && ready && sidebarOpen ? 280 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.9 }}
-          className="shrink-0 overflow-hidden border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)] bg-[#111111] light:bg-[#E5E4C4] relative z-20"
-          aria-hidden={!sidebarOpen}
+          className="shrink-0 overflow-hidden border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)] bg-[#111111] light:bg-[#E5E4C4] sticky top-0 h-screen z-20"
+          aria-hidden={isMobile || !sidebarOpen}
         >
-          {/* Inner wrapper — always 240 px wide so content doesn't squash during animation */}
-          <div className="w-[240px] flex flex-col min-h-screen">
-
-            {/* Header row: label + collapse button */}
-            <div className="flex items-center justify-between px-4 pt-[18px] pb-2 shrink-0">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 light:text-[#A67856]">
-                Menu
-              </span>
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Collapse sidebar"
-                className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#2C1810] hover:bg-white/[0.08] light:hover:bg-black/[0.06] transition-colors"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Profile */}
-            {session && (
-              <div className="px-4 py-4 border-b border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
-                <div className="flex items-center gap-3">
-                  {session.user?.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={session.user.image}
-                      alt=""
-                      className="w-9 h-9 rounded-full shrink-0 object-cover ring-1 ring-white/10 light:ring-[rgba(80,50,20,0.12)]"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 ring-1 ring-amber-500/20">
-                      <span className="text-sm font-semibold text-amber-400 light:text-amber-700">
-                        {(session.user?.name ?? session.user?.email ?? "?")[0].toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] truncate leading-snug">
-                      {session.user?.name ?? session.user?.email ?? "User"}
-                    </p>
-                    <p className="text-xs text-slate-500 light:text-[#8B5E3C] mt-0.5">
-                      {isPro ? "Pro" : "Free"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* New Search button + view toggle */}
-            <div className="px-3 pt-2 pb-2 flex flex-col gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={startNewSearch}
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-200 light:text-[#2C1810] bg-white/[0.08] light:bg-black/[0.07] hover:bg-white/[0.13] light:hover:bg-black/[0.11] transition-colors text-left"
-              >
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
-                </svg>
-                New Search
-              </button>
-              {/* Searches / Saved Papers toggle */}
-              <div className="flex rounded-lg overflow-hidden border border-white/[0.09] light:border-[rgba(80,50,20,0.13)]">
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("searches")}
-                  className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
-                    sidebarView === "searches"
-                      ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
-                      : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
-                  }`}
-                >
-                  Searches
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("saved")}
-                  className={`flex-1 py-1.5 text-xs font-medium transition-colors border-l border-white/[0.09] light:border-[rgba(80,50,20,0.13)] ${
-                    sidebarView === "saved"
-                      ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
-                      : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
-                  }`}
-                >
-                  Saved
-                  {savedPapers.length > 0 && (
-                    <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* ── Scrollable content area ── */}
-            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
-
-              {/* ── Searches view ── */}
-              {sidebarView === "searches" && (() => {
-                const starredTabs = tabs.filter((t) => t.starred);
-                const recentTabs = tabs.filter((t) => !t.starred);
-                return (
-                  <div className="px-2 py-1 flex flex-col gap-0.5">
-                    {/* Starred section */}
-                    {starredTabs.length > 0 && (
-                      <>
-                        <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
-                          Starred
-                        </p>
-                        {starredTabs.map((tab) => (
-                          <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={loadTab} onStar={starTab} onDelete={deleteTab} />
-                        ))}
-                        {recentTabs.length > 0 && (
-                          <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
-                            Recent
-                          </p>
-                        )}
-                      </>
-                    )}
-                    {recentTabs.length === 0 && starredTabs.length === 0 && (
-                      <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">No searches yet</p>
-                    )}
-                    {recentTabs.map((tab) => (
-                      <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={loadTab} onStar={starTab} onDelete={deleteTab} />
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* ── Saved Papers view ── */}
-              {sidebarView === "saved" && (
-                <div className="px-2 py-1 flex flex-col gap-0.5">
-                  {savedPapers.length === 0 ? (
-                    <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
-                      No saved papers yet — bookmark papers from your search results.
-                    </p>
-                  ) : (
-                    savedPapers.map((paper) => (
-                      <div key={paper.id} className="group flex items-start gap-1 w-full rounded-lg hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors px-1 py-1">
-                        <div className="flex-1 min-w-0">
-                          {paper.doi ? (
-                            <a
-                              href={paper.doi}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block text-xs font-medium text-slate-300 light:text-[#2C1810] hover:text-amber-400 light:hover:text-[#8B2500] transition-colors leading-snug line-clamp-2"
-                            >
-                              {paper.title}
-                            </a>
-                          ) : (
-                            <span className="block text-xs font-medium text-slate-300 light:text-[#2C1810] leading-snug line-clamp-2">
-                              {paper.title}
-                            </span>
-                          )}
-                          <p className="mt-0.5 text-[10px] text-slate-600 light:text-[#A67856] truncate">
-                            {[
-                              paper.authors.length > 0
-                                ? paper.authors.length <= 2
-                                  ? paper.authors.join(", ")
-                                  : `${paper.authors[0]} et al.`
-                                : null,
-                              paper.year,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                          {paper.journal && (
-                            <p className="text-[10px] text-slate-700 light:text-[#B0906A] italic truncate">{paper.journal}</p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (session) {
-                              apiFetch(`/api/saved-papers/${paper.id}`, { method: "DELETE" });
-                            } else {
-                              lsRemoveSavedPaper(paper.id);
-                            }
-                            setSavedPapers((prev) => prev.filter((p) => p.id !== paper.id));
-                          }}
-                          aria-label="Remove saved paper"
-                          className="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
-                        >
-                          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* Spacer so nav items hug the bottom */}
-              <div className="flex-1" />
-
-              {/* Nav items */}
-              <nav className="px-2 py-3 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)]">
-                <button
-                  type="button"
-                  onClick={openHistory}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
-                >
-                  <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-                  </svg>
-                  {t("search_history")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowHowTo(true)}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
-                >
-                  <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-                  </svg>
-                  How to use
-                </button>
-              </nav>
-
-            </div>
-
-            {/* Sign out */}
-            <div className="px-2 pt-3 pb-4 border-t border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
-              <button
-                type="button"
-                onClick={() => signOut()}
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left"
-              >
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
-                  <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
-                </svg>
-                Sign out
-              </button>
-            </div>
-
+          <div className="w-[280px] h-full">
+            <SidebarInner
+              session={session} isPro={isPro} upgrading={upgrading}
+              tabs={tabs} activeTabId={activeTabId}
+              savedPapers={savedPapers}
+              sidebarView={sidebarView} setSidebarView={setSidebarView}
+              onClose={() => setSidebarOpen(false)}
+              onNewSearch={startNewSearch}
+              onLoadTab={loadTab}
+              onStarTab={starTab}
+              onDeleteTab={deleteTab}
+              onRemoveSavedPaper={(id) => {
+                if (session) apiFetch(`/api/saved-papers/${id}`, { method: "DELETE" });
+                else lsRemoveSavedPaper(id);
+                setSavedPapers((prev) => prev.filter((p) => p.id !== id));
+              }}
+              onOpenHistory={openHistory}
+              onHowTo={() => setShowHowTo(true)}
+              onUpgrade={handleUpgradeClick}
+              onCancelSubscription={() => setShowCancelDialog(true)}
+              onSignOut={() => signOut()}
+            />
           </div>
         </motion.aside>
+
+        {/* ── Left sidebar — mobile overlay drawer (< lg) ── */}
+        <AnimatePresence>
+          {isMobile && sidebarOpen && isSignedIn && stage === "app" && ready && (
+            <>
+              <motion.div
+                key="mobile-sidebar-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="fixed inset-0 z-40 bg-black/60 light:bg-[rgba(44,24,16,0.45)]"
+                onClick={() => setSidebarOpen(false)}
+              />
+              <motion.aside
+                key="mobile-sidebar"
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: "spring", stiffness: 340, damping: 34, mass: 0.85 }}
+                className="fixed left-0 top-0 h-full z-50 w-[280px] bg-[#111111] light:bg-[#E5E4C4] border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)]"
+              >
+                <SidebarInner
+                  session={session} isPro={isPro} upgrading={upgrading}
+                  tabs={tabs} activeTabId={activeTabId}
+                  savedPapers={savedPapers}
+                  sidebarView={sidebarView} setSidebarView={setSidebarView}
+                  onClose={() => setSidebarOpen(false)}
+                  onNewSearch={() => { startNewSearch(); setSidebarOpen(false); }}
+                  onLoadTab={(tab) => { loadTab(tab); setSidebarOpen(false); }}
+                  onStarTab={starTab}
+                  onDeleteTab={deleteTab}
+                  onRemoveSavedPaper={(id) => {
+                    if (session) apiFetch(`/api/saved-papers/${id}`, { method: "DELETE" });
+                    else lsRemoveSavedPaper(id);
+                    setSavedPapers((prev) => prev.filter((p) => p.id !== id));
+                  }}
+                  onOpenHistory={() => { openHistory(); setSidebarOpen(false); }}
+                  onHowTo={() => { setShowHowTo(true); setSidebarOpen(false); }}
+                  onUpgrade={handleUpgradeClick}
+                  onCancelSubscription={() => setShowCancelDialog(true)}
+                  onSignOut={() => signOut()}
+                />
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* ── Main content area (pushed right by sidebar) ── */}
         <motion.div
@@ -4507,54 +4633,17 @@ const [proSuccess, setProSuccess] = useState(false);
               <LanguagePicker lang={lang} onChange={setLang} />
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
-              {/* Upgrade to Pro / Pro badge — signed-in users only */}
-              {session && (
-                isPro ? (
-                  <span className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 text-sm font-medium text-amber-400 light:text-amber-700">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                    Pro
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setShowPlanModal(true)}
-                    disabled={upgrading}
-                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-amber-500/30 light:border-amber-700/35 bg-amber-500/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-amber-500/15 light:hover:bg-[rgba(240,238,218,0.95)] text-sm font-medium text-amber-400 light:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                    {upgrading ? "Redirecting…" : t("upgrade_to_pro")}
-                  </button>
-                )
-              )}
-
-              {/* User menu (signed-in) or History + Sign in (guest) */}
-              {session ? (
-                <UserMenu session={session} isPro={isPro} onOpenHistory={openHistory} onCancelSubscription={() => setShowCancelDialog(true)} />
-              ) : (
-                <>
-                  <button
-                    onClick={openHistory}
-                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-300 light:text-[#4A2E1A]"
-                    aria-label="Open search history"
-                  >
-                    <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-                    </svg>
-                    <span className="hidden sm:inline">{t("search_history")}</span>
-                  </button>
-                  <button
-                    onClick={() => signIn("google")}
-                    className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-200 light:text-[#4A2E1A]"
-                  >
-                    <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
-                    </svg>
-                    {t("sign_in")}
-                  </button>
-                </>
+              {/* Sign in — guests only */}
+              {!session && (
+                <button
+                  onClick={() => signIn("google")}
+                  className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-200 light:text-[#4A2E1A]"
+                >
+                  <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
+                  </svg>
+                  {t("sign_in")}
+                </button>
               )}
             </motion.div>
           )}
