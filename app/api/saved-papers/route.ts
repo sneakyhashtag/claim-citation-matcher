@@ -12,7 +12,7 @@ async function ensureUser(email: string, name?: string | null): Promise<number> 
   return res.rows[0].id as number;
 }
 
-/** GET /api/tabs — return all tabs for the signed-in user, newest first */
+/** GET /api/saved-papers — list all saved papers for the signed-in user */
 export async function GET(_req: NextRequest) {
   const session = await auth();
   if (!session?.user?.email) {
@@ -22,56 +22,54 @@ export async function GET(_req: NextRequest) {
   const userId = await ensureUser(session.user.email, session.user.name);
 
   const result = await sql`
-    SELECT id, preview, paragraph, claims, results, omakase_result, starred, created_at, updated_at
-    FROM   search_tabs
+    SELECT id, doi, title, authors, year, journal, created_at
+    FROM   saved_papers
     WHERE  user_id = ${userId}
-    ORDER  BY updated_at DESC
-    LIMIT  30
+    ORDER  BY created_at DESC
+    LIMIT  200
   `;
 
-  const tabs = result.rows.map((row) => ({
+  const papers = result.rows.map((row) => ({
     id: String(row.id),
-    preview: row.preview ?? "",
-    paragraph: row.paragraph ?? "",
-    claims: row.claims ?? [],
-    results: row.results ?? [],
-    omakase: row.omakase_result ?? null,
-    starred: row.starred ?? false,
+    doi: row.doi ?? null,
+    title: row.title ?? "Untitled",
+    authors: row.authors ?? [],
+    year: row.year ?? null,
+    journal: row.journal ?? null,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
   }));
 
-  return NextResponse.json({ tabs });
+  return NextResponse.json({ papers });
 }
 
-/** POST /api/tabs — create a new tab */
+/** POST /api/saved-papers — save a paper */
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const { preview = "", paragraph = "", claims = [], results = [], omakase = null } = body;
+  const body = await req.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
+  const { doi, title, authors, year, journal } = body;
   const userId = await ensureUser(session.user.email, session.user.name);
 
   const result = await sql`
-    INSERT INTO search_tabs (user_id, preview, paragraph, claims, results, omakase_result)
+    INSERT INTO saved_papers (user_id, doi, title, authors, year, journal)
     VALUES (
       ${userId},
-      ${preview},
-      ${paragraph},
-      ${JSON.stringify(claims)}::jsonb,
-      ${JSON.stringify(results)}::jsonb,
-      ${omakase ? JSON.stringify(omakase) : null}::jsonb
+      ${doi ?? null},
+      ${title ?? "Untitled"},
+      ${JSON.stringify(authors ?? [])}::jsonb,
+      ${year ?? null},
+      ${journal ?? null}
     )
-    RETURNING id, created_at, updated_at
+    RETURNING id, created_at
   `;
 
   return NextResponse.json({
     id: String(result.rows[0].id),
     createdAt: result.rows[0].created_at,
-    updatedAt: result.rows[0].updated_at,
   });
 }

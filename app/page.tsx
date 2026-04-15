@@ -111,8 +111,19 @@ interface SearchTab {
   claims: { claim: string; searchQuery: string }[];
   results: ClaimResult[];
   omakase?: OmakaseHistoryData | null;
+  starred?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface SavedPaper {
+  id: string;
+  doi?: string | null;
+  title: string;
+  authors: string[];
+  year?: number | null;
+  journal?: string | null;
+  createdAt: string;
 }
 
 // ── recency filter ────────────────────────────────────────────────────────────
@@ -1654,6 +1665,8 @@ function PaperCard({
   isPro = false,
   isSignedIn = false,
   onUpgrade,
+  savedPaperKeys,
+  onSaveToggle,
 }: {
   paper: RatedPaper;
   index?: number;
@@ -1664,6 +1677,8 @@ function PaperCard({
   isPro?: boolean;
   isSignedIn?: boolean;
   onUpgrade?: () => void;
+  savedPaperKeys?: Set<string>;
+  onSaveToggle?: (paper: RatedPaper) => void;
 }) {
   const t = useContext(LangContext);
   const [relatedOpen, setRelatedOpen] = useState(false);
@@ -1681,6 +1696,13 @@ function PaperCard({
 
   const authorYearMeta = [authorLine, paper.year].filter(Boolean).join(" · ");
   const { cardClass, excerptBorderClass, excerptBgClass, excerptTextClass, excerptLabelClass } = getTier(paper.relevanceScore);
+
+  const isSaved = useMemo(() => {
+    if (!savedPaperKeys || savedPaperKeys.size === 0) return false;
+    const doi = paper.doi ? paper.doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+    const titleKey = paper.title?.toLowerCase().trim() ?? null;
+    return (doi ? savedPaperKeys.has(doi) : false) || (titleKey ? savedPaperKeys.has(titleKey) : false);
+  }, [savedPaperKeys, paper.doi, paper.title]);
 
   const handleFindRelated = async () => {
     if (relatedPapers !== null) {
@@ -1757,6 +1779,23 @@ function PaperCard({
               </span>
             )}
             <ScoreBadge score={paper.relevanceScore} />
+            {onSaveToggle && (
+              <button
+                type="button"
+                onClick={() => onSaveToggle(paper)}
+                aria-label={isSaved ? "Remove from saved papers" : "Save paper"}
+                title={isSaved ? "Remove from saved papers" : "Save paper"}
+                className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${
+                  isSaved
+                    ? "text-amber-400 light:text-amber-600 hover:text-amber-300 light:hover:text-amber-700"
+                    : "text-slate-600 light:text-[#B0906A] hover:text-amber-400 light:hover:text-amber-600 hover:bg-white/[0.07] light:hover:bg-black/[0.05]"
+                }`}
+              >
+                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 3a2 2 0 0 0-2 2v12.28a.5.5 0 0 0 .735.44L10 14.82l6.265 2.9A.5.5 0 0 0 17 17.28V5a2 2 0 0 0-2-2H5z" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -2241,6 +2280,8 @@ function ClaimCard({
   isPro = false,
   isSignedIn = false,
   onUpgrade,
+  savedPaperKeys,
+  onSaveToggle,
 }: {
   result: ClaimResult;
   index: number;
@@ -2251,6 +2292,8 @@ function ClaimCard({
   isPro?: boolean;
   isSignedIn?: boolean;
   onUpgrade?: () => void;
+  savedPaperKeys?: Set<string>;
+  onSaveToggle?: (paper: RatedPaper) => void;
 }) {
   const t = useContext(LangContext);
   const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter, customRange));
@@ -2303,7 +2346,7 @@ function ClaimCard({
         ) : (
           <div className="flex flex-col gap-3">
             {visiblePapers.map((paper, i) => (
-              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} />
+              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} />
             ))}
             {hiddenCount > 0 && (
               <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
@@ -3111,6 +3154,112 @@ function lsDeleteTab(id: string): void {
   lsSaveTabs(lsGetTabs().filter((t) => t.id !== id));
 }
 
+function lsStarTab(id: string, starred: boolean): void {
+  // Don't change updatedAt — starring shouldn't reorder the tab
+  lsSaveTabs(lsGetTabs().map((t) => (t.id === id ? { ...t, starred } : t)));
+}
+
+// ── localStorage saved papers ────────────────────────────────────────────────
+
+const LS_SAVED_PAPERS_KEY = "rf_saved_papers";
+
+function lsGetSavedPapers(): SavedPaper[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_SAVED_PAPERS_KEY) ?? "[]") as SavedPaper[];
+  } catch {
+    return [];
+  }
+}
+
+function lsSaveSavedPapers(papers: SavedPaper[]): void {
+  try {
+    localStorage.setItem(LS_SAVED_PAPERS_KEY, JSON.stringify(papers));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+function lsAddSavedPaper(paper: Omit<SavedPaper, "id" | "createdAt">): string {
+  const id = Date.now().toString();
+  const newPaper: SavedPaper = { ...paper, id, createdAt: new Date().toISOString() };
+  lsSaveSavedPapers([newPaper, ...lsGetSavedPapers()]);
+  return id;
+}
+
+function lsRemoveSavedPaper(id: string): void {
+  lsSaveSavedPapers(lsGetSavedPapers().filter((p) => p.id !== id));
+}
+
+// ── SidebarTabRow ─────────────────────────────────────────────────────────────
+
+function SidebarTabRow({
+  tab,
+  activeTabId,
+  onLoad,
+  onStar,
+  onDelete,
+}: {
+  tab: SearchTab;
+  activeTabId: string | null;
+  onLoad: (tab: SearchTab) => void;
+  onStar: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const isActive = activeTabId === tab.id;
+  return (
+    <div
+      className={`group relative flex items-center gap-0.5 w-full rounded-lg transition-colors ${
+        isActive
+          ? "bg-white/[0.10] light:bg-black/[0.09]"
+          : "hover:bg-white/[0.06] light:hover:bg-black/[0.05]"
+      }`}
+    >
+      {/* Star button */}
+      <button
+        type="button"
+        onClick={() => onStar(tab.id)}
+        aria-label={tab.starred ? "Unstar" : "Star"}
+        className={`shrink-0 ml-1.5 flex items-center justify-center w-5 h-5 rounded transition-colors ${
+          tab.starred
+            ? "text-amber-400 light:text-amber-600"
+            : "text-slate-700 light:text-[#C8A882] opacity-0 group-hover:opacity-100 hover:text-amber-400 light:hover:text-amber-600"
+        }`}
+      >
+        <svg className="h-3 w-3" viewBox="0 0 20 20" fill={tab.starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292z" />
+        </svg>
+      </button>
+
+      {/* Tab label */}
+      <button
+        type="button"
+        onClick={() => onLoad(tab)}
+        className="flex-1 min-w-0 px-2 py-2 text-left"
+      >
+        <span className={`block text-xs truncate leading-snug ${
+          isActive
+            ? "text-slate-100 light:text-[#2C1810]"
+            : "text-slate-400 light:text-[#6B4226]"
+        }`}>
+          {tab.preview || "New search…"}
+        </span>
+      </button>
+
+      {/* Delete button */}
+      <button
+        type="button"
+        onClick={() => onDelete(tab.id)}
+        aria-label="Delete tab"
+        className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
+      >
+        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -3415,6 +3564,95 @@ const [proSuccess, setProSuccess] = useState(false);
       setResults([]);
       setCurrentClaims([]);
       setOmakaseResult(null);
+    }
+  };
+
+  const starTab = async (tabId: string) => {
+    const tab = tabs.find((t) => t.id === tabId);
+    if (!tab) return;
+    const newStarred = !tab.starred;
+    if (session) {
+      apiFetch(`/api/tabs/${tabId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ starred: newStarred }),
+      });
+    } else {
+      lsStarTab(tabId, newStarred);
+    }
+    setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, starred: newStarred } : t)));
+  };
+
+  // ── Saved papers ──────────────────────────────────────────────────────────────
+  const [savedPapers, setSavedPapers] = useState<SavedPaper[]>([]);
+  const [sidebarView, setSidebarView] = useState<"searches" | "saved">("searches");
+
+  // Derived: set of keys (doi or lower-cased title) for O(1) lookup in PaperCard
+  const savedPaperKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of savedPapers) {
+      if (p.doi) s.add(p.doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase());
+      if (p.title) s.add(p.title.toLowerCase().trim());
+    }
+    return s;
+  }, [savedPapers]);
+
+  // Load saved papers once the app stage is active
+  useEffect(() => {
+    if (stage !== "app") return;
+    if (session) {
+      apiFetch<{ papers: SavedPaper[] }>("/api/saved-papers").then(({ data }) => {
+        setSavedPapers(data?.papers ?? []);
+      });
+    } else {
+      setSavedPapers(lsGetSavedPapers());
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, !!session]);
+
+  const toggleSavePaper = async (paper: RatedPaper) => {
+    const normalize = (doi: string | null | undefined) =>
+      doi ? doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+    const paperDoi = normalize(paper.doi);
+    const paperTitle = paper.title?.toLowerCase().trim() ?? null;
+
+    const existing = savedPapers.find((p) => {
+      const pDoi = normalize(p.doi);
+      return (paperDoi && pDoi === paperDoi) || (paperTitle && p.title.toLowerCase().trim() === paperTitle);
+    });
+
+    if (existing) {
+      // Unsave
+      if (session) {
+        apiFetch(`/api/saved-papers/${existing.id}`, { method: "DELETE" });
+      } else {
+        lsRemoveSavedPaper(existing.id);
+      }
+      setSavedPapers((prev) => prev.filter((p) => p.id !== existing.id));
+    } else {
+      // Save
+      const payload = {
+        doi: paper.doi ?? null,
+        title: paper.title ?? "Untitled",
+        authors: paper.authors ?? [],
+        year: paper.year ?? null,
+        journal: paper.journal ?? null,
+      };
+      if (session) {
+        apiFetch<{ id: string; createdAt: string }>("/api/saved-papers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then(({ data }) => {
+          if (data?.id) {
+            setSavedPapers((prev) => [{ ...payload, id: data.id, createdAt: data.createdAt }, ...prev]);
+          }
+        });
+      } else {
+        const id = lsAddSavedPaper(payload);
+        setSavedPapers(lsGetSavedPapers());
+        void id;
+      }
     }
   };
 
@@ -4053,8 +4291,8 @@ const [proSuccess, setProSuccess] = useState(false);
               </div>
             )}
 
-            {/* New Search button */}
-            <div className="px-3 pt-2 pb-1 shrink-0">
+            {/* New Search button + view toggle */}
+            <div className="px-3 pt-2 pb-2 flex flex-col gap-2 shrink-0">
               <button
                 type="button"
                 onClick={startNewSearch}
@@ -4065,74 +4303,163 @@ const [proSuccess, setProSuccess] = useState(false);
                 </svg>
                 New Search
               </button>
-            </div>
-
-            {/* Tabs list */}
-            <div className="flex-1 overflow-y-auto px-2 py-1 flex flex-col gap-0.5 min-h-0">
-              {tabs.length === 0 && (
-                <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
-                  No searches yet
-                </p>
-              )}
-              {tabs.map((tab) => (
-                <div
-                  key={tab.id}
-                  className={`group relative flex items-center gap-1 w-full rounded-lg transition-colors ${
-                    activeTabId === tab.id
-                      ? "bg-white/[0.10] light:bg-black/[0.09]"
-                      : "hover:bg-white/[0.06] light:hover:bg-black/[0.05]"
+              {/* Searches / Saved Papers toggle */}
+              <div className="flex rounded-lg overflow-hidden border border-white/[0.09] light:border-[rgba(80,50,20,0.13)]">
+                <button
+                  type="button"
+                  onClick={() => setSidebarView("searches")}
+                  className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
+                    sidebarView === "searches"
+                      ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
+                      : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
                   }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => loadTab(tab)}
-                    className="flex-1 min-w-0 px-3 py-2 text-left"
-                  >
-                    <span className={`block text-xs truncate leading-snug ${
-                      activeTabId === tab.id
-                        ? "text-slate-100 light:text-[#2C1810]"
-                        : "text-slate-400 light:text-[#6B4226]"
-                    }`}>
-                      {tab.preview || "New search…"}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteTab(tab.id)}
-                    aria-label="Delete tab"
-                    className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
-                  >
-                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                  Searches
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidebarView("saved")}
+                  className={`flex-1 py-1.5 text-xs font-medium transition-colors border-l border-white/[0.09] light:border-[rgba(80,50,20,0.13)] ${
+                    sidebarView === "saved"
+                      ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
+                      : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
+                  }`}
+                >
+                  Saved
+                  {savedPapers.length > 0 && (
+                    <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Nav items */}
-            <nav className="px-2 py-3 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)] shrink-0">
-              <button
-                type="button"
-                onClick={openHistory}
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
-              >
-                <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
-                </svg>
-                {t("search_history")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowHowTo(true)}
-                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
-              >
-                <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-                </svg>
-                How to use
-              </button>
-            </nav>
+            {/* ── Scrollable content area ── */}
+            <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+
+              {/* ── Searches view ── */}
+              {sidebarView === "searches" && (() => {
+                const starredTabs = tabs.filter((t) => t.starred);
+                const recentTabs = tabs.filter((t) => !t.starred);
+                return (
+                  <div className="px-2 py-1 flex flex-col gap-0.5">
+                    {/* Starred section */}
+                    {starredTabs.length > 0 && (
+                      <>
+                        <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
+                          Starred
+                        </p>
+                        {starredTabs.map((tab) => (
+                          <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={loadTab} onStar={starTab} onDelete={deleteTab} />
+                        ))}
+                        {recentTabs.length > 0 && (
+                          <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
+                            Recent
+                          </p>
+                        )}
+                      </>
+                    )}
+                    {recentTabs.length === 0 && starredTabs.length === 0 && (
+                      <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">No searches yet</p>
+                    )}
+                    {recentTabs.map((tab) => (
+                      <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={loadTab} onStar={starTab} onDelete={deleteTab} />
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* ── Saved Papers view ── */}
+              {sidebarView === "saved" && (
+                <div className="px-2 py-1 flex flex-col gap-0.5">
+                  {savedPapers.length === 0 ? (
+                    <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
+                      No saved papers yet — bookmark papers from your search results.
+                    </p>
+                  ) : (
+                    savedPapers.map((paper) => (
+                      <div key={paper.id} className="group flex items-start gap-1 w-full rounded-lg hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors px-1 py-1">
+                        <div className="flex-1 min-w-0">
+                          {paper.doi ? (
+                            <a
+                              href={paper.doi}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block text-xs font-medium text-slate-300 light:text-[#2C1810] hover:text-amber-400 light:hover:text-[#8B2500] transition-colors leading-snug line-clamp-2"
+                            >
+                              {paper.title}
+                            </a>
+                          ) : (
+                            <span className="block text-xs font-medium text-slate-300 light:text-[#2C1810] leading-snug line-clamp-2">
+                              {paper.title}
+                            </span>
+                          )}
+                          <p className="mt-0.5 text-[10px] text-slate-600 light:text-[#A67856] truncate">
+                            {[
+                              paper.authors.length > 0
+                                ? paper.authors.length <= 2
+                                  ? paper.authors.join(", ")
+                                  : `${paper.authors[0]} et al.`
+                                : null,
+                              paper.year,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                          {paper.journal && (
+                            <p className="text-[10px] text-slate-700 light:text-[#B0906A] italic truncate">{paper.journal}</p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (session) {
+                              apiFetch(`/api/saved-papers/${paper.id}`, { method: "DELETE" });
+                            } else {
+                              lsRemoveSavedPaper(paper.id);
+                            }
+                            setSavedPapers((prev) => prev.filter((p) => p.id !== paper.id));
+                          }}
+                          aria-label="Remove saved paper"
+                          className="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
+                        >
+                          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Spacer so nav items hug the bottom */}
+              <div className="flex-1" />
+
+              {/* Nav items */}
+              <nav className="px-2 py-3 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)]">
+                <button
+                  type="button"
+                  onClick={openHistory}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+                >
+                  <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd"/>
+                  </svg>
+                  {t("search_history")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowHowTo(true)}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-300 light:text-[#4A2E1A] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+                >
+                  <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                  </svg>
+                  How to use
+                </button>
+              </nav>
+
+            </div>
 
             {/* Sign out */}
             <div className="px-2 pt-3 pb-4 border-t border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
@@ -4835,6 +5162,8 @@ const [proSuccess, setProSuccess] = useState(false);
                           onUsageUpdate={(remaining) =>
                             setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
                           }
+                          savedPaperKeys={savedPaperKeys}
+                          onSaveToggle={toggleSavePaper}
                         />
                       ))}
 

@@ -72,10 +72,33 @@ export async function GET() {
         ON search_tabs (user_id, updated_at DESC)
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS saved_papers (
+        id         BIGSERIAL PRIMARY KEY,
+        user_id    INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        doi        TEXT,
+        title      TEXT,
+        authors    JSONB NOT NULL DEFAULT '[]',
+        year       INTEGER,
+        journal    TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_saved_papers_user
+        ON saved_papers (user_id, created_at DESC)
+    `;
+
     // Idempotent column additions — safe to run on an existing database.
     await sql`
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS has_used_trial BOOLEAN NOT NULL DEFAULT FALSE
+    `;
+
+    await sql`
+      ALTER TABLE search_tabs
+        ADD COLUMN IF NOT EXISTS starred BOOLEAN NOT NULL DEFAULT FALSE
     `;
 
     return NextResponse.json({ ok: true, message: "Tables created successfully." });

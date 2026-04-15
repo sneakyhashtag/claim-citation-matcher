@@ -16,8 +16,6 @@ export async function PATCH(
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { preview, paragraph, claims, results, omakase } = body;
-
   // Only update the tab if it belongs to the requesting user
   const userRes = await sql`SELECT id FROM users WHERE email = ${session.user.email}`;
   if (!userRes.rows.length) {
@@ -25,18 +23,29 @@ export async function PATCH(
   }
   const userId = userRes.rows[0].id as number;
 
-  await sql`
-    UPDATE search_tabs
-    SET
-      preview        = ${preview ?? null},
-      paragraph      = ${paragraph ?? null},
-      claims         = ${JSON.stringify(claims ?? [])}::jsonb,
-      results        = ${JSON.stringify(results ?? [])}::jsonb,
-      omakase_result = ${omakase ? JSON.stringify(omakase) : null}::jsonb,
-      updated_at     = NOW()
-    WHERE id = ${id}
-      AND user_id = ${userId}
-  `;
+  if (typeof body.starred === "boolean") {
+    // Starring-only update — don't touch content or updated_at
+    await sql`
+      UPDATE search_tabs
+      SET starred = ${body.starred}
+      WHERE id = ${id}
+        AND user_id = ${userId}
+    `;
+  } else {
+    const { preview, paragraph, claims, results, omakase } = body;
+    await sql`
+      UPDATE search_tabs
+      SET
+        preview        = ${preview ?? null},
+        paragraph      = ${paragraph ?? null},
+        claims         = ${JSON.stringify(claims ?? [])}::jsonb,
+        results        = ${JSON.stringify(results ?? [])}::jsonb,
+        omakase_result = ${omakase ? JSON.stringify(omakase) : null}::jsonb,
+        updated_at     = NOW()
+      WHERE id = ${id}
+        AND user_id = ${userId}
+    `;
+  }
 
   return NextResponse.json({ ok: true });
 }
