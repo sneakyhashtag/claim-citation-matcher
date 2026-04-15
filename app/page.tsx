@@ -3859,10 +3859,10 @@ const [proSuccess, setProSuccess] = useState(false);
           )}
         </AnimatePresence>
 
-        <main className="relative z-10 mx-auto w-full max-w-2xl">
+        <main className="relative z-10 mx-auto w-full max-w-2xl lg:max-w-[calc(100vw-12rem)]">
           <motion.div
             layout
-            className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready ? "mb-8 text-center" : "mb-0 text-center"}`}
+            className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
           >
             <BorderBeam
               colorFrom={theme === "light" ? "#92400e" : "#3b82f6"}
@@ -3940,7 +3940,7 @@ const [proSuccess, setProSuccess] = useState(false);
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                className="flex flex-col items-center gap-6 mt-2"
+                className="flex flex-col items-center gap-4 mt-2"
               >
                 {/* ── Step cards ── */}
                 <div className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
