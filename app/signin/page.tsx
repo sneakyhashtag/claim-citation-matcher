@@ -178,7 +178,7 @@ function SignInForm() {
         </div>
 
         {/* ── 2. Step cards ── */}
-        <div id="how-it-works" className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
+        <div className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
           {STEPS.map((step) => (
             <div
               key={step.label}
@@ -286,17 +286,18 @@ function SignInForm() {
             Continue as Guest
           </Link>
 
-          {/* How to use anchor */}
+          {/* How to use — scrolls to top where the step cards are */}
           <div className="flex justify-center">
-            <a
-              href="#how-it-works"
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center gap-1.5 text-xs text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-[#2C1810] transition-colors"
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
               </svg>
               How to use
-            </a>
+            </button>
           </div>
         </div>
 

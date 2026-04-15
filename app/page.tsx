@@ -3200,6 +3200,13 @@ const [proSuccess, setProSuccess] = useState(false);
     return () => clearTimeout(t);
   }, []);
 
+  // When the intro hold ends and content expands, snap back to the top.
+  // Without this, CSS scroll-anchoring compensates for the title moving
+  // upward (centered → pt-20) by scrolling the viewport downward.
+  useEffect(() => {
+    if (ready) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [ready]);
+
   useEffect(() => {
     if (session) setStage("app");
   }, [session]);
@@ -3781,7 +3788,7 @@ const [proSuccess, setProSuccess] = useState(false);
       {/* ── main page ── */}
       <motion.div
         layout
-        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
+        className={`noise-overlay relative min-h-screen bg-[var(--page-bg)] px-4 sm:px-6 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
       >
         {/* Ambient layers — dot grid, orbs, vignette */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
