@@ -3392,6 +3392,259 @@ function SidebarTabRow({
 }
 
 
+// ── LibraryView ───────────────────────────────────────────────────────────────
+
+interface LibraryItem { claim: string; paper: RatedPaper; }
+
+function formatCitation(p: RatedPaper, style: string): string {
+  const authors = (p.authors ?? []).join(", ");
+  const authorsSemi = (p.authors ?? []).join("; ");
+  const doi = p.doi ?? "";
+  const title = p.title ?? "Untitled";
+  const journal = p.journal ?? "";
+  const year = p.year ?? "";
+  const vol = (p as Paper & { volume?: string | null }).volume;
+  const issue = (p as Paper & { issue?: string | null }).issue;
+  const pages = (p as Paper & { pages?: string | null }).pages;
+
+  if (style === "APA")
+    return `${authors} (${year}). ${title}. ${journal}. https://doi.org/${doi}`;
+  if (style === "MLA")
+    return `${authors}. "${title}." ${journal}, ${year}.`;
+  if (style === "Chicago")
+    return `${authors}. "${title}." ${journal} (${year}). https://doi.org/${doi}.`;
+  if (style === "GB/T 7714")
+    return `${authorsSemi}. ${title}[J]. ${journal}, ${year}${vol ? `, ${vol}` : ""}${issue ? `(${issue})` : ""}${pages ? `: ${pages}` : ""}. DOI: ${doi}.`;
+  if (style === "SIST 02")
+    return `${authors}. 「${title}」. 『${journal}』. ${year}${vol ? `, vol. ${vol}` : ""}${issue ? `, no. ${issue}` : ""}${pages ? `, p. ${pages}` : ""}. https://doi.org/${doi}`;
+  if (style === "KCI")
+    return `${authors} (${year}). ${title}. 《${journal}》${vol ? `, ${vol}` : ""}${issue ? `(${issue})` : ""}${pages ? `, ${pages}` : ""}. https://doi.org/${doi}`;
+  if (style === "BibTeX") {
+    const key = ((p.authors ?? [])[0] ?? "").split(",")[0].toLowerCase() + year;
+    return `@article{${key},\n  author  = {${authors}},\n  title   = {${title}},\n  journal = {${journal}},\n  year    = {${year}},\n  doi     = {${doi}}\n}`;
+  }
+  return `${authors} (${year}). ${title}.`;
+}
+
+const CITE_STYLES = ["APA", "MLA", "Chicago", "GB/T 7714", "SIST 02", "KCI", "BibTeX"];
+
+function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSave: (paper: RatedPaper) => void }) {
+  const [mode, setMode] = useState<"list" | "bibliography">("list");
+  const [style, setStyle] = useState("APA");
+  const [copied, setCopied] = useState(false);
+
+  const bibText = items.map(it => formatCitation(it.paper, style)).join(style === "BibTeX" ? "\n\n" : "\n\n");
+
+  return (
+    <div className="flex-1 overflow-y-auto" style={{ background: "var(--bg)" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "36px 32px 80px" }}>
+
+        {/* header */}
+        <div className="flex items-end justify-between mb-7">
+          <div>
+            <h1
+              className="font-normal tracking-[-0.8px]"
+              style={{ fontFamily: "var(--serif)", fontSize: 36, color: "var(--ink)", margin: 0 }}
+            >
+              Library
+            </h1>
+            <p
+              className="italic mt-1.5"
+              style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--ink-dim)", margin: "6px 0 0" }}
+            >
+              {items.length} paper{items.length !== 1 ? "s" : ""} saved from this search.
+            </p>
+          </div>
+
+          {/* mode toggle */}
+          <div
+            className="flex items-center rounded-full p-0.5 gap-0.5"
+            style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+          >
+            {(["list", "bibliography"] as const).map(m => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className="px-4 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                style={{
+                  fontFamily: "var(--sans)",
+                  background: mode === m ? "var(--ink)" : "transparent",
+                  color: mode === m ? "var(--paper)" : "var(--ink-dim)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {m === "list" ? "Saved papers" : "Bibliography"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* list mode */}
+        {mode === "list" && (
+          items.length === 0 ? (
+            <div
+              className="py-16 text-center rounded-2xl"
+              style={{ border: "1px dashed var(--rule)", background: "var(--paper)" }}
+            >
+              <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", color: "var(--ink-dim)", fontSize: 16 }}>
+                Your library is empty.
+              </p>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-dim)", marginTop: 8, letterSpacing: "0.3px" }}>
+                Save papers from the workspace to build a bibliography.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {items.map((it, idx) => (
+                <div
+                  key={`${it.paper.doi ?? it.paper.title}-${idx}`}
+                  className="rounded-2xl overflow-hidden"
+                  style={{ background: "var(--paper)", border: "1px solid var(--rule)" }}
+                >
+                  {/* claim context header */}
+                  <div
+                    className="px-4 py-2.5 border-b"
+                    style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}
+                  >
+                    <span
+                      className="uppercase tracking-[0.8px] mr-2.5"
+                      style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--accent)" }}
+                    >
+                      supports
+                    </span>
+                    <span
+                      style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 13, color: "var(--ink-dim)" }}
+                    >
+                      &ldquo;{it.claim.length > 110 ? it.claim.slice(0, 110) + "…" : it.claim}&rdquo;
+                    </span>
+                  </div>
+
+                  {/* compact paper row */}
+                  <div className="px-4 py-3 flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="leading-snug mb-1"
+                        style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--ink)", fontWeight: 500 }}
+                      >
+                        {it.paper.title ?? "Untitled"}
+                      </p>
+                      <p
+                        className="text-[12px] leading-snug"
+                        style={{ fontFamily: "var(--sans)", color: "var(--ink-dim)" }}
+                      >
+                        {(it.paper.authors ?? []).slice(0, 3).join(", ")}
+                        {(it.paper.authors ?? []).length > 3 && " et al."}
+                        {it.paper.year ? ` · ${it.paper.year}` : ""}
+                        {it.paper.journal ? ` · ${it.paper.journal}` : ""}
+                      </p>
+                    </div>
+                    {/* unsave button */}
+                    <button
+                      type="button"
+                      onClick={() => onToggleSave(it.paper)}
+                      title="Remove from library"
+                      className="shrink-0 rounded-lg w-7 h-7 flex items-center justify-center transition-colors mt-0.5"
+                      style={{ color: "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {/* bibliography mode */}
+        {mode === "bibliography" && (
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ background: "var(--paper)", border: "1px solid var(--rule)" }}
+          >
+            {/* style picker toolbar */}
+            <div
+              className="flex items-center justify-between flex-wrap gap-3 px-4 py-3 border-b"
+              style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}
+            >
+              <div className="flex flex-wrap gap-1">
+                {CITE_STYLES.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStyle(s)}
+                    className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
+                    style={{
+                      fontFamily: "var(--mono)",
+                      letterSpacing: "0.3px",
+                      background: style === s ? "var(--ink)" : "transparent",
+                      color: style === s ? "var(--paper)" : "var(--ink-dim)",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(bibText);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1800);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
+                  style={{
+                    fontFamily: "var(--sans)",
+                    border: "1px solid var(--rule)",
+                    background: "transparent",
+                    color: "var(--ink-dim)",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                >
+                  {copied ? (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                      <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z"/>
+                      <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
+                    </svg>
+                  )}
+                  <span>{copied ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
+            </div>
+
+            <pre
+              className="m-0 leading-relaxed whitespace-pre-wrap break-words"
+              style={{
+                padding: "24px 28px",
+                fontFamily: style === "BibTeX" ? "var(--mono)" : "var(--serif)",
+                fontSize: style === "BibTeX" ? 12 : 14,
+                color: "var(--ink)",
+              }}
+            >
+              {items.length === 0 ? "No citations saved yet." : bibText}
+            </pre>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -3694,6 +3947,7 @@ const [proSuccess, setProSuccess] = useState(false);
   // ── Saved papers ──────────────────────────────────────────────────────────────
   const [savedPapers, setSavedPapers] = useState<SavedPaper[]>([]);
   const [sidebarView, setSidebarView] = useState<"searches" | "saved">("searches");
+  const [view, setView] = useState<"workspace" | "library">("workspace");
 
   // Derived: set of keys (doi or lower-cased title) for O(1) lookup in PaperCard
   const savedPaperKeys = useMemo(() => {
@@ -3704,6 +3958,24 @@ const [proSuccess, setProSuccess] = useState(false);
     }
     return s;
   }, [savedPapers]);
+
+  // Library items for the current tab — all saved papers that appear in the active results
+  const tabLibraryItems = useMemo(() => {
+    const items: { claim: string; paper: RatedPaper }[] = [];
+    const normalize = (doi: string | null | undefined) =>
+      doi ? doi.replace(/^https?:\/\/doi\.org\//i, "").toLowerCase() : null;
+    for (const r of results) {
+      for (const p of r.papers) {
+        const doi = normalize(p.doi);
+        const titleKey = p.title?.toLowerCase().trim() ?? null;
+        const isSaved = (doi ? savedPaperKeys.has(doi) : false) || (titleKey ? savedPaperKeys.has(titleKey) : false);
+        if (isSaved) {
+          items.push({ claim: r.claim, paper: p });
+        }
+      }
+    }
+    return items;
+  }, [results, savedPaperKeys]);
 
   // Load saved papers once the app stage is active
   useEffect(() => {
@@ -3881,6 +4153,7 @@ const [proSuccess, setProSuccess] = useState(false);
       );
 
       setResults(claimResults);
+      setView("workspace");
       setStatus("");
       await fetchUsage();
 
@@ -4019,6 +4292,7 @@ const [proSuccess, setProSuccess] = useState(false);
         );
         if (!cancelled) {
           setResults(claimResults);
+          setView("workspace");
           setStatus("");
         }
       } catch {
@@ -4341,6 +4615,32 @@ const [proSuccess, setProSuccess] = useState(false);
             </div>
 
             <div className="flex-1" />
+
+            {/* Workspace / Library nav — centered, only when results exist */}
+            {results.length > 0 && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 flex items-center rounded-full p-0.5 gap-0.5"
+                style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+              >
+                {(["workspace", "library"] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setView(v)}
+                    className="px-4 py-1.5 rounded-full text-[12px] font-medium transition-all capitalize"
+                    style={{
+                      fontFamily: "var(--sans)",
+                      background: view === v ? "var(--ink)" : "transparent",
+                      color: view === v ? "var(--paper)" : "var(--ink-dim)",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {v === "workspace" ? "Workspace" : "Library"}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* right: omakase + lang + theme + sign-in */}
             <div className="flex items-center gap-2 shrink-0">
@@ -4988,8 +5288,13 @@ const [proSuccess, setProSuccess] = useState(false);
 
           </AnimatePresence>
 
+          {/* ── library view ── */}
+          {ready && stage === "app" && results.length > 0 && view === "library" && (
+            <LibraryView items={tabLibraryItems} onToggleSave={toggleSavePaper} />
+          )}
+
           {/* ── split-screen workspace: shown when results exist ── */}
-          {ready && stage === "app" && results.length > 0 && (
+          {ready && stage === "app" && results.length > 0 && view === "workspace" && (
             <div className="flex flex-1 overflow-hidden min-w-0">
 
               {/* ── LEFT PANE: paragraph input + claims list ── */}
