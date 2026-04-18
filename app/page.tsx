@@ -5072,8 +5072,8 @@ const [proSuccess, setProSuccess] = useState(false);
                         onMouseEnter={() => setHoveredClaimIdx(i)}
                         onMouseLeave={() => setHoveredClaimIdx(null)}
                         onClick={() => {
-                          // expand if collapsed
-                          setExpandedClaims(prev => { const s = new Set(prev); s.add(i); return s; });
+                          // expand only this card, collapse all others
+                          setExpandedClaims(new Set([i]));
                           // scroll right pane to this card
                           const card = claimCardRefs.current[i];
                           if (card && rightPaneRef.current) {
