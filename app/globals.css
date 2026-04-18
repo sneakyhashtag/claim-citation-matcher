@@ -11,12 +11,39 @@
   --background: #0a0a0a;
   --foreground: #f1f5f9;
   --page-bg: #0a0a0a;
+
+  /* ── Editorial design system (dark) ── */
+  --bg:          #0a0a0a;
+  --paper:       #111111;
+  --paper-deep:  #0d0d0d;
+  --ink:         #e2ddd8;
+  --ink-dim:     rgba(226, 221, 216, 0.45);
+  --accent:      #c4873e;
+  --accent-soft: rgba(196, 135, 62, 0.12);
+  --rule:        rgba(255, 255, 255, 0.08);
+  --rule-soft:   rgba(255, 255, 255, 0.04);
+
+  /* ── Font stacks ── */
+  --serif: var(--font-lora), Georgia, 'Times New Roman', serif;
+  --sans:  var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --mono:  ui-monospace, 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 }
 
 html.light {
   --background: #EDEDD3;
   --foreground: #2C1810;
   --page-bg: #EDEDD3;
+
+  /* ── Editorial design system (light / parchment) ── */
+  --bg:          #ededd3;
+  --paper:       #f5f3e4;
+  --paper-deep:  #ece9d6;
+  --ink:         #1c1410;
+  --ink-dim:     rgba(28, 20, 16, 0.45);
+  --accent:      #8b4513;
+  --accent-soft: rgba(139, 69, 19, 0.10);
+  --rule:        rgba(28, 20, 16, 0.10);
+  --rule-soft:   rgba(28, 20, 16, 0.05);
 }
 
 html {

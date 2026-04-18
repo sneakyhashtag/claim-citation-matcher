@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { DM_Sans, Playfair_Display, Lora } from "next/font/google";
 import Link from "next/link";
 import Providers from "./providers";
 import "./globals.css";
@@ -14,6 +14,14 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["700", "800"],
+});
+
+// Lora — editorial serif for body text, headings, and pull quotes
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
 const BASE_URL = "https://claim-citation-matcher.vercel.app";
@@ -54,7 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${playfair.variable} font-[family-name:var(--font-dm-sans)] antialiased`}
+        className={`${dmSans.variable} ${playfair.variable} ${lora.variable} font-[family-name:var(--font-dm-sans)] antialiased`}
       >
         <Providers>
           {children}

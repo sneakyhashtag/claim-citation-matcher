@@ -316,6 +316,17 @@ const translations = {
     auth_err_credentials: "Incorrect email or password.",
     auth_err_oauth_linked: "This email is already linked to a different sign-in method.",
     auth_err_default: "Something went wrong. Please try again.",
+
+    // Sign-in page editorial copy
+    signin_headline_line1: "Find the paper",
+    signin_headline_line2: "behind every",
+    signin_headline_em: "claim",
+    sign_in_or_guest: "Sign in or continue as guest",
+    welcome_back: "Welcome back.",
+    signin_subtitle: "Sign in to save your history across sessions.",
+    stat_papers: "real papers indexed",
+    stat_languages: "languages supported",
+    stat_formats: "citation formats",
   },
 
   zh: {
@@ -597,6 +608,17 @@ const translations = {
     auth_err_credentials: "邮箱或密码错误。",
     auth_err_oauth_linked: "此邮箱已与其他登录方式关联。",
     auth_err_default: "出现错误，请重试。",
+
+    // Sign-in page editorial copy
+    signin_headline_line1: "找到每个",
+    signin_headline_line2: "主张背后的",
+    signin_headline_em: "论文",
+    sign_in_or_guest: "登录或以访客身份继续",
+    welcome_back: "欢迎回来。",
+    signin_subtitle: "登录以跨会话保存您的历史记录。",
+    stat_papers: "真实收录论文数",
+    stat_languages: "支持的语言",
+    stat_formats: "引用格式",
   },
 
   ja: {
@@ -878,6 +900,17 @@ const translations = {
     auth_err_credentials: "メールアドレスまたはパスワードが正しくありません。",
     auth_err_oauth_linked: "このメールアドレスは別のサインイン方法にすでに関連付けられています。",
     auth_err_default: "エラーが発生しました。もう一度お試しください。",
+
+    // Sign-in page editorial copy
+    signin_headline_line1: "すべての主張の",
+    signin_headline_line2: "背後にある",
+    signin_headline_em: "論文を探す",
+    sign_in_or_guest: "サインインまたはゲストとして続ける",
+    welcome_back: "おかえりなさい。",
+    signin_subtitle: "サインインしてセッションをまたいで履歴を保存しましょう。",
+    stat_papers: "収録論文数",
+    stat_languages: "対応言語",
+    stat_formats: "引用形式",
   },
 } as const
 

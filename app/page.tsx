@@ -3620,7 +3620,10 @@ const [proSuccess, setProSuccess] = useState(false);
 
   const deleteTab = async (tabId: string) => {
     if (session) {
-      await apiFetch(`/api/tabs/${tabId}`, { method: "DELETE" });
+      // Skip the API call for optimistic (temp) tabs that haven't been persisted yet
+      if (!tabId.startsWith("temp-")) {
+        await apiFetch(`/api/tabs/${tabId}`, { method: "DELETE" });
+      }
     } else {
       lsDeleteTab(tabId);
     }
@@ -3639,11 +3642,14 @@ const [proSuccess, setProSuccess] = useState(false);
     if (!tab) return;
     const newStarred = !tab.starred;
     if (session) {
-      apiFetch(`/api/tabs/${tabId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ starred: newStarred }),
-      });
+      // Don't try to star optimistic tabs that haven't been persisted yet
+      if (!tabId.startsWith("temp-")) {
+        apiFetch(`/api/tabs/${tabId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ starred: newStarred }),
+        });
+      }
     } else {
       lsStarTab(tabId, newStarred);
     }
@@ -3846,54 +3852,92 @@ const [proSuccess, setProSuccess] = useState(false);
       // Build the tab preview from the first ~60 chars of the paragraph
       const tabPreview = text.split("\n")[0].slice(0, 60) + (text.length > 60 ? "…" : "");
 
-      // Save/update tab: if there's an active tab overwrite it, else create a new one
+      // Save/update tab.
+      // Rule: if the active tab is a blank "New search…" placeholder, PATCH it with real content.
+      // Any other case (no active tab, or active tab already has real content) → POST a new tab.
+      // After saving, always reset activeTabId so the NEXT search creates its own new tab.
       const currentActiveTabId = activeTabId;
+      const now = new Date().toISOString();
+
       if (session) {
-        if (currentActiveTabId) {
+        // Determine whether to patch the current tab or create a new one
+        const currentTab = currentActiveTabId ? tabs.find((t) => t.id === currentActiveTabId) : null;
+        const isBlankPlaceholder = currentTab && currentTab.preview === "New search…" && !currentTab.paragraph;
+
+        if (isBlankPlaceholder && currentActiveTabId) {
+          // PATCH: fill in the blank tab created by "New Search"
+          const patchPayload = { preview: tabPreview, paragraph: text, claims, results: claimResults };
           apiFetch(`/api/tabs/${currentActiveTabId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ preview: tabPreview, paragraph: text, claims, results: claimResults }),
+            body: JSON.stringify(patchPayload),
           });
           setTabs((prev) => {
             const updated = prev.map((t) =>
               t.id === currentActiveTabId
-                ? { ...t, preview: tabPreview, paragraph: text, claims, results: claimResults, updatedAt: new Date().toISOString() }
+                ? { ...t, ...patchPayload, updatedAt: now }
                 : t
             );
             updated.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
             return updated;
           });
+          setActiveTabId(null); // next search will create a new tab
         } else {
+          // POST: optimistically add a new tab immediately (before API confirms)
+          const tempId = `temp-${Date.now()}`;
+          const optimisticTab: SearchTab = {
+            id: tempId,
+            preview: tabPreview,
+            paragraph: text,
+            claims,
+            results: claimResults,
+            starred: false,
+            omakase: null,
+            createdAt: now,
+            updatedAt: now,
+          };
+          setTabs((prev) => [optimisticTab, ...prev]);
+          setActiveTabId(null); // next search will create a new tab
+
           apiFetch<{ id: string; createdAt: string; updatedAt: string }>("/api/tabs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ preview: tabPreview, paragraph: text, claims, results: claimResults }),
-          }).then(({ data }) => {
+          }).then(({ data, error }) => {
             if (data?.id) {
-              const newTab: SearchTab = {
-                id: data.id,
-                preview: tabPreview,
-                paragraph: text,
-                claims,
-                results: claimResults,
-                omakase: null,
-                createdAt: data.createdAt,
-                updatedAt: data.updatedAt,
-              };
-              setTabs((prev) => [newTab, ...prev]);
-              setActiveTabId(data.id);
+              // Replace the temp tab with the real DB-backed tab
+              setTabs((prev) =>
+                prev.map((t) =>
+                  t.id === tempId
+                    ? { ...t, id: data.id, createdAt: data.createdAt, updatedAt: data.updatedAt }
+                    : t
+                )
+              );
+            } else {
+              // API failed — remove the optimistic tab so the sidebar doesn't show stale data
+              console.error("[tabs] POST failed:", error);
+              setTabs((prev) => prev.filter((t) => t.id !== tempId));
             }
           });
         }
       } else {
+        // Guest: write to localStorage synchronously — sidebar updates immediately
         if (currentActiveTabId) {
-          lsUpdateTab(currentActiveTabId, { preview: tabPreview, paragraph: text, claims, results: claimResults });
-          setTabs(lsGetTabs());
+          const currentTab = tabs.find((t) => t.id === currentActiveTabId);
+          const isBlankPlaceholder = currentTab && currentTab.preview === "New search…" && !currentTab.paragraph;
+          if (isBlankPlaceholder) {
+            lsUpdateTab(currentActiveTabId, { preview: tabPreview, paragraph: text, claims, results: claimResults });
+            setTabs(lsGetTabs());
+            setActiveTabId(null);
+          } else {
+            lsAddTab({ preview: tabPreview, paragraph: text, claims, results: claimResults, omakase: null });
+            setTabs(lsGetTabs());
+            setActiveTabId(null);
+          }
         } else {
-          const newId = lsAddTab({ preview: tabPreview, paragraph: text, claims, results: claimResults, omakase: null });
+          lsAddTab({ preview: tabPreview, paragraph: text, claims, results: claimResults, omakase: null });
           setTabs(lsGetTabs());
-          setActiveTabId(newId);
+          setActiveTabId(null);
         }
       }
 
@@ -4221,8 +4265,7 @@ const [proSuccess, setProSuccess] = useState(false);
         </AnimatePresence>
 
         {/* ── Main content area (pushed right by sidebar) ── */}
-        <motion.div
-          layout
+        <div
           className={`noise-overlay relative flex-1 min-w-0 bg-[var(--page-bg)] px-4 sm:px-6 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
         >
         {/* Ambient layers — dot grid, orbs, vignette */}
@@ -4265,8 +4308,7 @@ const [proSuccess, setProSuccess] = useState(false);
         </AnimatePresence>
 
         <main className="relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)]">
-          <motion.div
-            layout
+          <div
             className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
           >
             <BorderBeam
@@ -4282,7 +4324,6 @@ const [proSuccess, setProSuccess] = useState(false);
               animation="blurInUp"
               startOnView={false}
               once
-              layout
               className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-[#2C1810] sm:text-5xl leading-tight tracking-tight light:letterpress-title"
             >
               Reference Finder
@@ -4327,164 +4368,319 @@ const [proSuccess, setProSuccess] = useState(false);
                 </motion.p>
               )}
             </AnimatePresence>
-          </motion.div>
+          </div>
 
           <AnimatePresence mode="wait">
 
             {/* ── auth stage ── */}
             {ready && stage === "auth" && (
-              <div className="fixed top-4 right-4 z-30 flex items-center gap-2">
-                <LanguagePicker lang={lang} onChange={setLang} />
-                <ThemeToggle theme={theme} onToggle={toggleTheme} />
-              </div>
-            )}
-            {ready && stage === "auth" && (
               <motion.div
                 key="auth"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                className="flex flex-col items-center gap-4 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="fixed inset-0 z-50 grid grid-cols-1 lg:grid-cols-2"
+                style={{ background: "var(--bg)" }}
               >
-                {/* ── Step cards ── */}
-                <div className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
-                  {ONBOARDING_STEPS.map((step) => (
-                    <div
-                      key={step.labelKey}
-                      className="flex flex-col gap-2.5 rounded-xl border border-[#252525] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/80 px-4 py-4"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-amber-500/30 light:border-amber-600/20 bg-amber-500/10 light:bg-amber-500/[0.08] text-amber-400 light:text-amber-700">
-                          <step.Icon />
-                        </div>
-                        <p className="text-[12px] font-semibold text-slate-100 light:text-[#2C1810] leading-none">
-                          {t(step.labelKey)}
-                        </p>
-                      </div>
-                      <p className="text-[11.5px] leading-relaxed text-slate-400 light:text-[#2C1810]/58">
-                        {t(step.descKey)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* ── Sign-in buttons ── */}
-                <div className="w-full max-w-sm flex flex-col gap-3">
-
-                  {/* auth error */}
-                  {authError && (
-                    <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
-                      {t(authError as TKey)}
-                    </div>
-                  )}
-
-                  {/* Google */}
-                  <button
-                    type="button"
-                    onClick={() => signIn("google")}
-                    disabled={sessionStatus === "loading"}
-                    className="flex items-center justify-center gap-3 w-full rounded-xl bg-white light:bg-white px-6 py-3 text-sm font-medium text-gray-900 shadow-md hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden>
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    {t("sign_in_google")}
-                  </button>
-
-                  {/* Email toggle */}
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailForm((v) => !v)}
-                    className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/12 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
-                  >
-                    {showEmailForm ? t("email_signin_hide") : t("email_signin_show")}
-                  </button>
-
-                  {/* Collapsible email / password form */}
-                  {showEmailForm && (
-                    <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3">
-                      <div>
-                        <label htmlFor="auth-email" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                          {t("email_label")}
-                        </label>
-                        <input
-                          id="auth-email" type="email" autoComplete="email" required
-                          value={authEmail}
-                          onChange={(e) => { setAuthEmail(e.target.value); setAuthError(""); }}
-                          className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
-                          placeholder="you@example.com"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="auth-password" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                          {t("password_label")}
-                        </label>
-                        <input
-                          id="auth-password" type="password" autoComplete="current-password" required
-                          value={authPassword}
-                          onChange={(e) => { setAuthPassword(e.target.value); setAuthError(""); }}
-                          className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
-                          placeholder="••••••••"
-                        />
-                      </div>
-                      <button
-                        type="submit" disabled={authLoading}
-                        className="w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {authLoading ? t("signing_in") : t("sign_in")}
-                      </button>
-                    </form>
-                  )}
-
-                  {/* divider */}
+                {/* ── LEFT: editorial brand panel ── */}
+                <section
+                  className="hidden lg:flex flex-col justify-between p-14 border-r overflow-hidden relative"
+                  style={{ background: "var(--paper)", borderColor: "var(--rule)" }}
+                >
+                  {/* top-left: logo mark */}
                   <div className="flex items-center gap-3">
-                    <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
-                    <span className="text-[11px] uppercase tracking-widest text-slate-600 light:text-[#2C1810]/35">{t("or")}</span>
-                    <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
+                    <div
+                      className="w-8 h-8 rounded-[10px] flex items-center justify-center font-[family-name:var(--font-lora)] italic font-semibold text-lg shrink-0"
+                      style={{ background: "var(--ink)", color: "var(--bg)" }}
+                    >
+                      R
+                    </div>
+                    <span
+                      className="font-[family-name:var(--font-lora)] text-[17px] font-medium"
+                      style={{ color: "var(--ink)" }}
+                    >
+                      Reference Finder
+                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <LanguagePicker lang={lang} onChange={setLang} />
+                      <ThemeToggle theme={theme} onToggle={toggleTheme} />
+                    </div>
                   </div>
 
-                  {/* Continue as Guest */}
-                  <button
-                    type="button"
-                    onClick={() => setStage("app")}
-                    className="w-full rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.12)] bg-white/8 light:bg-[rgba(44,24,16,0.05)] px-6 py-3 text-sm font-medium text-slate-300 light:text-[#4A2E1A] hover:bg-white/12 light:hover:bg-[rgba(44,24,16,0.07)] hover:text-white light:hover:text-[#2C1810] transition-colors"
-                  >
-                    {t("continue_guest")}
-                  </button>
+                  {/* center: editorial headline */}
+                  <div>
+                    <p
+                      className="font-[family-name:var(--font-dm-sans)] text-[11px] font-medium uppercase tracking-[1.2px] mb-5"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      — {t("differentiator_heading")}
+                    </p>
+                    <h1
+                      className="font-[family-name:var(--font-lora)] font-normal text-[52px] leading-[1.06] tracking-[-1.5px] mb-5"
+                      style={{ color: "var(--ink)" }}
+                    >
+                      {t("signin_headline_line1")}<br />
+                      {t("signin_headline_line2")}<br />
+                      <em style={{ color: "var(--accent)" }}>{t("signin_headline_em")}</em>.
+                    </h1>
+                    <p
+                      className="font-[family-name:var(--font-lora)] italic text-[17px] leading-[1.55] max-w-[420px]"
+                      style={{ color: "var(--ink-dim)" }}
+                    >
+                      {t("differentiator_body")}
+                    </p>
+                  </div>
 
-                  {/* How to use */}
-                  <div className="flex justify-center">
+                  {/* bottom: stats */}
+                  <div
+                    className="flex gap-8 pt-5 border-t font-[family-name:var(--font-dm-sans)] text-[11px] tracking-[0.4px]"
+                    style={{ borderColor: "var(--rule)", color: "var(--ink-dim)" }}
+                  >
+                    {[
+                      { num: "240M+", label: t("stat_papers") },
+                      { num: "EN · 中 · 日", label: t("stat_languages") },
+                      { num: "7", label: t("stat_formats") },
+                    ].map(({ num, label }) => (
+                      <div key={label}>
+                        <div
+                          className="font-[family-name:var(--font-lora)] text-[22px] font-medium mb-0.5"
+                          style={{ color: "var(--ink)" }}
+                        >
+                          {num}
+                        </div>
+                        <div>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* ── RIGHT: auth form ── */}
+                <section
+                  className="flex flex-col justify-center px-8 py-12 sm:px-16 overflow-y-auto"
+                  style={{ background: "var(--bg)" }}
+                >
+                  {/* mobile header */}
+                  <div className="lg:hidden flex items-center justify-between mb-10">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-7 h-7 rounded-[8px] flex items-center justify-center font-[family-name:var(--font-lora)] italic font-semibold text-base"
+                        style={{ background: "var(--ink)", color: "var(--bg)" }}
+                      >
+                        R
+                      </div>
+                      <span className="font-[family-name:var(--font-lora)] text-[15px] font-medium" style={{ color: "var(--ink)" }}>
+                        Reference Finder
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <LanguagePicker lang={lang} onChange={setLang} />
+                      <ThemeToggle theme={theme} onToggle={toggleTheme} />
+                    </div>
+                  </div>
+
+                  <div className="w-full max-w-[420px] mx-auto">
+                    {/* heading */}
+                    <p
+                      className="font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px] mb-3"
+                      style={{ color: "var(--ink-dim)" }}
+                    >
+                      {t("sign_in_or_guest")}
+                    </p>
+                    <h2
+                      className="font-[family-name:var(--font-lora)] font-normal text-[30px] tracking-[-0.5px] mb-1"
+                      style={{ color: "var(--ink)" }}
+                    >
+                      {t("welcome_back")}
+                    </h2>
+                    <p
+                      className="font-[family-name:var(--font-lora)] italic text-[14px] mb-8"
+                      style={{ color: "var(--ink-dim)" }}
+                    >
+                      {t("signin_subtitle")}
+                    </p>
+
+                    {/* auth error */}
+                    {authError && (
+                      <div
+                        className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed"
+                        style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
+                      >
+                        {t(authError as TKey)}
+                      </div>
+                    )}
+
+                    {/* Google */}
                     <button
                       type="button"
-                      onClick={() => setShowHowTo(true)}
-                      className="flex items-center gap-1.5 text-xs text-slate-500 light:text-[#6B4226] hover:text-slate-300 light:hover:text-[#2C1810] transition-colors"
+                      onClick={() => signIn("google")}
+                      disabled={sessionStatus === "loading"}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl mb-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
+                        color: "var(--ink)",
+                        fontFamily: "var(--sans)",
+                        fontSize: 14,
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--rule)")}
                     >
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden>
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                       </svg>
-                      {t("how_to_use")}
+                      <span className="flex-1 text-left">{t("sign_in_google")}</span>
+                      <svg className="h-3.5 w-3.5 opacity-40" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M3 8h10M9 4l4 4-4 4"/>
+                      </svg>
                     </button>
+
+                    {/* or divider */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-px flex-1" style={{ background: "var(--rule)" }} />
+                      <span
+                        className="font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[1px]"
+                        style={{ color: "var(--ink-dim)" }}
+                      >
+                        {t("or")}
+                      </span>
+                      <div className="h-px flex-1" style={{ background: "var(--rule)" }} />
+                    </div>
+
+                    {/* Email toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailForm((v) => !v)}
+                      className="w-full rounded-xl px-4 py-3 mb-3 text-[13px] font-medium transition-colors"
+                      style={{
+                        background: "transparent",
+                        border: "1px solid var(--rule)",
+                        color: "var(--ink-dim)",
+                        fontFamily: "var(--sans)",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                    >
+                      {showEmailForm ? t("email_signin_hide") : t("email_signin_show")}
+                    </button>
+
+                    {/* Email / password form */}
+                    {showEmailForm && (
+                      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3 mb-4">
+                        <div>
+                          <label
+                            htmlFor="auth-email"
+                            className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
+                            style={{ color: "var(--ink-dim)" }}
+                          >
+                            {t("email_label")}
+                          </label>
+                          <input
+                            id="auth-email" type="email" autoComplete="email" required
+                            value={authEmail}
+                            onChange={(e) => { setAuthEmail(e.target.value); setAuthError(""); }}
+                            className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
+                            style={{
+                              background: "var(--paper)",
+                              border: "1px solid var(--rule)",
+                              color: "var(--ink)",
+                              fontFamily: "var(--sans)",
+                            }}
+                            placeholder="ada@university.edu"
+                            onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
+                            onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="auth-password"
+                            className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
+                            style={{ color: "var(--ink-dim)" }}
+                          >
+                            {t("password_label")}
+                          </label>
+                          <input
+                            id="auth-password" type="password" autoComplete="current-password" required
+                            value={authPassword}
+                            onChange={(e) => { setAuthPassword(e.target.value); setAuthError(""); }}
+                            className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
+                            style={{
+                              background: "var(--paper)",
+                              border: "1px solid var(--rule)",
+                              color: "var(--ink)",
+                              fontFamily: "var(--sans)",
+                            }}
+                            placeholder="••••••••"
+                            onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
+                            onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                          />
+                        </div>
+                        <button
+                          type="submit" disabled={authLoading}
+                          className="w-full rounded-xl py-3 text-[14px] font-medium flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                          style={{ background: "var(--ink)", color: "var(--bg)", fontFamily: "var(--sans)" }}
+                        >
+                          {authLoading ? t("signing_in") : t("sign_in")}
+                          {!authLoading && (
+                            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M3 8h10M9 4l4 4-4 4"/>
+                            </svg>
+                          )}
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Continue as Guest */}
+                    <div className="pt-6" style={{ borderTop: "1px solid var(--rule)" }}>
+                      <button
+                        type="button"
+                        onClick={() => setStage("app")}
+                        className="w-full rounded-xl px-4 py-3.5 text-[14px] flex items-center justify-center gap-3 transition-colors"
+                        style={{
+                          background: "transparent",
+                          border: "1px dashed var(--rule)",
+                          color: "var(--ink)",
+                          fontFamily: "var(--font-lora), Georgia, serif",
+                          fontStyle: "italic",
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                      >
+                        {t("continue_guest")}
+                        <span
+                          className="font-[family-name:var(--font-dm-sans)] not-italic text-[10px] uppercase tracking-[0.8px] px-2 py-0.5 rounded-full"
+                          style={{ background: "var(--paper-deep)", color: "var(--ink-dim)", fontStyle: "normal" }}
+                        >
+                          {t("free_to_try")}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* How to use + legal */}
+                    <div className="mt-6 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setShowHowTo(true)}
+                        className="flex items-center gap-1.5 text-[12px] transition-colors"
+                        style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                        </svg>
+                        {t("how_to_use")}
+                      </button>
+                      <p className="text-[11px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
+                        {t("free_to_try")}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                {/* ── Differentiator callout ── */}
-                <div className="w-full max-w-sm rounded-xl border border-amber-500/20 light:border-amber-600/18 bg-amber-500/[0.06] light:bg-amber-600/[0.06] px-4 py-3">
-                  <p className="text-[11.5px] leading-relaxed text-slate-300 light:text-[#2C1810]/68">
-                    <span className="font-semibold text-amber-400 light:text-amber-700">
-                      {t("differentiator_heading")}{" "}
-                    </span>
-                    {t("differentiator_body")}
-                  </p>
-                </div>
-
-                <p className="text-[11px] text-slate-600 light:text-[#2C1810]/30">
-                  {t("free_to_try")}
-                </p>
-
+                </section>
               </motion.div>
             )}
 
@@ -4883,7 +5079,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
           </AnimatePresence>
         </main>
-        </motion.div>
+        </div>
         {/* end flex shell */}
       </div>
     </>
