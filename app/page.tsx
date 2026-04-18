@@ -2258,6 +2258,10 @@ function ClaimCard({
   onUpgrade,
   savedPaperKeys,
   onSaveToggle,
+  isExpanded = true,
+  onToggle,
+  isHovered = false,
+  cardRef,
 }: {
   result: ClaimResult;
   index: number;
@@ -2270,6 +2274,10 @@ function ClaimCard({
   onUpgrade?: () => void;
   savedPaperKeys?: Set<string>;
   onSaveToggle?: (paper: RatedPaper) => void;
+  isExpanded?: boolean;
+  onToggle?: () => void;
+  isHovered?: boolean;
+  cardRef?: (el: HTMLDivElement | null) => void;
 }) {
   const t = useContext(LangContext);
   const visiblePapers = result.papers.filter((p) => paperInRange(p.year, yearFilter, customRange));
@@ -2278,76 +2286,97 @@ function ClaimCard({
   const topScore = visiblePapers.length > 0
     ? Math.max(...visiblePapers.map((p) => p.relevanceScore))
     : 0;
-  const accentClass =
-    topScore >= 5 ? "border-l-green-500/60 light:border-l-[rgba(30,70,32,0.55)]" :
-    topScore >= 4 ? "border-l-blue-500/55 light:border-l-[rgba(42,48,112,0.50)]" :
-    visiblePapers.length > 0 ? "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.45)]" :
-    "border-l-white/15 light:border-l-[rgba(44,24,16,0.2)]";
 
-  const claimAccentStyle =
-    topScore >= 5 ? { borderLeftColor: "var(--accent)" } :
-    topScore >= 4 ? { borderLeftColor: "var(--ink-dim)" } :
-    { borderLeftColor: "var(--rule)" };
+  const accentBorderColor =
+    topScore >= 5 ? "var(--accent)" :
+    topScore >= 4 ? "var(--ink-dim)" :
+    "var(--rule)";
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className="claim-card rounded-xl border-l-2 overflow-hidden"
-      style={{ background: "var(--paper)", border: "1px solid var(--rule)", ...claimAccentStyle }}
+      transition={{ duration: 0.45, delay: index * 0.06, ease: [0.25, 0.1, 0.25, 1] }}
+      className="claim-card rounded-xl overflow-hidden"
+      style={{
+        background: isHovered ? "var(--paper-deep)" : "var(--paper)",
+        border: `1px solid ${isHovered ? "var(--accent)" : "var(--rule)"}`,
+        borderLeft: `3px solid ${accentBorderColor}`,
+        transition: "background 0.15s ease, border-color 0.15s ease",
+      }}
     >
-      {/* claim header */}
-      <div className="px-5 py-4 border-b" style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}>
-        <div className="flex items-center gap-2.5 mb-2.5">
-          <span
-            className="font-[family-name:var(--font-dm-sans)] text-[11px] tracking-[0.8px] uppercase tabular-nums"
-            style={{ color: "var(--ink-dim)" }}
-          >
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <span
-            className="font-[family-name:var(--font-dm-sans)] text-[10px] font-medium uppercase tracking-[0.8px]"
-            style={{ color: "var(--ink-dim)" }}
-          >
-            {t("claim_label")}
-          </span>
-        </div>
-        <p className="font-[family-name:var(--serif)] text-[15px] italic leading-[1.55]" style={{ color: "var(--ink)" }}>
-          <span style={{ color: "var(--accent)", fontStyle: "normal" }}>&ldquo;</span>
+      {/* claim header — click to collapse/expand */}
+      <div
+        className="px-4 py-3 flex items-start gap-3 select-none"
+        style={{
+          background: isHovered ? "transparent" : "var(--paper-deep)",
+          borderBottom: isExpanded ? "1px solid var(--rule-soft)" : "none",
+          cursor: onToggle ? "pointer" : "default",
+        }}
+        onClick={onToggle}
+      >
+        <span
+          className="text-[11px] tracking-[0.8px] uppercase tabular-nums mt-0.5 shrink-0 w-5"
+          style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <p className="flex-1 text-[14px] italic leading-[1.5]" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
           {result.claim}
-          <span style={{ color: "var(--accent)", fontStyle: "normal" }}>&rdquo;</span>
         </p>
-      </div>
-
-      {/* papers */}
-      <div className="px-5 py-4">
-        {result.papers.length === 0 ? (
-          <p className="text-[12px] font-[family-name:var(--serif)] italic" style={{ color: "var(--ink-dim)" }}>
-            {t("no_relevant_papers")}
-          </p>
-        ) : visiblePapers.length === 0 ? (
-          <p className="text-[12px] font-[family-name:var(--serif)] italic" style={{ color: "var(--ink-dim)" }}>
-            {t("no_papers_date_filter")}
-            {hiddenCount > 0 && (
-              <span className="ml-1">
-                {hiddenCount === 1 ? t("papers_hidden_one") : t("papers_hidden_many", { n: hiddenCount })}
-              </span>
-            )}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {visiblePapers.map((paper, i) => (
-              <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} />
-            ))}
-            {hiddenCount > 0 && (
-              <p className="text-[11px] font-[family-name:var(--font-dm-sans)] pt-0.5" style={{ color: "var(--ink-dim)" }}>
-                {hiddenCount === 1 ? t("older_papers_hidden_one") : t("older_papers_hidden_many", { n: hiddenCount })}
-              </p>
-            )}
-          </div>
+        {onToggle && (
+          <svg
+            className="shrink-0 mt-1 transition-transform"
+            style={{ color: "var(--ink-dim)", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}
+            width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden
+          >
+            <polyline points="2 4 6 8 10 4"/>
+          </svg>
         )}
       </div>
+
+      {/* papers — collapsible */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="papers"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="px-4 py-4">
+              {result.papers.length === 0 ? (
+                <p className="text-[12px] italic" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
+                  {t("no_relevant_papers")}
+                </p>
+              ) : visiblePapers.length === 0 ? (
+                <p className="text-[12px] italic" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
+                  {t("no_papers_date_filter")}
+                  {hiddenCount > 0 && (
+                    <span className="ml-1">
+                      {hiddenCount === 1 ? t("papers_hidden_one") : t("papers_hidden_many", { n: hiddenCount })}
+                    </span>
+                  )}
+                </p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {visiblePapers.map((paper, i) => (
+                    <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} />
+                  ))}
+                  {hiddenCount > 0 && (
+                    <p className="text-[11px] pt-0.5" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
+                      {hiddenCount === 1 ? t("older_papers_hidden_one") : t("older_papers_hidden_many", { n: hiddenCount })}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -3362,247 +3391,6 @@ function SidebarTabRow({
   );
 }
 
-// ── LibraryView ───────────────────────────────────────────────────────────────
-
-const BIBO_STYLES = ["APA", "MLA", "Chicago", "GB/T 7714", "SIST 02", "KCI", "BibTeX"] as const;
-type BiboStyle = typeof BIBO_STYLES[number];
-
-function LibraryView({
-  savedPapers,
-  isPro,
-  isSignedIn,
-  onUpgrade,
-  onRemove,
-}: {
-  savedPapers: SavedPaper[];
-  isPro: boolean;
-  isSignedIn: boolean;
-  onUpgrade: () => void;
-  onRemove: (id: string) => void;
-}) {
-  const t = useContext(LangContext);
-  const [libTab, setLibTab] = useState<"papers" | "bibliography">("papers");
-  const [biboStyle, setBiboStyle] = useState<BiboStyle>("APA");
-  const [copied, setCopied] = useState(false);
-
-  function formatBib(p: SavedPaper, style: BiboStyle, idx: number): string {
-    const authors = p.authors.join(", ");
-    const authorsSemi = p.authors.join("; ");
-    const year = p.year ?? "n.d.";
-    const journal = p.journal ?? "";
-    const doi = p.doi ? (p.doi.startsWith("http") ? p.doi : `https://doi.org/${p.doi}`) : "";
-
-    if (style === "APA")        return `${authors} (${year}). ${p.title}. ${journal}.${doi ? ` ${doi}` : ""}`;
-    if (style === "MLA")        return `${authors}. "${p.title}." ${journal}, ${year}.`;
-    if (style === "Chicago")    return `${authors}. "${p.title}." ${journal} (${year}).${doi ? ` ${doi}.` : ""}`;
-    if (style === "GB/T 7714")  return `[${idx + 1}] ${authorsSemi}. ${p.title}[J]. ${journal}, ${year}.${doi ? ` DOI: ${p.doi}.` : ""}`;
-    if (style === "SIST 02")    return `[${idx + 1}] ${authors}. 「${p.title}」. 『${journal}』. ${year}.${doi ? ` ${doi}` : ""}`;
-    if (style === "KCI")        return `${authors} (${year}). ${p.title}. 《${journal}》.${doi ? ` ${doi}` : ""}`;
-    if (style === "BibTeX") {
-      const key = (p.authors[0] ?? "Unknown").split(" ").slice(-1)[0].toLowerCase() + year;
-      return `@article{${key},\n  author={${authors}},\n  title={${p.title}},\n  journal={${journal}},\n  year={${year}}${p.doi ? `,\n  doi={${p.doi}}` : ""}\n}`;
-    }
-    return `${authors} (${year}). ${p.title}.`;
-  }
-
-  const bibText = savedPapers.map((p, i) => formatBib(p, biboStyle, i)).join("\n\n");
-
-  function handleCopy() {
-    navigator.clipboard?.writeText(bibText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  }
-
-  return (
-    <div className="w-full max-w-3xl mx-auto pt-8 pb-16 px-1">
-      {/* header */}
-      <div className="mb-8">
-        <p className="text-[10px] uppercase tracking-[1px] mb-2" style={{ color: "var(--accent)", fontFamily: "var(--mono)" }}>Library</p>
-        <h2 className="font-normal text-[32px] tracking-[-0.8px]" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
-          Your saved papers
-        </h2>
-        <p className="mt-2 text-[14px] italic" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
-          {savedPapers.length === 0
-            ? "Save papers from your search results to build your library."
-            : `${savedPapers.length} paper${savedPapers.length === 1 ? "" : "s"} saved — export as a formatted bibliography below.`}
-        </p>
-      </div>
-
-      {/* tabs */}
-      <div
-        className="inline-flex items-center gap-0.5 rounded-full p-[3px] mb-8"
-        style={{ background: "var(--paper-deep)", border: "1px solid var(--rule-soft)" }}
-      >
-        {(["papers", "bibliography"] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setLibTab(tab)}
-            className="rounded-full transition-colors"
-            style={{
-              padding: "5px 14px",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--sans)",
-              fontSize: 12,
-              fontWeight: 500,
-              letterSpacing: "0.3px",
-              background: libTab === tab ? "var(--ink)" : "transparent",
-              color: libTab === tab ? "var(--paper)" : "var(--ink-dim)",
-            }}
-          >
-            {tab === "papers" ? "Saved papers" : "Bibliography"}
-          </button>
-        ))}
-      </div>
-
-      {/* saved papers tab */}
-      {libTab === "papers" && (
-        <div className="flex flex-col gap-3">
-          {savedPapers.length === 0 ? (
-            <div
-              className="rounded-2xl flex flex-col items-center justify-center py-20 text-center"
-              style={{ border: "1px dashed var(--rule)", background: "var(--paper-deep)" }}
-            >
-              <svg className="h-8 w-8 mb-4 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--ink)" }} aria-hidden>
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-              </svg>
-              <p className="text-[14px] italic" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
-                No saved papers yet.
-              </p>
-              <p className="mt-1 text-[12px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
-                Bookmark papers from the Workspace to find them here.
-              </p>
-            </div>
-          ) : (
-            savedPapers.map((paper) => (
-              <div
-                key={paper.id}
-                className="rounded-xl px-4 py-3 flex items-start gap-4"
-                style={{ background: "var(--paper)", border: "1px solid var(--rule-soft)" }}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-medium leading-snug" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
-                    {paper.title}
-                  </p>
-                  <p className="mt-1 text-[12px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
-                    {paper.authors.slice(0, 3).join(", ")}{paper.authors.length > 3 ? " et al." : ""}
-                    {paper.year ? ` · ${paper.year}` : ""}
-                    {paper.journal ? ` · ${paper.journal}` : ""}
-                  </p>
-                  {paper.doi && (
-                    <a
-                      href={paper.doi.startsWith("http") ? paper.doi : `https://doi.org/${paper.doi}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-block text-[11px] transition-colors"
-                      style={{ color: "var(--accent)", fontFamily: "var(--mono)" }}
-                    >
-                      {paper.doi.replace(/^https?:\/\/doi\.org\//i, "")}
-                    </a>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onRemove(paper.id)}
-                  className="shrink-0 rounded-lg p-1.5 transition-colors"
-                  style={{ color: "var(--ink-dim)" }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-                  aria-label="Remove from library"
-                >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* bibliography tab */}
-      {libTab === "bibliography" && (
-        <div>
-          {/* style picker */}
-          <div className="flex flex-wrap items-center gap-2 mb-6">
-            <span className="text-[10px] uppercase tracking-[0.8px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>Style</span>
-            <div className="flex flex-wrap gap-1.5">
-              {BIBO_STYLES.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setBiboStyle(s)}
-                  className="rounded-full transition-colors"
-                  style={{
-                    padding: "5px 11px",
-                    fontFamily: "var(--mono)",
-                    fontSize: 11,
-                    letterSpacing: "0.3px",
-                    border: "1px solid",
-                    borderColor: biboStyle === s ? "var(--ink)" : "var(--rule)",
-                    background: biboStyle === s ? "var(--ink)" : "transparent",
-                    color: biboStyle === s ? "var(--paper)" : "var(--ink-dim)",
-                    cursor: "pointer",
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <div className="flex-1" />
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={savedPapers.length === 0}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors disabled:opacity-40"
-              style={{
-                border: "1px solid var(--rule)",
-                background: "transparent",
-                color: "var(--ink-dim)",
-                fontFamily: "var(--sans)",
-                cursor: savedPapers.length === 0 ? "default" : "pointer",
-              }}
-              onMouseEnter={e => { if (savedPapers.length > 0) (e.currentTarget.style.color = "var(--ink)"); }}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                {copied
-                  ? <><polyline points="20 6 9 17 4 12"/></>
-                  : <><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>
-                }
-              </svg>
-              {copied ? "Copied!" : "Copy all"}
-            </button>
-          </div>
-
-          {/* bibliography text */}
-          <div
-            className="rounded-2xl p-6"
-            style={{ background: "var(--paper)", border: "1px solid var(--rule-soft)" }}
-          >
-            {savedPapers.length === 0 ? (
-              <p className="text-[14px] italic text-center py-8" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
-                Save papers to generate a bibliography.
-              </p>
-            ) : (
-              <pre
-                className="whitespace-pre-wrap break-words leading-relaxed text-[13px]"
-                style={{
-                  fontFamily: biboStyle === "BibTeX" ? "var(--mono)" : "var(--serif)",
-                  color: "var(--ink)",
-                }}
-              >
-                {bibText}
-              </pre>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── page ──────────────────────────────────────────────────────────────────────
 
@@ -3610,7 +3398,6 @@ export default function Home() {
   const { data: session, status: sessionStatus } = useSession();
   const [ready, setReady] = useState(false);
   const [stage, setStage] = useState<"auth" | "app">(session ? "app" : "auth");
-  const [view, setView] = useState<"workspace" | "library">("workspace");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
@@ -3661,7 +3448,12 @@ const [proSuccess, setProSuccess] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
-  const [showUpgradeHint, setShowUpgradeHint] = useState(false);
+  // Split-screen interaction state
+  const [hoveredClaimIdx, setHoveredClaimIdx] = useState<number | null>(null);
+  const [expandedClaims, setExpandedClaims] = useState<Set<number>>(new Set());
+  const claimCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rightPaneRef = useRef<HTMLDivElement>(null);
+
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
   const [showOmakasePicker, setShowOmakasePicker] = useState(false);
   const [omakaseLoading, setOmakaseLoading] = useState<{ style: OmakaseStyleId; label: string } | null>(null);
@@ -4238,12 +4030,12 @@ const [proSuccess, setProSuccess] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langFilter]);
 
-  // Scroll to results when they appear
+  // Expand all claims and reset hover when new results arrive
   useEffect(() => {
     if (results.length > 0) {
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 350);
+      setExpandedClaims(new Set(results.map((_, i) => i)));
+      setHoveredClaimIdx(null);
+      claimCardRefs.current = new Array(results.length).fill(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.length > 0 ? results[0]?.claim : null]);
@@ -4525,7 +4317,7 @@ const [proSuccess, setProSuccess] = useState(false);
               </button>
             )}
 
-            {/* logo mark + name + beta badge */}
+            {/* logo mark + name */}
             <div className="flex items-center gap-2.5 shrink-0">
               <div
                 className="w-7 h-7 rounded-[8px] flex items-center justify-center italic font-semibold text-[14px] shrink-0"
@@ -4539,43 +4331,9 @@ const [proSuccess, setProSuccess] = useState(false);
               >
                 Reference Finder
               </span>
-              <span
-                className="hidden sm:inline text-[9px] font-medium uppercase tracking-[1px] px-1.5 py-0.5 rounded-md"
-                style={{ background: "var(--accent-soft)", color: "var(--accent)", fontFamily: "var(--mono)" }}
-              >
-                beta
-              </span>
             </div>
 
-            {/* center: workspace / library nav tabs */}
-            <div className="flex-1 flex justify-center">
-              <div
-                className="inline-flex items-center gap-0.5 rounded-full p-[3px]"
-                style={{ background: "var(--paper-deep)", border: "1px solid var(--rule-soft)" }}
-              >
-                {(["workspace", "library"] as const).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setView(v)}
-                    className="rounded-full transition-colors capitalize"
-                    style={{
-                      padding: "5px 14px",
-                      border: "none",
-                      cursor: "pointer",
-                      fontFamily: "var(--sans)",
-                      fontSize: 12,
-                      fontWeight: 500,
-                      letterSpacing: "0.3px",
-                      background: view === v ? "var(--ink)" : "transparent",
-                      color: view === v ? "var(--paper)" : "var(--ink-dim)",
-                    }}
-                  >
-                    {v === "workspace" ? "Workspace" : "Library"}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <div className="flex-1" />
 
             {/* right: omakase + lang + theme + sign-in */}
             <div className="flex items-center gap-2 shrink-0">
@@ -4655,16 +4413,7 @@ const [proSuccess, setProSuccess] = useState(false);
               <LanguagePicker lang={lang} onChange={setLang} />
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
-              {/* avatar or sign-in */}
-              {session ? (
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
-                  style={{ background: "var(--accent-soft)", color: "var(--accent)", fontFamily: "var(--sans)" }}
-                  title={session.user?.name ?? session.user?.email ?? "Account"}
-                >
-                  {(session.user?.name ?? session.user?.email ?? "?")[0].toUpperCase()}
-                </div>
-              ) : (
+              {!session && (
                 <button
                   onClick={() => setStage("auth")}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors"
@@ -4679,8 +4428,8 @@ const [proSuccess, setProSuccess] = useState(false);
           </header>
         )}
 
-        <main className={`relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)] ${stage === "app" && ready ? "px-4 sm:px-6 pt-10 pb-12" : "px-4 sm:px-6"}`}>
-          <div
+        <main className={results.length > 0 && stage === "app" && ready ? "flex-1 overflow-hidden flex min-w-0" : `relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)] ${stage === "app" && ready ? "px-4 sm:px-6 pt-10 pb-12" : "px-4 sm:px-6"}`}>
+          {!(results.length > 0 && stage === "app" && ready) && <div
             className={`relative ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
           >
             <TextAnimate
@@ -4737,7 +4486,7 @@ const [proSuccess, setProSuccess] = useState(false);
                 </motion.p>
               )}
             </AnimatePresence>
-          </div>
+          </div>}
 
           <AnimatePresence mode="wait">
 
@@ -5053,31 +4802,8 @@ const [proSuccess, setProSuccess] = useState(false);
               </motion.div>
             )}
 
-            {/* ── app stage — library view ── */}
-            {ready && stage === "app" && view === "library" && (
-              <motion.div
-                key="library"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <LibraryView
-                  savedPapers={savedPapers}
-                  isPro={isPro}
-                  isSignedIn={isSignedIn}
-                  onUpgrade={handleUpgradeClick}
-                  onRemove={(id) => {
-                    if (session) apiFetch(`/api/saved-papers/${id}`, { method: "DELETE" });
-                    else lsRemoveSavedPaper(id);
-                    setSavedPapers((prev) => prev.filter((p) => p.id !== id));
-                  }}
-                />
-              </motion.div>
-            )}
-
-            {/* ── app stage — workspace view ── */}
-            {ready && stage === "app" && view === "workspace" && (
+            {/* ── app stage ── */}
+            {ready && stage === "app" && results.length === 0 && (
               <motion.div
                 key="app"
                 initial={{ opacity: 0, y: 20 }}
@@ -5240,7 +4966,7 @@ const [proSuccess, setProSuccess] = useState(false);
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-[13px] font-[family-name:var(--serif)] italic" style={{ color: "var(--ink-dim)" }}>
+                  <div className="mt-8 flex items-center gap-3 text-[13px] italic" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
                     <svg className="animate-spin h-4 w-4 shrink-0" style={{ color: "var(--accent)" }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -5250,68 +4976,196 @@ const [proSuccess, setProSuccess] = useState(false);
                 )}
 
                 {error && <ErrorBanner message={error} />}
-
-                {results.length > 0 && (
-                  <div ref={resultsRef} className="mt-6 flex flex-col">
-                    {/* Claims count + export / date filter */}
-                    <div className="flex flex-col gap-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-[0.8px] mb-0.5" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
-                              Citations needed
-                            </p>
-                            <h2 className="font-normal text-[22px] leading-tight tracking-[-0.3px]" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
-                              {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
-                            </h2>
-                          </div>
-                          <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
-                        </div>
-                      </div>
-                      <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
-                      <LanguageFilter value={langFilter} onChange={setLangFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
-                    </div>
-
-                    {/* Claim cards + Omakase result */}
-                    <div className="mt-8 flex flex-col gap-6">
-                      {results.map((result, i) => (
-                        <ClaimCard
-                          key={i}
-                          result={result}
-                          index={i}
-                          knownPaperKeys={knownPaperKeys}
-                          yearFilter={yearFilter}
-                          customRange={customRange}
-                          isPro={isPro}
-                          isSignedIn={isSignedIn}
-                          onUpgrade={handleUpgradeClick}
-                          onUsageUpdate={(remaining) =>
-                            setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
-                          }
-                          savedPaperKeys={savedPaperKeys}
-                          onSaveToggle={toggleSavePaper}
-                        />
-                      ))}
-
-                      {/* ── Omakase result ── */}
-                      <AnimatePresence>
-                        {omakaseResult && (
-                          <OmakaseResultSection
-                            rewrittenParagraph={omakaseResult.rewritten_paragraph}
-                            referenceList={omakaseResult.reference_list}
-                            styleName={omakaseResult.label}
-                            onDismiss={() => setOmakaseResult(null)}
-                            containerRef={omakaseResultRef}
-                          />
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                )}
               </motion.div>
             )}
 
           </AnimatePresence>
+
+          {/* ── split-screen workspace: shown when results exist ── */}
+          {ready && stage === "app" && results.length > 0 && (
+            <div className="flex flex-1 overflow-hidden min-w-0">
+
+              {/* ── LEFT PANE: paragraph input + claims list ── */}
+              <div
+                className="flex flex-col overflow-y-auto"
+                style={{
+                  width: "50%",
+                  borderRight: "1px solid var(--rule)",
+                  background: "var(--bg)",
+                }}
+              >
+                {/* sticky form area */}
+                <div className="p-5 pb-4 border-b" style={{ borderColor: "var(--rule-soft)" }}>
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                    <div className="relative">
+                      <textarea
+                        value={text}
+                        onChange={(e) => { setText(e.target.value.slice(0, charLimit)); }}
+                        placeholder={t("placeholder")}
+                        aria-label="Paragraph input"
+                        className={`parchment-textarea w-full rounded-xl border px-4 py-3 pb-6 text-[14px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
+                          !isPro && text.length >= FREE_CHAR_LIMIT
+                            ? "focus:ring-red-500/40"
+                            : "focus:ring-[var(--accent)]"
+                        }`}
+                        style={{
+                          height: 160,
+                          background: "var(--paper)",
+                          borderColor: !isPro && text.length >= FREE_CHAR_LIMIT ? "rgba(239,68,68,0.4)" : "var(--rule)",
+                          color: "var(--ink)",
+                          fontFamily: "var(--serif)",
+                        }}
+                        disabled={loading}
+                      />
+                      <span
+                        className="absolute bottom-2 right-3 text-[10px] tabular-nums tracking-[0.3px]"
+                        style={{
+                          fontFamily: "var(--mono)",
+                          color: charLimit - text.length <= (isPro ? 500 : 100) ? "var(--accent)" : "var(--ink-dim)",
+                        }}
+                      >
+                        {text.length.toLocaleString()}/{charLimit.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setText(pickExample(text))}
+                        disabled={loading}
+                        className="text-[12px] transition-colors disabled:opacity-40"
+                        style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                      >
+                        {t("try_example")}
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!text.trim() || loading || (!isPro && usage.remaining === 0)}
+                        className="btn-submit flex items-center justify-center px-4 py-1.5 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-[13px] font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {loading ? t("analyzing") : t("submit")}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* claims list — hoverable, clickable */}
+                <div className="flex-1 overflow-y-auto p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] uppercase tracking-[1px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>
+                      {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
+                    </p>
+                    <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    {results.map((result, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 rounded-lg px-3 py-2.5 cursor-pointer transition-all"
+                        style={{
+                          background: hoveredClaimIdx === i ? "var(--paper)" : "transparent",
+                          border: `1px solid ${hoveredClaimIdx === i ? "var(--rule)" : "transparent"}`,
+                        }}
+                        onMouseEnter={() => setHoveredClaimIdx(i)}
+                        onMouseLeave={() => setHoveredClaimIdx(null)}
+                        onClick={() => {
+                          // expand if collapsed
+                          setExpandedClaims(prev => { const s = new Set(prev); s.add(i); return s; });
+                          // scroll right pane to this card
+                          const card = claimCardRefs.current[i];
+                          if (card && rightPaneRef.current) {
+                            const cardTop = card.offsetTop;
+                            rightPaneRef.current.scrollTo({ top: cardTop - 16, behavior: "smooth" });
+                          }
+                        }}
+                      >
+                        <span
+                          className="text-[10px] tabular-nums mt-0.5 shrink-0 w-5"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <p
+                          className="text-[13px] italic leading-snug transition-colors"
+                          style={{
+                            color: hoveredClaimIdx === i ? "var(--ink)" : "var(--ink-dim)",
+                            fontFamily: "var(--serif)",
+                          }}
+                        >
+                          {result.claim}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* omakase result in left pane */}
+                  <AnimatePresence>
+                    {omakaseResult && (
+                      <div className="mt-6">
+                        <OmakaseResultSection
+                          rewrittenParagraph={omakaseResult.rewritten_paragraph}
+                          referenceList={omakaseResult.reference_list}
+                          styleName={omakaseResult.label}
+                          onDismiss={() => setOmakaseResult(null)}
+                          containerRef={omakaseResultRef}
+                        />
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* ── RIGHT PANE: citation browser ── */}
+              <div
+                ref={rightPaneRef}
+                className="flex flex-col overflow-y-auto"
+                style={{
+                  width: "50%",
+                  background: "var(--bg-deep)",
+                }}
+              >
+                {/* filters header */}
+                <div className="px-5 pt-4 pb-3 border-b flex flex-wrap gap-3" style={{ borderColor: "var(--rule-soft)" }}>
+                  <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                  <LanguageFilter value={langFilter} onChange={setLangFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                </div>
+
+                {/* claim cards */}
+                <div ref={resultsRef} className="flex flex-col gap-3 p-5">
+                  {results.map((result, i) => (
+                    <ClaimCard
+                      key={i}
+                      result={result}
+                      index={i}
+                      knownPaperKeys={knownPaperKeys}
+                      yearFilter={yearFilter}
+                      customRange={customRange}
+                      isPro={isPro}
+                      isSignedIn={isSignedIn}
+                      onUpgrade={handleUpgradeClick}
+                      onUsageUpdate={(remaining) =>
+                        setUsage((u) => ({ ...u, remaining, count: u.limit - remaining }))
+                      }
+                      savedPaperKeys={savedPaperKeys}
+                      onSaveToggle={toggleSavePaper}
+                      isExpanded={expandedClaims.has(i)}
+                      onToggle={() => setExpandedClaims(prev => {
+                        const s = new Set(prev);
+                        if (s.has(i)) s.delete(i); else s.add(i);
+                        return s;
+                      })}
+                      isHovered={hoveredClaimIdx === i}
+                      cardRef={(el) => { claimCardRefs.current[i] = el; }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          )}
+
         </main>
         </div>
         {/* end flex shell */}
