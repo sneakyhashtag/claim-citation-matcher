@@ -23,8 +23,11 @@
   --rule:        oklch(0.93 0.008 80 / 0.10);
   --rule-soft:   oklch(0.93 0.008 80 / 0.05);
 
-  /* ── Font stacks ── */
-  --serif: var(--font-lora), Georgia, 'Times New Roman', serif;
+  /* ── bg-deep: slightly deeper surface, used for right pane ── */
+  --bg-deep: oklch(0.11 0.010 75);
+
+  /* ── Font stacks (Fraunces = primary editorial serif) ── */
+  --serif: var(--font-fraunces), var(--font-lora), Georgia, 'Times New Roman', serif;
   --sans:  var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
   --mono:  ui-monospace, 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 }
@@ -36,6 +39,7 @@ html.light {
   --page-bg:    oklch(0.98 0.008 85);
 
   --bg:          oklch(0.98 0.008 85);
+  --bg-deep:     oklch(0.965 0.010 85);
   --paper:       oklch(0.995 0.005 85);
   --paper-deep:  oklch(0.955 0.012 75);
   --ink:         oklch(0.22 0.015 60);

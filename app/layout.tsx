@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Playfair_Display, Lora } from "next/font/google";
+import { DM_Sans, Playfair_Display, Lora, Fraunces } from "next/font/google";
 import Link from "next/link";
 import Providers from "./providers";
 import "./globals.css";
@@ -21,6 +21,14 @@ const lora = Lora({
   variable: "--font-lora",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+// Fraunces — optical-size display serif (the primary editorial serif from the design)
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
 
@@ -62,7 +70,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${playfair.variable} ${lora.variable} font-[family-name:var(--font-dm-sans)] antialiased`}
+        className={`${dmSans.variable} ${playfair.variable} ${lora.variable} ${fraunces.variable} font-[family-name:var(--font-dm-sans)] antialiased`}
       >
         <Providers>
           {children}
