@@ -4291,7 +4291,13 @@ const [proSuccess, setProSuccess] = useState(false);
 
         {/* ── Main content area (pushed right by sidebar) ── */}
         <div
-          className={`relative flex-1 min-w-0 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12 px-4 sm:px-6" : "flex flex-col"}`}
+          className={`relative flex-1 min-w-0 [overflow-anchor:none] ${
+            results.length > 0 && stage === "app" && ready
+              ? "h-screen overflow-hidden flex flex-col"
+              : isCentered
+                ? "flex items-center justify-center py-12 px-4 sm:px-6"
+                : "flex flex-col"
+          }`}
           style={{ background: "var(--bg)" }}
         >
 
@@ -4988,7 +4994,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
               {/* ── LEFT PANE: paragraph input + claims list ── */}
               <div
-                className="flex flex-col overflow-y-auto"
+                className="flex flex-col overflow-hidden"
                 style={{
                   width: "50%",
                   borderRight: "1px solid var(--rule)",
