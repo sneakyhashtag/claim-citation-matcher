@@ -863,30 +863,30 @@ function getTier(score: number): {
 } {
   if (score >= 5) return {
     label: "tier_direct",
-    cardClass: "bg-green-500/[0.07] light:bg-[rgba(30,70,32,0.05)] border-green-500/25 light:border-[rgba(30,70,32,0.22)]",
-    badgeClass: "bg-green-500/15 text-green-400 light:bg-[rgba(30,70,32,0.11)] light:border-[rgba(30,70,32,0.32)] light:text-[#1E4620]",
-    excerptBorderClass: "border-l-green-500/50 light:border-l-[rgba(30,70,32,0.40)]",
-    excerptBgClass: "bg-green-500/[0.06] light:bg-[rgba(240,252,240,0.80)]",
-    excerptTextClass: "text-green-200/80 light:text-[#1E4620]",
-    excerptLabelClass: "text-green-500/60 light:text-[rgba(30,70,32,0.55)]",
+    cardClass: "border-[var(--accent)]",
+    badgeClass: "bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)]",
+    excerptBorderClass: "border-l-[var(--accent)]",
+    excerptBgClass: "bg-[var(--paper-deep)]",
+    excerptTextClass: "text-[var(--ink)]",
+    excerptLabelClass: "text-[var(--ink-dim)]",
   };
   if (score >= 4) return {
     label: "tier_high",
-    cardClass: "bg-blue-500/[0.07] light:bg-[rgba(42,48,112,0.05)] border-blue-500/25 light:border-[rgba(42,48,112,0.2)]",
-    badgeClass: "bg-blue-500/15 text-blue-400 light:bg-[rgba(42,48,112,0.09)] light:border-[rgba(42,48,112,0.28)] light:text-[#2A3070]",
-    excerptBorderClass: "border-l-blue-500/50 light:border-l-[rgba(42,48,112,0.38)]",
-    excerptBgClass: "bg-blue-500/[0.06] light:bg-[rgba(240,244,255,0.80)]",
-    excerptTextClass: "text-blue-200/80 light:text-[#2A3070]",
-    excerptLabelClass: "text-blue-500/60 light:text-[rgba(42,48,112,0.55)]",
+    cardClass: "border-[var(--rule)]",
+    badgeClass: "bg-[var(--paper-deep)] border-[var(--rule)] text-[var(--ink-dim)]",
+    excerptBorderClass: "border-l-[var(--accent)]",
+    excerptBgClass: "bg-[var(--paper-deep)]",
+    excerptTextClass: "text-[var(--ink)]",
+    excerptLabelClass: "text-[var(--ink-dim)]",
   };
   return {
     label: "tier_moderate",
-    cardClass: "bg-amber-500/[0.06] light:bg-[rgba(107,58,0,0.05)] border-amber-500/20 light:border-[rgba(107,58,0,0.2)]",
-    badgeClass: "bg-amber-500/15 text-amber-400 light:bg-[rgba(107,58,0,0.09)] light:border-[rgba(107,58,0,0.26)] light:text-[#6B3A00]",
-    excerptBorderClass: "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.38)]",
-    excerptBgClass: "bg-amber-500/[0.05] light:bg-[rgba(255,248,235,0.85)]",
-    excerptTextClass: "text-amber-200/80 light:text-[#6B3A00]",
-    excerptLabelClass: "text-amber-500/60 light:text-[rgba(107,58,0,0.55)]",
+    cardClass: "border-[var(--rule)]",
+    badgeClass: "bg-[var(--paper-deep)] border-[var(--rule)] text-[var(--ink-dim)]",
+    excerptBorderClass: "border-l-[var(--rule)]",
+    excerptBgClass: "bg-[var(--paper-deep)]",
+    excerptTextClass: "text-[var(--ink-dim)]",
+    excerptLabelClass: "text-[var(--ink-dim)]",
   };
 }
 
@@ -1364,7 +1364,7 @@ function ScoreBadge({ score }: { score: number }) {
   const t = useContext(LangContext);
   const { label, badgeClass } = getTier(score);
   return (
-    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${badgeClass}`}>
+    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-[family-name:var(--font-dm-sans)] text-[10px] tracking-[0.5px] uppercase ${badgeClass}`}>
       {t(label as Parameters<typeof t>[0])}
     </span>
   );
@@ -1408,7 +1408,10 @@ function CitationMenu({ paper }: { paper: Paper }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1 text-xs text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] transition-colors"
+        className="inline-flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-[11px] tracking-[0.3px] transition-colors"
+        style={{ color: "var(--accent)" }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = "0.75")}
+        onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         title={t("copy_citation")}
       >
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -1427,10 +1430,11 @@ function CitationMenu({ paper }: { paper: Paper }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 4 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute bottom-full left-0 mb-2 z-30 w-44 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
+            className="absolute bottom-full left-0 mb-2 z-30 w-44 rounded-xl shadow-2xl py-1 overflow-hidden"
+            style={{ background: "var(--paper)", border: "1px solid var(--rule)" }}
             role="menu"
           >
-            <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+            <p className="px-3 pt-1.5 pb-1 font-[family-name:var(--font-dm-sans)] text-[10px] font-medium uppercase tracking-[0.8px]" style={{ color: "var(--ink-dim)" }}>
               {t("copy_citation_header")}
             </p>
             {CITATION_FORMATS.map(({ id, label, fn }) => {
@@ -1440,16 +1444,19 @@ function CitationMenu({ paper }: { paper: Paper }) {
                   key={id}
                   type="button"
                   onClick={() => handleCopy(id, fn(paper))}
-                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 light:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors text-left"
+                  className="w-full flex items-center justify-between px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[12px] transition-colors text-left"
+                  style={{ color: isCopied ? "var(--accent)" : "var(--ink)" }}
+                  onMouseEnter={e => { if (!isCopied) (e.currentTarget as HTMLElement).style.background = "var(--paper-deep)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   role="menuitem"
                 >
-                  <span className={isCopied ? "text-green-400 light:text-[#1E4620] font-medium" : ""}>{label}</span>
+                  <span>{label}</span>
                   {isCopied ? (
-                    <svg className="h-3.5 w-3.5 text-green-400 light:text-[#1E4620] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <svg className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--accent)" }} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
                     </svg>
                   ) : (
-                    <svg className="h-3 w-3 text-slate-600 light:text-[#A67856] shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                    <svg className="h-3 w-3 shrink-0" style={{ color: "var(--ink-dim)" }} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 3H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3M8 3a2 2 0 002 2h2a2 2 0 002-2M8 3a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                   )}
@@ -1739,7 +1746,7 @@ function PaperCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: index * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
-        className={`paper-card rounded-md border p-4 ${cardClass}`}
+        className={`paper-card rounded-xl border p-4 bg-[var(--paper)] ${cardClass}`}
       >
         {/* title row */}
         <div className="flex items-start justify-between gap-3">
@@ -1749,23 +1756,28 @@ function PaperCard({
                 href={paper.doi}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-[#8B2500] transition-colors leading-snug break-words"
+                className="font-[family-name:var(--font-lora)] text-[15px] leading-snug break-words transition-colors"
+                style={{ color: "var(--ink)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--ink)")}
               >
                 {paper.title ?? "Untitled"}
               </a>
             ) : (
-              <span className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-snug break-words">
+              <span
+                className="font-[family-name:var(--font-lora)] text-[15px] leading-snug break-words"
+                style={{ color: "var(--ink)" }}
+              >
                 {paper.title ?? "Untitled"}
               </span>
             )}
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {paper.source && (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                paper.source === "Semantic Scholar"
-                  ? "bg-purple-500/15 text-purple-400 light:bg-[rgba(75,20,95,0.10)] light:text-[#4B1460]"
-                  : "bg-white/10 light:bg-[rgba(44,24,16,0.08)] text-slate-300 light:text-[#4A2E1A]"
-              }`}>
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 font-[family-name:var(--font-dm-sans)] text-[10px] tracking-[0.4px] uppercase"
+                style={{ border: "1px solid var(--rule)", color: "var(--ink-dim)", background: "var(--paper-deep)" }}
+              >
                 {paper.source === "Semantic Scholar" ? "S2" : "OA"}
               </span>
             )}
@@ -1792,12 +1804,12 @@ function PaperCard({
 
         {/* authors · year */}
         {authorYearMeta && (
-          <p className="mt-1.5 text-xs text-slate-400 light:text-[#6B4226] break-words">{authorYearMeta}</p>
+          <p className="mt-1.5 text-[11px] break-words font-[family-name:var(--font-dm-sans)] tracking-[0.2px]" style={{ color: "var(--ink-dim)" }}>{authorYearMeta}</p>
         )}
 
         {/* journal */}
         {paper.journal && (
-          <p className="mt-0.5 text-xs text-slate-500 light:text-[#6B4226] italic truncate" title={paper.journal}>
+          <p className="mt-0.5 text-[11px] italic truncate font-[family-name:var(--font-lora)]" style={{ color: "var(--ink-dim)" }} title={paper.journal}>
             {paper.journal}
           </p>
         )}
@@ -1806,27 +1818,30 @@ function PaperCard({
         <PaperStatBadges paper={paper} />
 
         {/* relevance explanation */}
-        <p className="mt-2 text-xs text-slate-500 light:text-[#6B4226] italic leading-relaxed">
+        <p className="mt-2 text-[12px] italic leading-relaxed font-[family-name:var(--font-lora)]" style={{ color: "var(--ink-dim)" }}>
           {paper.relevanceExplanation}
         </p>
 
         {/* matching excerpt — Abstract Match */}
         {paper.matchingExcerpt && paper.matchType === "Abstract Match" && (
-          <div className={`mt-2.5 rounded-sm border-l-2 px-3 py-2 ${excerptBorderClass} ${excerptBgClass}`}>
-            <div className="mb-1.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold text-green-400 light:border-[rgba(30,100,40,0.32)] light:bg-[rgba(30,100,40,0.11)] light:text-[#1A5C22]">
+          <div className={`mt-2.5 rounded-lg border-l-2 px-3 py-2.5 ${excerptBorderClass} ${excerptBgClass}`}>
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium font-[family-name:var(--font-dm-sans)] tracking-[0.5px] uppercase"
+                style={{ background: "var(--accent-soft)", color: "var(--accent)", border: "1px solid var(--accent)" }}
+              >
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
                   <path d="M10.28 2.28a.75.75 0 0 0-1.06 0L4.5 6.997 2.78 5.28a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l5.25-5.25a.75.75 0 0 0 0-1.06Z"/>
                 </svg>
                 {t("abstract_match")}
               </span>
-              <span className={`text-[10px] font-medium uppercase tracking-wide ${excerptLabelClass}`}>
+              <span className="text-[10px] font-[family-name:var(--font-dm-sans)] uppercase tracking-[0.5px]" style={{ color: "var(--ink-dim)" }}>
                 {t("matching_from_abstract")}
               </span>
               <MatchTypeInfoIcon />
             </div>
             <blockquote>
-              <p className={`text-[11px] italic leading-relaxed ${excerptTextClass}`}>
+              <p className={`text-[12px] italic leading-relaxed font-[family-name:var(--font-lora)] ${excerptTextClass}`}>
                 <span className="select-none not-italic opacity-50">&ldquo;</span>
                 {paper.matchingExcerpt}
                 <span className="select-none not-italic opacity-50">&rdquo;</span>
@@ -1837,21 +1852,24 @@ function PaperCard({
 
         {/* matching excerpt — Topic Match */}
         {paper.matchingExcerpt && paper.matchType === "Topic Match" && (
-          <div className="mt-2.5 rounded-sm border border-slate-700/40 bg-slate-800/30 px-3 py-2 light:border-[rgba(80,60,30,0.18)] light:bg-[rgba(245,240,230,0.70)]">
-            <div className="mb-1.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400 light:border-[rgba(42,48,112,0.32)] light:bg-[rgba(42,48,112,0.10)] light:text-[#2A3070]">
+          <div className="mt-2.5 rounded-lg border-l-2 px-3 py-2.5" style={{ background: "var(--paper-deep)", borderLeftColor: "var(--rule)" }}>
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium font-[family-name:var(--font-dm-sans)] tracking-[0.5px] uppercase"
+                style={{ background: "var(--paper)", color: "var(--ink-dim)", border: "1px solid var(--rule)" }}
+              >
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
                   <circle cx="6" cy="6" r="4.5"/>
                   <path d="M6 4v2.5M6 8v.5"/>
                 </svg>
                 {t("topic_match")}
               </span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500/70 light:text-[rgba(80,60,30,0.55)]">
+              <span className="text-[10px] font-[family-name:var(--font-dm-sans)] uppercase tracking-[0.5px]" style={{ color: "var(--ink-dim)" }}>
                 {t("how_paper_relates")}
               </span>
               <MatchTypeInfoIcon />
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-400 light:text-[#4A3520]">
+            <p className="text-[12px] italic leading-relaxed font-[family-name:var(--font-lora)]" style={{ color: "var(--ink-dim)" }}>
               {paper.matchingExcerpt}
             </p>
           </div>
@@ -2299,37 +2317,53 @@ function ClaimCard({
     visiblePapers.length > 0 ? "border-l-amber-500/50 light:border-l-[rgba(107,58,0,0.45)]" :
     "border-l-white/15 light:border-l-[rgba(44,24,16,0.2)]";
 
+  const claimAccentStyle =
+    topScore >= 5 ? { borderLeftColor: "var(--accent)" } :
+    topScore >= 4 ? { borderLeftColor: "var(--ink-dim)" } :
+    { borderLeftColor: "var(--rule)" };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`claim-card rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] border-l-2 ${accentClass} bg-white/[0.03] light:bg-[rgba(44,24,16,0.025)] backdrop-blur-sm`}
+      className="claim-card rounded-xl border-l-2 overflow-hidden"
+      style={{ background: "var(--paper)", border: "1px solid var(--rule)", ...claimAccentStyle }}
     >
       {/* claim header */}
-      <div className="bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] border-b border-white/10 light:border-[rgba(80,50,20,0.1)] px-5 py-4 rounded-t-xl overflow-hidden">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-white light:text-[#2C1810] text-xs font-medium shrink-0">
-            {index + 1}
+      <div className="px-5 py-4 border-b" style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}>
+        <div className="flex items-center gap-2.5 mb-2.5">
+          <span
+            className="font-[family-name:var(--font-dm-sans)] text-[11px] tracking-[0.8px] uppercase tabular-nums"
+            style={{ color: "var(--ink-dim)" }}
+          >
+            {String(index + 1).padStart(2, "0")}
           </span>
-          <span className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("claim_label")}</span>
+          <span
+            className="font-[family-name:var(--font-dm-sans)] text-[10px] font-medium uppercase tracking-[0.8px]"
+            style={{ color: "var(--ink-dim)" }}
+          >
+            {t("claim_label")}
+          </span>
         </div>
-        <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-relaxed">
-          &ldquo;{result.claim}&rdquo;
+        <p className="font-[family-name:var(--font-lora)] text-[15px] italic leading-[1.55]" style={{ color: "var(--ink)" }}>
+          <span style={{ color: "var(--accent)", fontStyle: "normal" }}>&ldquo;</span>
+          {result.claim}
+          <span style={{ color: "var(--accent)", fontStyle: "normal" }}>&rdquo;</span>
         </p>
       </div>
 
       {/* papers */}
       <div className="px-5 py-4">
         {result.papers.length === 0 ? (
-          <p className="text-xs text-slate-500 light:text-[#6B4226]">
+          <p className="text-[12px] font-[family-name:var(--font-lora)] italic" style={{ color: "var(--ink-dim)" }}>
             {t("no_relevant_papers")}
           </p>
         ) : visiblePapers.length === 0 ? (
-          <p className="text-xs text-slate-500 light:text-[#6B4226]">
+          <p className="text-[12px] font-[family-name:var(--font-lora)] italic" style={{ color: "var(--ink-dim)" }}>
             {t("no_papers_date_filter")}
             {hiddenCount > 0 && (
-              <span className="ml-1 text-slate-600 light:text-[#A67856]">
+              <span className="ml-1">
                 {hiddenCount === 1 ? t("papers_hidden_one") : t("papers_hidden_many", { n: hiddenCount })}
               </span>
             )}
@@ -2340,7 +2374,7 @@ function ClaimCard({
               <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} />
             ))}
             {hiddenCount > 0 && (
-              <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
+              <p className="text-[11px] font-[family-name:var(--font-dm-sans)] pt-0.5" style={{ color: "var(--ink-dim)" }}>
                 {hiddenCount === 1 ? t("older_papers_hidden_one") : t("older_papers_hidden_many", { n: hiddenCount })}
               </p>
             )}
@@ -3067,14 +3101,17 @@ function SidebarInner({
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0">
-        <span className="text-sm font-semibold text-slate-200 light:text-[#2C1810] tracking-tight select-none">
+        <span className="font-[family-name:var(--font-lora)] text-[14px] font-medium select-none" style={{ color: "var(--ink)" }}>
           Reference Finder
         </span>
         <button
           type="button"
           onClick={onClose}
           aria-label={t("aria_collapse_sidebar")}
-          className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 light:text-[#8B5E3C] hover:text-slate-200 light:hover:text-[#2C1810] hover:bg-white/[0.08] light:hover:bg-black/[0.06] transition-colors"
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
+          style={{ color: "var(--ink-dim)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
         >
           <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0z" clipRule="evenodd" />
@@ -3084,7 +3121,7 @@ function SidebarInner({
 
       {/* ── Profile + plan ── */}
       {session && (
-        <div className="px-4 pb-4 shrink-0 border-b border-white/[0.07] light:border-[rgba(80,50,20,0.09)]">
+        <div className="px-4 pb-4 shrink-0 border-b" style={{ borderColor: "var(--rule)" }}>
           <div className="flex items-center gap-3 mb-3">
             {session.user?.image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -4029,38 +4066,25 @@ const [proSuccess, setProSuccess] = useState(false);
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
 
-      {/* ── top-left button: hamburger (signed-in app stage) or help (otherwise) ── */}
+      {/* ── help button — only on landing/auth stage ── */}
       <AnimatePresence>
-        {ready && (
+        {ready && stage !== "app" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed top-4 left-4 z-30"
           >
-            {stage === "app" && isSignedIn && !sidebarOpen ? (
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open sidebar"
-                className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
-                </svg>
-              </button>
-            ) : stage === "app" && isSignedIn ? null : (
-              <button
-                type="button"
-                onClick={() => setShowHowTo(true)}
-                aria-label="How to use"
-                className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
-              >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-                </svg>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowHowTo(true)}
+              aria-label="How to use"
+              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+              </svg>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -4191,7 +4215,8 @@ const [proSuccess, setProSuccess] = useState(false);
         <motion.aside
           animate={{ width: !isMobile && isSignedIn && stage === "app" && ready && sidebarOpen ? 280 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.9 }}
-          className="shrink-0 overflow-hidden border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)] bg-[#111111] light:bg-[#E5E4C4] sticky top-0 h-screen z-20"
+          className="shrink-0 overflow-hidden border-r sticky top-0 h-screen z-20"
+          style={{ background: "var(--paper)", borderColor: "var(--rule)" }}
           aria-hidden={isMobile || !sidebarOpen}
         >
           <div className="w-[280px] h-full">
@@ -4237,7 +4262,8 @@ const [proSuccess, setProSuccess] = useState(false);
                 animate={{ x: 0 }}
                 exit={{ x: -280 }}
                 transition={{ type: "spring", stiffness: 340, damping: 34, mass: 0.85 }}
-                className="fixed left-0 top-0 h-full z-50 w-[280px] bg-[#111111] light:bg-[#E5E4C4] border-r border-white/[0.07] light:border-[rgba(80,50,20,0.11)]"
+                className="fixed left-0 top-0 h-full z-50 w-[280px] border-r"
+                style={{ background: "var(--paper)", borderColor: "var(--rule)" }}
               >
                 <SidebarInner
                   session={session} isPro={isPro} upgrading={upgrading}
@@ -4266,65 +4292,82 @@ const [proSuccess, setProSuccess] = useState(false);
 
         {/* ── Main content area (pushed right by sidebar) ── */}
         <div
-          className={`noise-overlay relative flex-1 min-w-0 bg-[var(--page-bg)] px-4 sm:px-6 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12" : "pt-20 pb-12 sm:pt-14 sm:pb-12"}`}
+          className={`relative flex-1 min-w-0 [overflow-anchor:none] ${isCentered ? "flex items-center justify-center py-12 px-4 sm:px-6" : "flex flex-col"}`}
+          style={{ background: "var(--bg)" }}
         >
-        {/* Ambient layers — dot grid, orbs, vignette */}
-        <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-          {/* Dot grid pattern */}
-          <div className="dot-pattern absolute inset-0" />
-          {/* Gradient orbs */}
-          <div className="orb-1 absolute top-[20%] left-[15%] w-[480px] h-[480px] rounded-full bg-indigo-600/[0.12] light:bg-indigo-500/[0.07] blur-[100px]" />
-          <div className="orb-2 absolute bottom-[20%] right-[10%] w-[420px] h-[420px] rounded-full bg-violet-600/[0.10] light:bg-violet-500/[0.06] blur-[90px]" />
-          <div className="orb-3 absolute top-[55%] left-[55%] w-[300px] h-[300px] rounded-full bg-blue-500/[0.07] light:bg-blue-400/[0.05] blur-[80px]" />
-          {/* Edge vignette */}
-          <div className="vignette absolute inset-0" />
-        </div>
-        {/* Floating top-right controls — visible when in the app stage */}
-        <AnimatePresence>
-          {stage === "app" && ready && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed top-4 right-4 z-30 flex items-center gap-2"
-            >
+
+        {/* ── Editorial top bar — app stage only ── */}
+        {stage === "app" && ready && (
+          <header
+            className="sticky top-0 z-20 h-14 flex items-center gap-3 px-5 border-b shrink-0"
+            style={{ background: "var(--bg)", borderColor: "var(--rule)" }}
+          >
+            {/* hamburger — when sidebar closed */}
+            {isSignedIn && !sidebarOpen && (
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sidebar"
+                className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
+                style={{ color: "var(--ink-dim)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+
+            {/* logo mark + name */}
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-7 h-7 rounded-[8px] flex items-center justify-center font-[family-name:var(--font-lora)] italic font-semibold text-[14px] shrink-0"
+                style={{ background: "var(--ink)", color: "var(--bg)" }}
+              >
+                R
+              </div>
+              <span
+                className="font-[family-name:var(--font-lora)] text-[15px] font-medium hidden sm:inline"
+                style={{ color: "var(--ink)" }}
+              >
+                Reference Finder
+              </span>
+            </div>
+
+            <div className="flex-1" />
+
+            {/* right: controls */}
+            <div className="flex items-center gap-2">
               <LanguagePicker lang={lang} onChange={setLang} />
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
-
-              {/* Sign in — guests only */}
               {!session && (
                 <button
-                  onClick={() => signIn("google")}
-                  className="parchment-pill flex items-center gap-1.5 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm px-2.5 py-1.5 hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-sm font-medium text-slate-200 light:text-[#4A2E1A]"
+                  onClick={() => setStage("auth")}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors font-[family-name:var(--font-dm-sans)]"
+                  style={{ border: "1px solid var(--rule)", color: "var(--ink-dim)", background: "transparent" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-dim)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink-dim)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--rule)"; }}
                 >
-                  <svg className="h-4 w-4 text-slate-400 light:text-[#8B5E3C] shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd"/>
-                  </svg>
                   {t("sign_in")}
                 </button>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </header>
+        )}
 
-        <main className="relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)]">
+        <main className={`relative z-10 mx-auto w-full max-w-2xl lg:max-w-[min(calc(100vw-12rem),100%)] ${stage === "app" && ready ? "px-4 sm:px-6 pt-10 pb-12" : "px-4 sm:px-6"}`}>
           <div
-            className={`relative rounded-xl p-2 ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
+            className={`relative ${hasActivity ? "mb-8 text-left" : ready && stage === "app" ? "mb-8 text-center" : "mb-0 text-center"}`}
           >
-            <BorderBeam
-              colorFrom={theme === "light" ? "#92400e" : "#3b82f6"}
-              colorTo={theme === "light" ? "#d97706" : "#8b5cf6"}
-              duration={10}
-              size={80}
-              borderWidth={1}
-            />
             <TextAnimate
               as="h1"
               by="word"
               animation="blurInUp"
               startOnView={false}
               once
-              className="font-[family-name:var(--font-playfair)] text-4xl font-extrabold text-white light:text-[#2C1810] sm:text-5xl leading-tight tracking-tight light:letterpress-title"
+              className="font-[family-name:var(--font-lora)] text-4xl font-normal sm:text-5xl leading-tight tracking-[-1.5px]"
+              style={{ color: "var(--ink)" }}
             >
               Reference Finder
             </TextAnimate>
@@ -4338,7 +4381,8 @@ const [proSuccess, setProSuccess] = useState(false);
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mt-3 text-lg font-light text-slate-400 light:text-[#6B4226] tracking-wide sm:text-xl"
+                  className="mt-3 text-lg font-[family-name:var(--font-lora)] italic sm:text-xl"
+                  style={{ color: "var(--ink-dim)" }}
                 >
                   {t("tagline")}
                 </motion.p>
@@ -4351,7 +4395,8 @@ const [proSuccess, setProSuccess] = useState(false);
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-4 text-sm text-slate-400 light:text-[#4A2E1A]"
+                  className="mt-4 text-[14px] font-[family-name:var(--font-lora)] italic"
+                  style={{ color: "var(--ink-dim)" }}
                 >
                   {greeting ?? t("subtitle_app")}
                 </motion.p>
@@ -4362,7 +4407,8 @@ const [proSuccess, setProSuccess] = useState(false);
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="mt-4 text-sm text-slate-400 light:text-[#4A2E1A]"
+                  className="mt-4 text-[14px] font-[family-name:var(--font-lora)] italic"
+                  style={{ color: "var(--ink-dim)" }}
                 >
                   {t("subtitle_auth")}
                 </motion.p>
@@ -4699,21 +4745,29 @@ const [proSuccess, setProSuccess] = useState(false);
                       onChange={(e) => { setText(e.target.value.slice(0, charLimit)); setUploadError(""); }}
                       placeholder={t("placeholder")}
                       aria-label="Paragraph input"
-                      className={`parchment-textarea w-full h-44 sm:h-48 rounded-xl border bg-white/[0.05] light:bg-[rgba(255,252,234,0.75)] backdrop-blur-md px-4 py-3 pb-7 text-sm text-slate-100 light:text-[#2C1810] placeholder-white/25 resize-none focus:outline-none focus:ring-1 focus:border-transparent transition-colors disabled:opacity-50 ${
+                      className={`parchment-textarea w-full h-44 sm:h-48 rounded-xl border px-4 py-3 pb-7 font-[family-name:var(--font-lora)] text-[15px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
                         !isPro && text.length >= FREE_CHAR_LIMIT
-                          ? "border-red-500/40 focus:ring-red-500/40"
-                          : "border-white/10 light:border-[rgba(80,50,20,0.15)] focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)]"
+                          ? "focus:ring-red-500/40"
+                          : "focus:ring-[var(--accent)]"
                       }`}
+                      style={{
+                        background: "var(--paper)",
+                        borderColor: !isPro && text.length >= FREE_CHAR_LIMIT ? "rgba(239,68,68,0.4)" : "var(--rule)",
+                        color: "var(--ink)",
+                      }}
                       disabled={loading || extracting}
                     />
                     <span
-                      className={`absolute bottom-2 right-3 text-xs tabular-nums ${
+                      className={`absolute bottom-2 right-3 text-[11px] tabular-nums font-[family-name:var(--font-dm-sans)] tracking-[0.3px] ${
                         !isPro && text.length >= FREE_CHAR_LIMIT
-                          ? "text-red-400 light:text-red-600 font-medium"
-                          : charLimit - text.length <= (isPro ? 500 : 100)
-                          ? "text-amber-400 light:text-amber-600"
-                          : "text-slate-500 light:text-[#6B4226]"
+                          ? "text-red-400"
+                          : ""
                       }`}
+                      style={
+                        isPro || text.length < FREE_CHAR_LIMIT
+                          ? { color: charLimit - text.length <= (isPro ? 500 : 100) ? "var(--accent)" : "var(--ink-dim)" }
+                          : undefined
+                      }
                     >
                       {text.length.toLocaleString()}/{charLimit.toLocaleString()}
                     </span>
@@ -4956,8 +5010,8 @@ const [proSuccess, setProSuccess] = useState(false);
                 )}
 
                 {loading && (
-                  <div className="mt-8 flex items-center gap-3 text-sm text-slate-400 light:text-[#4A2E1A]">
-                    <svg className="animate-spin h-4 w-4 shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                  <div className="mt-8 flex items-center gap-3 text-[13px] font-[family-name:var(--font-lora)] italic" style={{ color: "var(--ink-dim)" }}>
+                    <svg className="animate-spin h-4 w-4 shrink-0" style={{ color: "var(--accent)" }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
@@ -4973,9 +5027,14 @@ const [proSuccess, setProSuccess] = useState(false);
                     <div className="flex flex-col gap-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <h2 className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">
-                            {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
-                          </h2>
+                          <div>
+                            <p className="font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px] mb-0.5" style={{ color: "var(--ink-dim)" }}>
+                              Citations needed
+                            </p>
+                            <h2 className="font-[family-name:var(--font-lora)] font-normal text-[22px] leading-tight tracking-[-0.3px]" style={{ color: "var(--ink)" }}>
+                              {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
+                            </h2>
+                          </div>
                           <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                         </div>
                       </div>
