@@ -4211,6 +4211,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
         {/* ── Left sidebar — desktop push (lg+) ── */}
         <motion.aside
+          initial={{ width: 0 }}
           animate={{ width: !isMobile && isSignedIn && stage === "app" && ready && sidebarOpen ? 280 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.9 }}
           className="shrink-0 overflow-hidden border-r sticky top-0 h-screen z-20"
