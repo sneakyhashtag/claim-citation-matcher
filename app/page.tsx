@@ -2887,13 +2887,23 @@ function PlanModal({
       const { clientSecret } = await siRes.json();
 
       // 2. Confirm the card setup — validates the card without charging
+      if (!cardElementRef.current) {
+        setCardError("Please enter your card details and try again.");
+        setStep("card");
+        setProcessing(false);
+        return;
+      }
+
       const { setupIntent, error: setupError } = await stripeRef.current.confirmCardSetup(
         clientSecret,
         { payment_method: { card: cardElementRef.current } }
       );
 
       if (setupError) {
-        setCardError(setupError.message ?? "Card validation failed");
+        // Strip raw Stripe SDK messages; show a clean user-facing error instead
+        const msg = setupError.message ?? "";
+        const isTechnical = /Invalid value|should be an object|element\.|You specified/i.test(msg);
+        setCardError(isTechnical ? "Your card details are invalid. Please check them and try again." : msg);
         setStep("card");
         setProcessing(false);
         return;
