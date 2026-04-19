@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -11,6 +11,12 @@ function ForgotPasswordForm() {
   const signInHref =
     `/signin` +
     (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
+
+  useEffect(() => {
+    const theme = localStorage.getItem("rf_theme");
+    if (theme === "light") document.documentElement.classList.add("light");
+    else document.documentElement.classList.remove("light");
+  }, []);
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +44,7 @@ function ForgotPasswordForm() {
 
   return (
     <div
-      className="min-h-screen flex flex-col sm:flex-row"
+      className="noise-overlay min-h-screen flex flex-col sm:flex-row"
       style={{ background: "var(--bg-deep)" }}
     >
       {/* ── LEFT PANE ── */}

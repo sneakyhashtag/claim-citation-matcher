@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -21,6 +21,12 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+
+  useEffect(() => {
+    const theme = localStorage.getItem("rf_theme");
+    if (theme === "light") document.documentElement.classList.add("light");
+    else document.documentElement.classList.remove("light");
+  }, []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -72,7 +78,7 @@ function RegisterForm() {
 
   return (
     <div
-      className="min-h-screen flex flex-col sm:flex-row"
+      className="noise-overlay min-h-screen flex flex-col sm:flex-row"
       style={{ background: "var(--bg-deep)" }}
     >
       {/* ── LEFT PANE ── */}

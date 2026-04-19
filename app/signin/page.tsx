@@ -42,6 +42,10 @@ function SignInForm() {
     const saved = localStorage.getItem("rf_lang") as Lang | null;
     if (saved === "en" || saved === "zh" || saved === "ja" || saved === "ko") setLang(saved);
     else setLang(detectLang());
+    // Sync theme with main app preference
+    const theme = localStorage.getItem("rf_theme");
+    if (theme === "light") document.documentElement.classList.add("light");
+    else document.documentElement.classList.remove("light");
   }, []);
 
   const t = getT(lang);
@@ -80,7 +84,7 @@ function SignInForm() {
 
   return (
     <div
-      className="min-h-screen flex flex-col sm:flex-row"
+      className="noise-overlay min-h-screen flex flex-col sm:flex-row"
       style={{ background: "var(--bg-deep)" }}
     >
 
