@@ -730,7 +730,7 @@ function ExportMenu({
         className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 light:border-[rgba(44,24,16,0.14)] bg-white/[0.05] light:bg-[rgba(44,24,16,0.04)] px-2.5 py-1 text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
           isPro
             ? "text-[var(--ink-dim)] hover:bg-white/[0.09] light:hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
-            : "text-[var(--ink-dim)] opacity-75"
+            : "text-[var(--ink-dim)]"
         }`}
       >
         {isPro ? (
@@ -1851,8 +1851,8 @@ function PaperCard({
               disabled={isPro && relatedLoading}
               className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
                 isPro
-                  ? "text-slate-500 light:text-[var(--accent)] hover:text-slate-300 light:hover:text-[var(--accent)]"
-                  : "text-[var(--ink-dim)] opacity-75"
+                  ? "text-[var(--ink-dim)] light:text-[var(--accent)] hover:text-[var(--ink)] light:hover:text-[var(--accent)]"
+                  : "text-[var(--ink-dim)]"
               }`}
             >
               {isPro ? (
@@ -5252,7 +5252,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 light:text-[var(--accent)] hover:text-slate-300 light:hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-[var(--ink-dim)] light:text-[var(--accent)] hover:text-[var(--ink)] light:hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {t("try_example")}
                       </button>
