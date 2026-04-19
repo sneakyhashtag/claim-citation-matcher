@@ -3712,7 +3712,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
             </p>
           </div>
 
-          {/* mode toggle + copy-all */}
+          {/* mode toggle */}
           <div className="flex items-center gap-3 flex-wrap">
             <div
               className="flex items-center rounded-full p-0.5 gap-0.5"
@@ -3736,38 +3736,6 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                 </button>
               ))}
             </div>
-            {mode === "bibliography" && (
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard?.writeText(bibText);
-                  setCopiedBib(true);
-                  setTimeout(() => setCopiedBib(false), 1800);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
-                style={{
-                  fontFamily: "var(--sans)",
-                  border: "1px solid var(--rule)",
-                  background: "transparent",
-                  color: "var(--ink-dim)",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-              >
-                {copiedBib ? (
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
-                    <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z"/>
-                    <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
-                  </svg>
-                )}
-                <span>{copiedBib ? t("copied") : t("copy_all")}</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -3919,6 +3887,42 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
             className="rounded-2xl overflow-hidden"
             style={{ background: "var(--paper)", border: "1px solid var(--rule)" }}
           >
+            {/* toolbar: copy-all only, close to the text */}
+            <div
+              className="flex items-center justify-end px-4 py-2.5 border-b"
+              style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(bibText);
+                  setCopiedBib(true);
+                  setTimeout(() => setCopiedBib(false), 1800);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
+                style={{
+                  fontFamily: "var(--sans)",
+                  border: "1px solid var(--rule)",
+                  background: "transparent",
+                  color: "var(--ink-dim)",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+              >
+                {copiedBib ? (
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                    <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z"/>
+                    <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
+                  </svg>
+                )}
+                <span>{copiedBib ? t("copied") : t("copy_all")}</span>
+              </button>
+            </div>
             <pre
               className="m-0 leading-relaxed whitespace-pre-wrap break-words"
               style={{
@@ -5229,98 +5233,95 @@ const [proSuccess, setProSuccess] = useState(false);
                       <div className="h-px flex-1" style={{ background: "var(--rule)" }} />
                     </div>
 
-                    {/* Email toggle */}
-                    <button
-                      type="button"
-                      onClick={() => setShowEmailForm((v) => !v)}
-                      className="w-full rounded-xl px-4 py-3 mb-3 text-[13px] font-medium transition-colors"
-                      style={{
-                        background: "transparent",
-                        border: "1px solid var(--rule)",
-                        color: "var(--ink-dim)",
-                        fontFamily: "var(--sans)",
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--rule)")}
-                    >
-                      {showEmailForm ? t("email_signin_hide") : t("email_signin_show")}
-                    </button>
-
-                    {/* Email / password form */}
-                    {showEmailForm && (
-                      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3 mb-4">
-                        <div>
-                          <label
-                            htmlFor="auth-email"
-                            className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
-                            style={{ color: "var(--ink-dim)" }}
-                          >
-                            {t("email_label")}
-                          </label>
-                          <input
-                            id="auth-email" type="email" autoComplete="email" required
-                            value={authEmail}
-                            onChange={(e) => { setAuthEmail(e.target.value); setAuthError(""); }}
-                            className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
-                            style={{
-                              background: "var(--paper)",
-                              border: "1px solid var(--rule)",
-                              color: "var(--ink)",
-                              fontFamily: "var(--sans)",
-                            }}
-                            placeholder="ada@university.edu"
-                            onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
-                            onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="auth-password"
-                            className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
-                            style={{ color: "var(--ink-dim)" }}
-                          >
-                            {t("password_label")}
-                          </label>
-                          <input
-                            id="auth-password" type="password" autoComplete="current-password" required
-                            value={authPassword}
-                            onChange={(e) => { setAuthPassword(e.target.value); setAuthError(""); }}
-                            className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
-                            style={{
-                              background: "var(--paper)",
-                              border: "1px solid var(--rule)",
-                              color: "var(--ink)",
-                              fontFamily: "var(--sans)",
-                            }}
-                            placeholder="••••••••"
-                            onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
-                            onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
-                          />
-                        </div>
-                        <button
-                          type="submit" disabled={authLoading}
-                          className="w-full rounded-xl py-3 text-[14px] font-medium flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
-                          style={{ background: "var(--ink)", color: "var(--bg)", fontFamily: "var(--sans)" }}
+                    {/* Email / password form — always visible */}
+                    <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3 mb-4">
+                      <div>
+                        <label
+                          htmlFor="auth-email"
+                          className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
+                          style={{ color: "var(--ink-dim)" }}
                         >
-                          {authLoading ? t("signing_in") : t("sign_in")}
-                          {!authLoading && (
-                            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M3 8h10M9 4l4 4-4 4"/>
-                            </svg>
-                          )}
-                        </button>
-                      </form>
-                    )}
+                          {t("email_label")}
+                        </label>
+                        <input
+                          id="auth-email" type="email" autoComplete="email" required
+                          value={authEmail}
+                          onChange={(e) => { setAuthEmail(e.target.value); setAuthError(""); }}
+                          className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
+                          style={{
+                            background: "var(--paper)",
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "var(--sans)",
+                          }}
+                          placeholder="ada@university.edu"
+                          onFocus={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
+                          onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="auth-password"
+                          className="block mb-1.5 font-[family-name:var(--font-dm-sans)] text-[10px] uppercase tracking-[0.8px]"
+                          style={{ color: "var(--ink-dim)" }}
+                        >
+                          {t("password_label")}
+                        </label>
+                        <input
+                          id="auth-password" type="password" autoComplete="current-password" required
+                          value={authPassword}
+                          onChange={(e) => { setAuthPassword(e.target.value); setAuthError(""); }}
+                          className="w-full rounded-xl px-4 py-3 text-[14px] outline-none transition-colors"
+                          style={{
+                            background: "var(--paper)",
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "var(--sans)",
+                          }}
+                          placeholder="••••••••"
+                          onFocus={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
+                          onBlur={e => (e.currentTarget.style.borderColor = "var(--rule)")}
+                        />
+                      </div>
+                      <button
+                        type="submit" disabled={authLoading}
+                        className="w-full rounded-xl py-3 text-[14px] font-medium flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                        style={{ background: "var(--ink)", color: "var(--bg)", fontFamily: "var(--sans)" }}
+                      >
+                        {authLoading ? t("signing_in") : t("sign_in_email_btn")}
+                        {!authLoading && (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <path d="M3 8h10M9 4l4 4-4 4"/>
+                          </svg>
+                        )}
+                      </button>
+                      <div className="flex items-center justify-between">
+                        <a
+                          href="/register"
+                          className="text-[12px] transition-opacity hover:opacity-70"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                        >
+                          {t("create_account")}
+                        </a>
+                        <a
+                          href="/forgot-password"
+                          className="text-[12px] transition-opacity hover:opacity-70"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                        >
+                          {t("forgot_password")}
+                        </a>
+                      </div>
+                    </form>
 
                     {/* Continue as Guest */}
-                    <div className="pt-6" style={{ borderTop: "1px solid var(--rule)" }}>
+                    <div className="pt-5 mb-5" style={{ borderTop: "1px solid var(--rule)" }}>
                       <button
                         type="button"
                         onClick={() => setStage("app")}
-                        className="w-full rounded-xl px-4 py-3.5 text-[14px] flex items-center justify-center gap-3 transition-colors"
+                        className="w-full rounded-xl px-4 py-3.5 text-[14px] flex items-center justify-between transition-colors"
                         style={{
                           background: "transparent",
-                          border: "1px dashed var(--rule)",
+                          border: "1px solid var(--rule)",
                           color: "var(--ink)",
                           fontFamily: "var(--serif)",
                           fontStyle: "italic",
@@ -5328,35 +5329,28 @@ const [proSuccess, setProSuccess] = useState(false);
                         onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--ink-dim)")}
                         onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--rule)")}
                       >
-                        {t("continue_guest")}
+                        <span>{t("continue_guest")}</span>
                         <span
-                          className="font-[family-name:var(--font-dm-sans)] not-italic text-[10px] uppercase tracking-[0.8px] px-2 py-0.5 rounded-full"
-                          style={{ background: "var(--paper-deep)", color: "var(--ink-dim)", fontStyle: "normal" }}
+                          className="not-italic text-[9px] uppercase tracking-[1.5px] px-2 py-0.5 rounded"
+                          style={{ background: "var(--paper-deep)", color: "var(--ink-dim)", border: "1px solid var(--rule-soft)", fontFamily: "var(--mono)", fontStyle: "normal" }}
                         >
-                          {t("free_to_try")}
+                          3 {t("searches_day")}
                         </span>
                       </button>
                     </div>
 
-                    {/* How to use + legal */}
-                    <div className="mt-6 flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setShowHowTo(true)}
-                        className="flex items-center gap-1.5 text-[12px] transition-colors"
-                        style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
-                        onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-                      >
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                        </svg>
-                        {t("how_to_use")}
-                      </button>
-                      <p className="text-[11px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
-                        {t("free_to_try")}
-                      </p>
-                    </div>
+                    {/* Terms */}
+                    <p className="text-center text-[11px] leading-relaxed" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
+                      {t("signin_terms")}{" "}
+                      <a href="/terms" className="underline underline-offset-2 transition-opacity hover:opacity-70" style={{ color: "var(--ink-dim)" }}>
+                        {t("terms")}
+                      </a>
+                      {" "}{t("and")}{" "}
+                      <a href="/privacy" className="underline underline-offset-2 transition-opacity hover:opacity-70" style={{ color: "var(--ink-dim)" }}>
+                        {t("privacy_policy")}
+                      </a>
+                      .
+                    </p>
                   </div>
                 </section>
               </motion.div>
