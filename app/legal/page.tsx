@@ -17,7 +17,7 @@ const rows: { ja: string; en: string; value: string }[] = [
     ja: "所在地",
     en: "Address",
     value:
-      "〒606-8246 京都府京都市左京区北白川西平井町10番地 アミティ北白川105号室",
+      "請求があり次第、遅滞なく開示します。下記メールアドレスまでお問い合わせください。\nDisclosed promptly upon request. Please contact the email below.",
   },
   {
     ja: "メールアドレス",
@@ -27,7 +27,8 @@ const rows: { ja: string; en: string; value: string }[] = [
   {
     ja: "電話番号",
     en: "Phone",
-    value: "070-3323-0224",
+    value:
+      "請求があり次第、遅滞なく開示します。下記メールアドレスまでお問い合わせください。\nDisclosed promptly upon request. Please contact the email below.",
   },
   {
     ja: "商品・サービス内容",
