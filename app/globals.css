@@ -287,16 +287,10 @@ html.light .vignette {
 /* ── Dark glass panel (modals, sidebar, dropdown) ────────────────────────── */
 
 .glass-panel {
-  background: rgba(18, 18, 18, 0.97);
-  border-color: rgba(255, 255, 255, 0.10);
+  background: var(--paper);
+  border-color: var(--rule);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-}
-
-html.light .glass-panel {
-  /* Warm off-white to stay close to parchment palette */
-  background: rgba(248, 246, 234, 1.0);
-  border-color: rgba(80, 50, 20, 0.14);
 }
 
 /* ── Claim card hover ────────────────────────────────────────────────────── */

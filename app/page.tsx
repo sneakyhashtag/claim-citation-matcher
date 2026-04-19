@@ -919,33 +919,29 @@ function ProGatePopover({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        style={{ backdropFilter: "none", WebkitBackdropFilter: "none" }}
-        className="rounded-2xl px-5 py-4
-                   bg-[#1a1a1a] light:bg-[#faf8f2]
-                   border-2 border-[#2e3a5a] light:border-[#b89660]
-                   shadow-[0_8px_40px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]
-                   light:shadow-[0_8px_32px_rgba(124,78,24,0.25),0_2px_6px_rgba(124,78,24,0.12)]"
+        style={{ backdropFilter: "none", WebkitBackdropFilter: "none", background: "var(--paper)", border: "2px solid var(--rule)" }}
+        className="rounded-2xl px-5 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.5),0_2px_8px_rgba(0,0,0,0.3)]"
       >
         <div className="flex items-start gap-3">
           {/* Lock icon */}
-          <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#2e3a5a] light:bg-[#e8dfc8] border border-[#3d4e78] light:border-[#c4a870]">
-            <svg className="h-3.5 w-3.5 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "var(--accent-soft)", border: "1px solid var(--rule)" }}>
+            <svg className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0110 0v4"/>
             </svg>
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white light:text-[var(--ink)] mb-1.5">
+            <p className="text-sm font-semibold mb-1.5" style={{ color: "var(--ink)" }}>
               {t("pro_feature")}
             </p>
-            <p className="text-xs text-[#94a3b8] light:text-[var(--ink-dim)] leading-relaxed">
+            <p className="text-xs leading-relaxed" style={{ color: "var(--ink-dim)" }}>
               {isSignedIn ? (
                 <>
                   <button
                     type="button"
                     onClick={() => { onClose(); onUpgrade(); }}
-                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
+                    className="font-semibold underline underline-offset-2 transition-colors" style={{ color: "var(--accent)" }}
                   >
                     {t("pro_gate_upgrade_link")}
                   </button>
@@ -956,7 +952,7 @@ function ProGatePopover({
                   <button
                     type="button"
                     onClick={() => { onClose(); onUpgrade(); }}
-                    className="font-semibold text-amber-400 light:text-amber-700 underline underline-offset-2 hover:text-amber-300 light:hover:text-amber-900 transition-colors"
+                    className="font-semibold underline underline-offset-2 transition-colors" style={{ color: "var(--accent)" }}
                   >
                     {t("pro_gate_signin_link")}
                   </button>
@@ -970,7 +966,9 @@ function ProGatePopover({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-[#64748b] hover:text-white light:text-[var(--ink-dim)] light:hover:text-[var(--ink)] transition-colors"
+            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 transition-colors" style={{ color: "var(--ink-dim)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
             aria-label="Dismiss"
           >
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1066,7 +1064,7 @@ function OmakaseCitationPicker({
                 key={id}
                 type="button"
                 onClick={() => onSelect(id)}
-                className="group flex flex-col items-start gap-0.5 rounded-xl border border-white/[0.08] light:border-[rgba(80,50,20,0.12)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 text-left transition-all hover:border-amber-500/40 light:hover:border-amber-700/30 hover:bg-amber-500/[0.07] light:hover:bg-amber-700/[0.05] hover:shadow-[0_0_12px_1px_rgba(251,191,36,0.10)]"
+                className="group flex flex-col items-start gap-0.5 rounded-xl border border-white/[0.08] light:border-[rgba(80,50,20,0.12)] bg-[var(--bg-deep)] px-4 py-3 text-left transition-all hover:border-amber-500/40 light:hover:border-amber-700/30 hover:bg-amber-500/[0.07] light:hover:bg-amber-700/[0.05] hover:shadow-[0_0_12px_1px_rgba(251,191,36,0.10)]"
               >
                 <span className="text-sm font-semibold text-[var(--ink)] group-hover:text-amber-300 light:group-hover:text-amber-800 transition-colors">
                   {label}
@@ -2441,13 +2439,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[var(--rule)] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--rule)] shrink-0">
               <h2 id="how-to-use-title" className="font-semibold text-[var(--ink)] text-base">
                 {t("how_it_works_title")}
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--paper-deep)] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -2468,7 +2466,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
                 <ol className="space-y-3">
                   {(["how_step_1", "how_step_2", "how_step_3", "how_step_4"] as const).map((key, idx) => (
                     <li key={key} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-[var(--ink)] text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--paper-deep)] text-[var(--ink)] text-xs font-medium shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
                       <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t(key)}</p>
@@ -2478,7 +2476,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* paper badges */}
-              <div className="rounded-xl border border-white/10 light:border-[var(--rule)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
+              <div className="rounded-xl border border-[var(--rule)] bg-[var(--bg-deep)] px-4 py-3 space-y-2">
                 <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide">{t("paper_stats_title")}</p>
                 <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] leading-relaxed">
                   {t("paper_stats_intro")}
@@ -2512,7 +2510,7 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* relevance tiers */}
-              <div className="rounded-xl border border-white/10 light:border-[var(--rule)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
+              <div className="rounded-xl border border-[var(--rule)] bg-[var(--bg-deep)] px-4 py-3 space-y-2">
                 <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide">{t("relevance_tiers_title")}</p>
                 <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] leading-relaxed">
                   {t("relevance_tiers_intro")}
@@ -2654,12 +2652,12 @@ function CancelDialog({
           >
             <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
               {/* header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 light:border-[var(--rule)]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--rule)]">
                 <h2 className="font-semibold text-[var(--ink)] text-base">
                   {phase === "done" ? t("sub_cancelled_title") : t("cancel_sub_title")}
                 </h2>
                 {phase !== "cancelling" && (
-                  <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors" aria-label="Close">
+                  <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-[var(--ink)] hover:bg-[var(--paper-deep)] transition-colors" aria-label="Close">
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
                     </svg>
@@ -2786,13 +2784,11 @@ function CancelDialog({
 
 function PlanModal({
   onClose,
-  onSelectPlan,
-  upgrading,
+  onSuccess,
   hasUsedTrial,
 }: {
   onClose: () => void;
-  onSelectPlan: (plan: "monthly" | "yearly") => void;
-  upgrading: boolean;
+  onSuccess: () => void;
   hasUsedTrial: boolean;
 }) {
   useEffect(() => {
@@ -2806,6 +2802,142 @@ function PlanModal({
     "en-US", { month: "long", day: "numeric", year: "numeric" }
   );
 
+  // ── inline card flow ──────────────────────────────────────────────────────
+  const [step, setStep] = useState<"plan" | "card" | "processing">("plan");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
+  const [cardError, setCardError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  // Refs for Stripe objects — not state because re-render would remount the element
+  const stripeRef = useRef<import("@stripe/stripe-js").Stripe | null>(null);
+  const cardElementRef = useRef<import("@stripe/stripe-js").StripeCardElement | null>(null);
+  const mountDivRef = useRef<HTMLDivElement | null>(null);
+
+  // Load Stripe and mount the Card Element when the card step becomes visible
+  useEffect(() => {
+    if (step !== "card") return;
+
+    let cancelled = false;
+
+    (async () => {
+      // 1. Get publishable key from server (avoids NEXT_PUBLIC_ prefix requirement)
+      const cfgRes = await fetch("/api/stripe-config");
+      if (!cfgRes.ok || cancelled) return;
+      const { publishableKey } = await cfgRes.json();
+
+      // 2. Load Stripe.js
+      const { loadStripe } = await import("@stripe/stripe-js");
+      const stripe = await loadStripe(publishableKey);
+      if (!stripe || cancelled) return;
+      stripeRef.current = stripe;
+
+      // 3. Create and mount the card element
+      const elements = stripe.elements({
+        fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500" }],
+      });
+      const isDark = !document.documentElement.classList.contains("light");
+      const card = elements.create("card", {
+        style: {
+          base: {
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: "14px",
+            color: isDark ? "oklch(0.93 0.008 80)" : "oklch(0.22 0.015 60)",
+            "::placeholder": { color: isDark ? "oklch(0.55 0.008 80)" : "oklch(0.65 0.008 80)" },
+            iconColor: isDark ? "oklch(0.72 0.008 80)" : "oklch(0.52 0.012 60)",
+          },
+          invalid: {
+            color: "#e53e3e",
+            iconColor: "#e53e3e",
+          },
+        },
+      });
+
+      if (!mountDivRef.current || cancelled) return;
+      card.mount(mountDivRef.current);
+      cardElementRef.current = card;
+
+      card.on("change", (event) => {
+        setCardError(event.error ? event.error.message : null);
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      cardElementRef.current?.destroy();
+      cardElementRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const handleCardSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripeRef.current || !cardElementRef.current || processing) return;
+
+    setProcessing(true);
+    setCardError(null);
+    setStep("processing");
+
+    try {
+      // 1. Create a SetupIntent ($0 card validation)
+      const siRes = await fetch("/api/setup-intent", { method: "POST" });
+      if (!siRes.ok) {
+        const { error } = await siRes.json();
+        throw new Error(error ?? "Could not start card validation");
+      }
+      const { clientSecret } = await siRes.json();
+
+      // 2. Confirm the card setup — validates the card without charging
+      const { setupIntent, error: setupError } = await stripeRef.current.confirmCardSetup(
+        clientSecret,
+        { payment_method: { card: cardElementRef.current } }
+      );
+
+      if (setupError) {
+        setCardError(setupError.message ?? "Card validation failed");
+        setStep("card");
+        setProcessing(false);
+        return;
+      }
+
+      const paymentMethodId = setupIntent?.payment_method as string;
+
+      // 3. Create the subscription using the validated payment method
+      const subRes = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan, paymentMethodId }),
+      });
+      const subData = await subRes.json();
+
+      if (!subRes.ok || subData.error) {
+        setCardError(subData.error ?? "Subscription failed. Please try again.");
+        setStep("card");
+        setProcessing(false);
+        return;
+      }
+
+      // 4. If the first invoice needs 3DS confirmation, handle it
+      if (subData.requiresAction && subData.clientSecret) {
+        const { error: actionError } = await stripeRef.current.confirmCardPayment(
+          subData.clientSecret
+        );
+        if (actionError) {
+          setCardError(actionError.message ?? "Payment authentication failed");
+          setStep("card");
+          setProcessing(false);
+          return;
+        }
+      }
+
+      // Success!
+      onSuccess();
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setStep("card");
+      setProcessing(false);
+    }
+  };
+
   return (
     <AnimatePresence>
       <>
@@ -2816,7 +2948,7 @@ function PlanModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-black/30 z-50 backdrop-blur-[2px]"
-          onClick={onClose}
+          onClick={step === "processing" ? undefined : onClose}
         />
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <motion.div
@@ -2832,19 +2964,39 @@ function PlanModal({
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[var(--rule)] shrink-0">
-              <div>
-                <h2 id="plan-modal-title" className="font-semibold text-[var(--ink)] text-base">
-                  {hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
-                </h2>
-                <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] mt-0.5">
-                  {hasUsedTrial ? t("upgrade_billing_sub") : t("trial_billing_sub")}
-                </p>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--rule)] shrink-0">
+              <div className="flex items-center gap-2">
+                {step === "card" && (
+                  <button
+                    onClick={() => { setStep("plan"); setCardError(null); }}
+                    className="p-1 rounded-md text-[var(--ink-dim)] hover:text-[var(--ink)] transition-colors -ml-1 mr-1"
+                    aria-label="Back"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                      <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd"/>
+                    </svg>
+                  </button>
+                )}
+                <div>
+                  <h2 id="plan-modal-title" className="font-semibold text-[var(--ink)] text-base">
+                    {step === "card" || step === "processing"
+                      ? "Card details"
+                      : hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
+                  </h2>
+                  <p className="text-xs text-[var(--ink-dim)] mt-0.5">
+                    {step === "card" || step === "processing"
+                      ? hasUsedTrial
+                        ? `${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"} — billed after confirmation`
+                        : `7-day free trial · $0 charged today`
+                      : hasUsedTrial ? t("upgrade_billing_sub") : t("trial_billing_sub")}
+                  </p>
+                </div>
               </div>
               <button
-                onClick={onClose}
-                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                onClick={step === "processing" ? undefined : onClose}
+                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--paper-deep)] transition-colors disabled:opacity-40"
                 aria-label="Close"
+                disabled={step === "processing"}
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                   <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
@@ -2852,6 +3004,8 @@ function PlanModal({
               </button>
             </div>
 
+            {/* ── step: plan selection ── */}
+            {step === "plan" && (
             <div className="overflow-y-auto">
               {/* trial / paid-subscription banner */}
               {hasUsedTrial ? (
@@ -2907,7 +3061,7 @@ function PlanModal({
               </div>
 
               {/* divider */}
-              <div className="mx-6 border-t border-white/[0.07] light:border-[var(--rule-soft)]" />
+              <div className="mx-6 border-t border-[var(--rule-soft)]" />
 
               {/* plan cards — side by side */}
               <div className="px-6 py-5">
@@ -2915,11 +3069,10 @@ function PlanModal({
 
                   {/* Monthly */}
                   <button
-                    onClick={() => onSelectPlan("monthly")}
-                    disabled={upgrading}
-                    className="relative flex flex-col rounded-xl border-2 border-white/[0.12] light:border-[var(--rule)] px-4 pt-4 pb-4 text-left
-                               hover:border-white/25 light:hover:border-[rgba(80,50,20,0.26)] hover:bg-white/[0.04] light:hover:bg-black/[0.03]
-                               transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => { setSelectedPlan("monthly"); setStep("card"); }}
+                    className="relative flex flex-col rounded-xl border-2 border-[var(--rule)] px-4 pt-4 pb-4 text-left
+                               hover:border-[var(--accent)] hover:bg-[var(--paper-deep)]
+                               transition-all"
                   >
                     <p className="text-xs font-semibold text-[var(--ink-dim)] uppercase tracking-wide mb-3">{t("plan_monthly")}</p>
                     <div className="mt-auto">
@@ -2931,12 +3084,11 @@ function PlanModal({
 
                   {/* Yearly — highlighted */}
                   <button
-                    onClick={() => onSelectPlan("yearly")}
-                    disabled={upgrading}
+                    onClick={() => { setSelectedPlan("yearly"); setStep("card"); }}
                     className="relative flex flex-col rounded-xl border-2 border-amber-500/60 light:border-amber-600/50 bg-amber-500/[0.08] light:bg-amber-700/[0.06] px-4 pt-4 pb-4 text-left
                                hover:border-amber-500/80 light:hover:border-amber-600/70 hover:bg-amber-500/[0.12] light:hover:bg-amber-700/[0.09]
                                shadow-[0_0_20px_rgba(245,158,11,0.12)] light:shadow-[0_0_16px_rgba(161,84,0,0.10)]
-                               transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                               transition-all"
                   >
                     {/* Save badge */}
                     <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-amber-500 light:bg-amber-600 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide whitespace-nowrap shadow-sm">
@@ -2950,12 +3102,85 @@ function PlanModal({
                     </div>
                   </button>
                 </div>
-
-                {upgrading && (
-                  <p className="text-center text-xs text-slate-500 mt-3">{t("plan_redirecting")}</p>
-                )}
               </div>
             </div>
+            )}
+
+            {/* ── step: card entry ── */}
+            {(step === "card" || step === "processing") && (
+            <form onSubmit={handleCardSubmit} className="overflow-y-auto">
+              <div className="px-6 py-5 space-y-4">
+                {/* plan summary */}
+                <div className="flex items-center justify-between rounded-lg px-4 py-3" style={{ background: "var(--paper-deep)", border: "1px solid var(--rule-soft)" }}>
+                  <div>
+                    <p className="text-xs font-semibold text-[var(--ink)] uppercase tracking-wide">
+                      {selectedPlan === "yearly" ? "Yearly plan" : "Monthly plan"}
+                    </p>
+                    <p className="text-[11px] text-[var(--ink-dim)] mt-0.5">
+                      {selectedPlan === "yearly" ? "$29.99 / year  ≈ $2.50 / month" : "$2.99 / month"}
+                    </p>
+                  </div>
+                  {!hasUsedTrial && (
+                    <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 light:text-emerald-700 border border-emerald-500/20">
+                      7-day free trial
+                    </span>
+                  )}
+                </div>
+
+                {/* card element container */}
+                <div>
+                  <label className="block text-[11px] font-medium text-[var(--ink-dim)] uppercase tracking-wide mb-1.5">
+                    Card details
+                  </label>
+                  <div
+                    ref={mountDivRef}
+                    className="rounded-lg px-3 py-3 transition-colors"
+                    style={{
+                      background: "var(--bg-deep)",
+                      border: `1px solid ${cardError ? "#e53e3e" : "var(--rule)"}`,
+                      minHeight: 42,
+                    }}
+                  />
+                  {cardError && (
+                    <p className="mt-1.5 text-xs text-red-400" role="alert">
+                      {cardError}
+                    </p>
+                  )}
+                </div>
+
+                {/* security note */}
+                <p className="text-[10px] text-[var(--ink-dim)] flex items-center gap-1.5">
+                  <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  Secured by Stripe · Your card details never touch our servers
+                </p>
+              </div>
+
+              <div className="px-6 pb-6">
+                <button
+                  type="submit"
+                  disabled={processing || step === "processing"}
+                  className="w-full rounded-xl py-3 text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ background: "var(--ink)", color: "var(--paper)" }}
+                >
+                  {step === "processing" ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      Processing…
+                    </span>
+                  ) : hasUsedTrial ? (
+                    `Subscribe · ${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"}`
+                  ) : (
+                    "Start 7-day free trial"
+                  )}
+                </button>
+              </div>
+            </form>
+            )}
           </div>
         </motion.div>
         </div>
@@ -3436,13 +3661,28 @@ function formatCitation(p: RatedPaper, style: string): string {
 
 const CITE_STYLES = ["APA", "MLA", "Chicago", "GB/T 7714", "SIST 02", "KCI", "BibTeX"];
 
+function bibSortKey(item: LibraryItem): string {
+  const authors = item.paper.authors ?? [];
+  if (authors.length === 0) return item.paper.title?.toLowerCase() ?? "\uffff";
+  const first = authors[0];
+  if (first.includes(",")) return first.split(",")[0].trim().toLowerCase();
+  const parts = first.trim().split(/\s+/);
+  return (parts[parts.length - 1] ?? first).toLowerCase();
+}
+
 function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSave: (paper: RatedPaper) => void }) {
   const [mode, setMode] = useState<"list" | "bibliography">("list");
   const [style, setStyle] = useState("APA");
   const [copiedBib, setCopiedBib] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
-  const bibText = items.map(it => formatCitation(it.paper, style)).join(style === "BibTeX" ? "\n\n" : "\n\n");
+  // Bibliography view always sorted A→Z by first author's last name
+  const sortedItems = useMemo(
+    () => mode === "bibliography" ? [...items].sort((a, b) => bibSortKey(a).localeCompare(bibSortKey(b))) : items,
+    [items, mode]
+  );
+
+  const bibText = sortedItems.map(it => formatCitation(it.paper, style)).join(style === "BibTeX" ? "\n\n" : "\n\n");
 
   function copyItem(paper: RatedPaper, idx: number) {
     navigator.clipboard?.writeText(formatCitation(paper, style));
@@ -3714,7 +3954,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                 color: "var(--ink)",
               }}
             >
-              {items.length === 0 ? "No citations saved yet." : bibText}
+              {sortedItems.length === 0 ? "No citations saved yet." : bibText}
             </pre>
           </div>
         )}
@@ -4541,8 +4781,11 @@ const [proSuccess, setProSuccess] = useState(false);
       {showPlanModal && (
         <PlanModal
           onClose={() => setShowPlanModal(false)}
-          onSelectPlan={(plan) => upgradeToPro(plan)}
-          upgrading={upgrading}
+          onSuccess={() => {
+            setIsPro(true);
+            setProSuccess(true);
+            setShowPlanModal(false);
+          }}
           hasUsedTrial={hasUsedTrial}
         />
       )}
