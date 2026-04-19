@@ -3054,15 +3054,11 @@ function SidebarInner({
   upgrading,
   tabs,
   activeTabId,
-  savedPapers,
-  sidebarView,
-  setSidebarView,
   onClose,
   onNewSearch,
   onLoadTab,
   onStarTab,
   onDeleteTab,
-  onRemoveSavedPaper,
   onHowTo,
   onUpgrade,
   onCancelSubscription,
@@ -3073,15 +3069,11 @@ function SidebarInner({
   upgrading: boolean;
   tabs: SearchTab[];
   activeTabId: string | null;
-  savedPapers: SavedPaper[];
-  sidebarView: "searches" | "saved";
-  setSidebarView: (v: "searches" | "saved") => void;
   onClose: () => void;
   onNewSearch: () => void;
   onLoadTab: (tab: SearchTab) => void;
   onStarTab: (id: string) => void;
   onDeleteTab: (id: string) => void;
-  onRemoveSavedPaper: (id: string) => void;
   onHowTo: () => void;
   onUpgrade: () => void;
   onCancelSubscription: () => void;
@@ -3180,8 +3172,8 @@ function SidebarInner({
         </div>
       )}
 
-      {/* ── New Search + Searches/Saved toggle ── */}
-      <div className="px-3 pt-3 pb-2 flex flex-col gap-2 shrink-0">
+      {/* ── New Search button ── */}
+      <div className="px-3 pt-3 pb-2 shrink-0">
         <button
           type="button"
           onClick={onNewSearch}
@@ -3192,104 +3184,34 @@ function SidebarInner({
           </svg>
           {t("new_search")}
         </button>
-        <div className="flex rounded-lg overflow-hidden border border-white/[0.09] light:border-[rgba(80,50,20,0.13)]">
-          {(["searches", "saved"] as const).map((view, i) => (
-            <button
-              key={view}
-              type="button"
-              onClick={() => setSidebarView(view)}
-              className={`flex-1 py-1.5 text-xs font-medium transition-colors ${i > 0 ? "border-l border-white/[0.09] light:border-[rgba(80,50,20,0.13)]" : ""} ${
-                sidebarView === view
-                  ? "bg-white/[0.12] light:bg-black/[0.10] text-slate-100 light:text-[#2C1810]"
-                  : "text-slate-500 light:text-[#A67856] hover:text-slate-300 light:hover:text-[#6B4226]"
-              }`}
-            >
-              {view === "searches" ? t("sidebar_searches") : (
-                <>{t("sidebar_saved")}{savedPapers.length > 0 && <span className="ml-1 text-[10px] opacity-60">({savedPapers.length})</span>}</>
-              )}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* ── Scrollable content ── */}
+      {/* ── Scrollable searches list ── */}
       <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
 
-        {/* Searches view */}
-        {sidebarView === "searches" && (
-          <div className="px-2 py-1 flex flex-col gap-0.5">
-            {starredTabs.length > 0 && (
-              <>
-                <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
-                  {t("sidebar_starred")}
-                </p>
-                {starredTabs.map((tab) => (
-                  <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
-                ))}
-                {recentTabs.length > 0 && (
-                  <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
-                    {t("sidebar_recent")}
-                  </p>
-                )}
-              </>
-            )}
-            {starredTabs.length === 0 && recentTabs.length === 0 && (
-              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">{t("no_searches_yet")}</p>
-            )}
-            {recentTabs.map((tab) => (
-              <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
-            ))}
-          </div>
-        )}
-
-        {/* Saved Papers view */}
-        {sidebarView === "saved" && (
-          <div className="px-2 py-1 flex flex-col gap-0.5">
-            {savedPapers.length === 0 ? (
-              <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">
-                {t("no_saved_papers")}
+        <div className="px-2 py-1 flex flex-col gap-0.5">
+          {starredTabs.length > 0 && (
+            <>
+              <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/70 light:text-amber-700/60">
+                {t("sidebar_starred")}
               </p>
-            ) : (
-              savedPapers.map((paper) => (
-                <div key={paper.id} className="group flex items-start gap-1 w-full rounded-lg hover:bg-white/[0.05] light:hover:bg-black/[0.04] transition-colors px-1 py-1.5">
-                  <div className="flex-1 min-w-0">
-                    {paper.doi ? (
-                      <a href={paper.doi} target="_blank" rel="noopener noreferrer"
-                        className="block text-xs font-medium text-slate-300 light:text-[#2C1810] hover:text-amber-400 light:hover:text-[#8B2500] transition-colors leading-snug line-clamp-2">
-                        {paper.title}
-                      </a>
-                    ) : (
-                      <span className="block text-xs font-medium text-slate-300 light:text-[#2C1810] leading-snug line-clamp-2">
-                        {paper.title}
-                      </span>
-                    )}
-                    <p className="mt-0.5 text-[10px] text-slate-600 light:text-[#A67856] truncate">
-                      {[
-                        paper.authors.length > 0
-                          ? paper.authors.length <= 2 ? paper.authors.join(", ") : `${paper.authors[0]} et al.`
-                          : null,
-                        paper.year,
-                      ].filter(Boolean).join(" · ")}
-                    </p>
-                    {paper.journal && (
-                      <p className="text-[10px] text-slate-700 light:text-[#B0906A] italic truncate">{paper.journal}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveSavedPaper(paper.id)}
-                    aria-label={t("aria_remove_paper")}
-                    className="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
-                  >
-                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
-                    </svg>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+              {starredTabs.map((tab) => (
+                <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
+              ))}
+              {recentTabs.length > 0 && (
+                <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
+                  {t("sidebar_recent")}
+                </p>
+              )}
+            </>
+          )}
+          {starredTabs.length === 0 && recentTabs.length === 0 && (
+            <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">{t("no_searches_yet")}</p>
+          )}
+          {recentTabs.map((tab) => (
+            <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
+          ))}
+        </div>
 
         <div className="flex-1" />
 
@@ -3396,10 +3318,22 @@ function SidebarTabRow({
 
 interface LibraryItem { claim: string; paper: RatedPaper; }
 
+/**
+ * Format a paper citation according to the specified style.
+ *
+ * Author truncation rules (per official style guides):
+ *  APA 7   – list up to 20 authors; if >20, list first 19, "…", last author.
+ *  MLA 9   – list first author (Last, First), then "et al." if ≥3 authors.
+ *  Chicago – list all authors up to 10; if >10, first 7 + "et al."
+ *  GB/T 7714 – list up to 3 authors; if >3, first 3 + "et al."
+ *  SIST 02 – list up to 3 authors; if >3, first 3 + "ほか" (et al. in Japanese).
+ *  KCI     – list up to 5 authors; if >5, first 5 + " 외" (et al. in Korean).
+ *  BibTeX  – list all authors joined with " and " (LaTeX handles truncation).
+ */
 function formatCitation(p: RatedPaper, style: string): string {
-  const authors = (p.authors ?? []).join(", ");
-  const authorsSemi = (p.authors ?? []).join("; ");
-  const doi = p.doi ?? "";
+  const raw = p.authors ?? [];
+  const doi = p.doi ? p.doi.replace(/^https?:\/\/doi\.org\//i, "") : "";
+  const doiUrl = doi ? `https://doi.org/${doi}` : "";
   const title = p.title ?? "Untitled";
   const journal = p.journal ?? "";
   const year = p.year ?? "";
@@ -3407,23 +3341,97 @@ function formatCitation(p: RatedPaper, style: string): string {
   const issue = (p as Paper & { issue?: string | null }).issue;
   const pages = (p as Paper & { pages?: string | null }).pages;
 
-  if (style === "APA")
-    return `${authors} (${year}). ${title}. ${journal}. https://doi.org/${doi}`;
-  if (style === "MLA")
-    return `${authors}. "${title}." ${journal}, ${year}.`;
-  if (style === "Chicago")
-    return `${authors}. "${title}." ${journal} (${year}). https://doi.org/${doi}.`;
-  if (style === "GB/T 7714")
-    return `${authorsSemi}. ${title}[J]. ${journal}, ${year}${vol ? `, ${vol}` : ""}${issue ? `(${issue})` : ""}${pages ? `: ${pages}` : ""}. DOI: ${doi}.`;
-  if (style === "SIST 02")
-    return `${authors}. 「${title}」. 『${journal}』. ${year}${vol ? `, vol. ${vol}` : ""}${issue ? `, no. ${issue}` : ""}${pages ? `, p. ${pages}` : ""}. https://doi.org/${doi}`;
-  if (style === "KCI")
-    return `${authors} (${year}). ${title}. 《${journal}》${vol ? `, ${vol}` : ""}${issue ? `(${issue})` : ""}${pages ? `, ${pages}` : ""}. https://doi.org/${doi}`;
-  if (style === "BibTeX") {
-    const key = ((p.authors ?? [])[0] ?? "").split(",")[0].toLowerCase() + year;
-    return `@article{${key},\n  author  = {${authors}},\n  title   = {${title}},\n  journal = {${journal}},\n  year    = {${year}},\n  doi     = {${doi}}\n}`;
+  // Helper: first surname from a "Last, First" or "First Last" string
+  function surname(a: string) { return a.split(",")[0].trim(); }
+
+  if (style === "APA") {
+    // APA 7th: ≤20 → all; >20 → first 19 + "..." + last
+    let authorStr: string;
+    if (raw.length <= 20) {
+      authorStr = raw.join(", ");
+    } else {
+      authorStr = raw.slice(0, 19).join(", ") + ", … " + raw[raw.length - 1];
+    }
+    const volIssue = vol ? `, ${vol}${issue ? `(${issue})` : ""}` : "";
+    const pagesStr = pages ? `, ${pages}` : "";
+    return `${authorStr} (${year}). ${title}. ${journal}${volIssue}${pagesStr}.${doiUrl ? ` ${doiUrl}` : ""}`;
   }
-  return `${authors} (${year}). ${title}.`;
+
+  if (style === "MLA") {
+    // MLA 9th: 1–2 authors → list all; ≥3 → first author + ", et al."
+    let authorStr: string;
+    if (raw.length === 0) {
+      authorStr = "";
+    } else if (raw.length <= 2) {
+      authorStr = raw.join(", and ");
+    } else {
+      authorStr = raw[0] + ", et al.";
+    }
+    const volIssue = vol ? `, vol. ${vol}${issue ? `, no. ${issue}` : ""}` : "";
+    const pagesStr = pages ? `, pp. ${pages}` : "";
+    return `${authorStr}. "${title}." ${journal}${volIssue}${pagesStr}, ${year}.${doiUrl ? ` ${doiUrl}` : ""}`;
+  }
+
+  if (style === "Chicago") {
+    // Chicago 17th bibliography: ≤10 → all; >10 → first 7 + "et al."
+    let authorStr: string;
+    if (raw.length <= 10) {
+      if (raw.length === 1) authorStr = raw[0];
+      else authorStr = raw.slice(0, -1).join(", ") + ", and " + raw[raw.length - 1];
+    } else {
+      authorStr = raw.slice(0, 7).join(", ") + ", et al.";
+    }
+    const volIssue = vol ? ` ${vol}${issue ? `, no. ${issue}` : ""}` : "";
+    const pagesStr = pages ? `: ${pages}` : "";
+    return `${authorStr}. "${title}." ${journal}${volIssue} (${year})${pagesStr}.${doiUrl ? ` ${doiUrl}.` : ""}`;
+  }
+
+  if (style === "GB/T 7714") {
+    // GB/T 7714-2015: ≤3 → all separated by ", "; >3 → first 3 + ", et al."
+    const trunc = raw.length > 3 ? raw.slice(0, 3) : raw;
+    const authorStr = trunc.join(", ") + (raw.length > 3 ? ", et al." : "");
+    const volIssue = vol ? `${vol}${issue ? `(${issue})` : ""}` : issue ? `(${issue})` : "";
+    const pagesStr = pages ? `: ${pages}` : "";
+    return `${authorStr}. ${title}[J]. ${journal}, ${year}${volIssue ? `, ${volIssue}` : ""}${pagesStr}.${doi ? ` DOI: ${doi}.` : ""}`;
+  }
+
+  if (style === "SIST 02") {
+    // SIST 02: ≤3 → all; >3 → first 3 + " ほか"
+    const trunc = raw.length > 3 ? raw.slice(0, 3) : raw;
+    const authorStr = trunc.join(", ") + (raw.length > 3 ? " ほか" : "");
+    const volIssue = vol ? `, vol. ${vol}${issue ? `, no. ${issue}` : ""}` : "";
+    const pagesStr = pages ? `, p. ${pages}` : "";
+    return `${authorStr}. 「${title}」. 『${journal}』. ${year}${volIssue}${pagesStr}.${doiUrl ? ` ${doiUrl}` : ""}`;
+  }
+
+  if (style === "KCI") {
+    // KCI: ≤5 → all; >5 → first 5 + " 외"
+    const trunc = raw.length > 5 ? raw.slice(0, 5) : raw;
+    const authorStr = trunc.join(", ") + (raw.length > 5 ? " 외" : "");
+    const volIssue = vol ? `, ${vol}${issue ? `(${issue})` : ""}` : "";
+    const pagesStr = pages ? `, ${pages}` : "";
+    return `${authorStr} (${year}). ${title}. 《${journal}》${volIssue}${pagesStr}.${doiUrl ? ` ${doiUrl}` : ""}`;
+  }
+
+  if (style === "BibTeX") {
+    // BibTeX: all authors joined with " and " — LaTeX/natbib handles display truncation
+    const authorStr = raw.join(" and ");
+    const key = surname(raw[0] ?? "anon").toLowerCase().replace(/\s+/g, "") + year;
+    const parts = [
+      `  author  = {${authorStr}}`,
+      `  title   = {${title}}`,
+      `  journal = {${journal}}`,
+      `  year    = {${year}}`,
+      vol   ? `  volume  = {${vol}}` : null,
+      issue ? `  number  = {${issue}}` : null,
+      pages ? `  pages   = {${pages}}` : null,
+      doi   ? `  doi     = {${doi}}` : null,
+    ].filter(Boolean).join(",\n");
+    return `@article{${key},\n${parts}\n}`;
+  }
+
+  // fallback
+  return `${raw.join(", ")} (${year}). ${title}.`;
 }
 
 const CITE_STYLES = ["APA", "MLA", "Chicago", "GB/T 7714", "SIST 02", "KCI", "BibTeX"];
@@ -3431,16 +3439,23 @@ const CITE_STYLES = ["APA", "MLA", "Chicago", "GB/T 7714", "SIST 02", "KCI", "Bi
 function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSave: (paper: RatedPaper) => void }) {
   const [mode, setMode] = useState<"list" | "bibliography">("list");
   const [style, setStyle] = useState("APA");
-  const [copied, setCopied] = useState(false);
+  const [copiedBib, setCopiedBib] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const bibText = items.map(it => formatCitation(it.paper, style)).join(style === "BibTeX" ? "\n\n" : "\n\n");
+
+  function copyItem(paper: RatedPaper, idx: number) {
+    navigator.clipboard?.writeText(formatCitation(paper, style));
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 1800);
+  }
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--bg)" }}>
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "36px 32px 80px" }}>
 
-        {/* header */}
-        <div className="flex items-end justify-between mb-7">
+        {/* header row */}
+        <div className="flex items-start justify-between mb-5 gap-4 flex-wrap">
           <div>
             <h1
               className="font-normal tracking-[-0.8px]"
@@ -3457,25 +3472,52 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
           </div>
 
           {/* mode toggle */}
-          <div
-            className="flex items-center rounded-full p-0.5 gap-0.5"
-            style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
-          >
-            {(["list", "bibliography"] as const).map(m => (
+          <div className="flex items-center gap-3 flex-wrap">
+            <div
+              className="flex items-center rounded-full p-0.5 gap-0.5"
+              style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+            >
+              {(["list", "bibliography"] as const).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  className="px-4 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                  style={{
+                    fontFamily: "var(--sans)",
+                    background: mode === m ? "var(--ink)" : "transparent",
+                    color: mode === m ? "var(--paper)" : "var(--ink-dim)",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {m === "list" ? "Saved papers" : "Bibliography"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* citation style selector — always visible so copy works in list mode */}
+        <div className="flex items-center gap-2 flex-wrap mb-5">
+          <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.8px", textTransform: "uppercase", color: "var(--ink-dim)" }}>Style</span>
+          <div className="flex flex-wrap gap-1">
+            {CITE_STYLES.map(s => (
               <button
-                key={m}
+                key={s}
                 type="button"
-                onClick={() => setMode(m)}
-                className="px-4 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                onClick={() => setStyle(s)}
+                className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
                 style={{
-                  fontFamily: "var(--sans)",
-                  background: mode === m ? "var(--ink)" : "transparent",
-                  color: mode === m ? "var(--paper)" : "var(--ink-dim)",
-                  border: "none",
+                  fontFamily: "var(--mono)",
+                  letterSpacing: "0.3px",
+                  background: style === s ? "var(--ink)" : "var(--paper)",
+                  color: style === s ? "var(--paper)" : "var(--ink-dim)",
+                  border: `1px solid ${style === s ? "var(--ink)" : "var(--rule)"}`,
                   cursor: "pointer",
                 }}
               >
-                {m === "list" ? "Saved papers" : "Bibliography"}
+                {s}
               </button>
             ))}
           </div>
@@ -3531,7 +3573,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                         {it.paper.title ?? "Untitled"}
                       </p>
                       <p
-                        className="text-[12px] leading-snug"
+                        className="text-[12px] leading-snug mb-2"
                         style={{ fontFamily: "var(--sans)", color: "var(--ink-dim)" }}
                       >
                         {(it.paper.authors ?? []).slice(0, 3).join(", ")}
@@ -3539,21 +3581,58 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                         {it.paper.year ? ` · ${it.paper.year}` : ""}
                         {it.paper.journal ? ` · ${it.paper.journal}` : ""}
                       </p>
+                      {/* inline formatted citation preview */}
+                      <p
+                        className="text-[12px] leading-relaxed rounded-lg px-3 py-2"
+                        style={{
+                          fontFamily: style === "BibTeX" ? "var(--mono)" : "var(--serif)",
+                          color: "var(--ink-dim)",
+                          background: "var(--bg-deep)",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {formatCitation(it.paper, style)}
+                      </p>
                     </div>
-                    {/* unsave button */}
-                    <button
-                      type="button"
-                      onClick={() => onToggleSave(it.paper)}
-                      title="Remove from library"
-                      className="shrink-0 rounded-lg w-7 h-7 flex items-center justify-center transition-colors mt-0.5"
-                      style={{ color: "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
-                      onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                      onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-                    >
-                      <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
-                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
-                      </svg>
-                    </button>
+                    {/* action buttons */}
+                    <div className="flex flex-col gap-1.5 shrink-0 mt-0.5">
+                      {/* copy citation */}
+                      <button
+                        type="button"
+                        onClick={() => copyItem(it.paper, idx)}
+                        title="Copy citation"
+                        className="rounded-lg w-7 h-7 flex items-center justify-center transition-colors"
+                        style={{ color: copiedIdx === idx ? "var(--accent)" : "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
+                        onMouseEnter={e => { if (copiedIdx !== idx) e.currentTarget.style.color = "var(--ink)"; }}
+                        onMouseLeave={e => { if (copiedIdx !== idx) e.currentTarget.style.color = "var(--ink-dim)"; }}
+                      >
+                        {copiedIdx === idx ? (
+                          <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                            <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z"/>
+                            <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
+                          </svg>
+                        )}
+                      </button>
+                      {/* unsave button */}
+                      <button
+                        type="button"
+                        onClick={() => onToggleSave(it.paper)}
+                        title="Remove from library"
+                        className="rounded-lg w-7 h-7 flex items-center justify-center transition-colors"
+                        style={{ color: "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                      >
+                        <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
+                          <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -3597,8 +3676,8 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                   type="button"
                   onClick={() => {
                     navigator.clipboard?.writeText(bibText);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1800);
+                    setCopiedBib(true);
+                    setTimeout(() => setCopiedBib(false), 1800);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
                   style={{
@@ -3611,7 +3690,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                   onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
                   onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
                 >
-                  {copied ? (
+                  {copiedBib ? (
                     <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5" aria-hidden>
                       <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd"/>
                     </svg>
@@ -3621,7 +3700,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                       <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
                     </svg>
                   )}
-                  <span>{copied ? "Copied" : "Copy"}</span>
+                  <span>{copiedBib ? "Copied" : "Copy all"}</span>
                 </button>
               </div>
             </div>
@@ -3946,7 +4025,6 @@ const [proSuccess, setProSuccess] = useState(false);
 
   // ── Saved papers ──────────────────────────────────────────────────────────────
   const [savedPapers, setSavedPapers] = useState<SavedPaper[]>([]);
-  const [sidebarView, setSidebarView] = useState<"searches" | "saved">("searches");
   const [view, setView] = useState<"workspace" | "library">("workspace");
 
   // Derived: set of keys (doi or lower-cased title) for O(1) lookup in PaperCard
@@ -4496,18 +4574,11 @@ const [proSuccess, setProSuccess] = useState(false);
             <SidebarInner
               session={session} isPro={isPro} upgrading={upgrading}
               tabs={tabs} activeTabId={activeTabId}
-              savedPapers={savedPapers}
-              sidebarView={sidebarView} setSidebarView={setSidebarView}
               onClose={() => setSidebarOpen(false)}
               onNewSearch={startNewSearch}
               onLoadTab={loadTab}
               onStarTab={starTab}
               onDeleteTab={deleteTab}
-              onRemoveSavedPaper={(id) => {
-                if (session) apiFetch(`/api/saved-papers/${id}`, { method: "DELETE" });
-                else lsRemoveSavedPaper(id);
-                setSavedPapers((prev) => prev.filter((p) => p.id !== id));
-              }}
               onHowTo={() => setShowHowTo(true)}
               onUpgrade={handleUpgradeClick}
               onCancelSubscription={() => setShowCancelDialog(true)}
@@ -4541,18 +4612,11 @@ const [proSuccess, setProSuccess] = useState(false);
                 <SidebarInner
                   session={session} isPro={isPro} upgrading={upgrading}
                   tabs={tabs} activeTabId={activeTabId}
-                  savedPapers={savedPapers}
-                  sidebarView={sidebarView} setSidebarView={setSidebarView}
                   onClose={() => setSidebarOpen(false)}
                   onNewSearch={() => { startNewSearch(); setSidebarOpen(false); }}
                   onLoadTab={(tab) => { loadTab(tab); setSidebarOpen(false); }}
                   onStarTab={starTab}
                   onDeleteTab={deleteTab}
-                  onRemoveSavedPaper={(id) => {
-                    if (session) apiFetch(`/api/saved-papers/${id}`, { method: "DELETE" });
-                    else lsRemoveSavedPaper(id);
-                    setSavedPapers((prev) => prev.filter((p) => p.id !== id));
-                  }}
                   onHowTo={() => { setShowHowTo(true); setSidebarOpen(false); }}
                   onUpgrade={handleUpgradeClick}
                   onCancelSubscription={() => setShowCancelDialog(true)}
