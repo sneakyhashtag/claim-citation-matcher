@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import { createContext, useDeferredValue, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -3966,6 +3966,10 @@ export default function Home() {
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
   const [customRange, setCustomRange] = useState<CustomRange>(null);
   const [langFilter, setLangFilter] = useState<LangFilter>("all");
+  // Deferred values keep the year filter non-blocking — React renders stale UI first
+  // then applies the new filter without janking the thread.
+  const deferredYearFilter = useDeferredValue(yearFilter);
+  const deferredCustomRange = useDeferredValue(customRange);
 
   // Keys of all papers already shown in the main results — used to deduplicate related papers
   const knownPaperKeys = useMemo(() => {
@@ -4024,6 +4028,8 @@ const [proSuccess, setProSuccess] = useState(false);
   const omakaseResultRef = useRef<HTMLDivElement>(null);
   // Ref for the left pane's scrollable inner div
   const leftPaneScrollRef = useRef<HTMLDivElement>(null);
+  // Cache lang-filter results so switching between languages is instant after first fetch
+  const resultsCacheRef = useRef<Map<LangFilter, ClaimResult[]>>(new Map());
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -4397,8 +4403,10 @@ const [proSuccess, setProSuccess] = useState(false);
     setResults([]);
     setCurrentClaims([]);
     setYearFilter("all");
+    setLangFilter("all");
     setOmakaseResult(null);
     setCustomRange(null);
+    resultsCacheRef.current.clear();
 
     try {
       setStatus(t("status_extracting"));
@@ -4461,6 +4469,8 @@ const [proSuccess, setProSuccess] = useState(false);
       );
 
       setResults(claimResults);
+      // Seed the cache with the default "all" results so switching language and back is instant
+      resultsCacheRef.current.set("all", claimResults);
       setView("workspace");
       setStatus("");
       await fetchUsage();
@@ -4565,10 +4575,17 @@ const [proSuccess, setProSuccess] = useState(false);
     }
   };
 
-  // Re-fetch papers when langFilter changes (Pro only) — skips claim extraction
+  // Re-fetch papers when langFilter changes (Pro only) — checks cache first for instant switching
   useEffect(() => {
     if (!isPro) return;
     if (currentClaims.length === 0) return;
+
+    // Cache hit → instant, no network
+    const cached = resultsCacheRef.current.get(langFilter);
+    if (cached) {
+      setResults(cached);
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -4599,6 +4616,8 @@ const [proSuccess, setProSuccess] = useState(false);
           })
         );
         if (!cancelled) {
+          // Store in cache so the next switch to this language is instant
+          resultsCacheRef.current.set(langFilter, claimResults);
           setResults(claimResults);
           setView("workspace");
           setStatus("");
@@ -5757,8 +5776,8 @@ const [proSuccess, setProSuccess] = useState(false);
                       result={result}
                       index={i}
                       knownPaperKeys={knownPaperKeys}
-                      yearFilter={yearFilter}
-                      customRange={customRange}
+                      yearFilter={deferredYearFilter}
+                      customRange={deferredCustomRange}
                       isPro={isPro}
                       isSignedIn={isSignedIn}
                       onUpgrade={handleUpgradeClick}
