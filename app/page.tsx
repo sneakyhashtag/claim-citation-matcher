@@ -5573,31 +5573,32 @@ const [proSuccess, setProSuccess] = useState(false);
           {ready && stage === "app" && results.length > 0 && view === "workspace" && (
             <div className="flex flex-1 overflow-hidden min-w-0">
 
-              {/* ── LEFT PANE: paragraph input + claims list ── */}
+              {/* ── LEFT PANE: paragraph input ── */}
               <div
-                className="flex flex-col overflow-hidden"
+                ref={leftPaneScrollRef}
+                className="flex flex-col overflow-y-auto"
                 style={{
                   width: "50%",
                   borderRight: "1px solid var(--rule)",
                   background: "var(--bg)",
                 }}
               >
-                {/* sticky form area */}
-                <div className="p-5 pb-4 border-b" style={{ borderColor: "var(--rule-soft)" }}>
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                    <div className="relative">
+                <div className="flex flex-col flex-1 p-5 gap-3">
+                  <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-3">
+                    {/* textarea — grows to fill available pane height */}
+                    <div className="relative flex flex-col flex-1">
                       <textarea
                         value={text}
                         onChange={(e) => { setText(e.target.value.slice(0, charLimit)); }}
                         placeholder={t("placeholder")}
                         aria-label="Paragraph input"
-                        className={`parchment-textarea w-full rounded-xl border px-4 py-3 pb-6 text-[14px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
+                        className={`parchment-textarea w-full flex-1 rounded-xl border px-4 py-3 pb-6 text-[14px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
                           !isPro && text.length >= FREE_CHAR_LIMIT
                             ? "focus:ring-red-500/40"
                             : "focus:ring-[var(--accent)]"
                         }`}
                         style={{
-                          height: 240,
+                          minHeight: 260,
                           background: "var(--paper)",
                           borderColor: !isPro && text.length >= FREE_CHAR_LIMIT ? "rgba(239,68,68,0.4)" : "var(--rule)",
                           color: "var(--ink)",
@@ -5615,18 +5616,33 @@ const [proSuccess, setProSuccess] = useState(false);
                         {text.length.toLocaleString()}/{charLimit.toLocaleString()}
                       </span>
                     </div>
+
+                    {/* action buttons */}
                     <div className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setText(pickExample(text))}
-                        disabled={loading}
-                        className="text-[12px] transition-colors disabled:opacity-40"
-                        style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
-                        onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                        onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-                      >
-                        {t("try_example")}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setText(pickExample(text))}
+                          disabled={loading}
+                          className="text-[12px] transition-colors disabled:opacity-40"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                        >
+                          {t("try_example")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setText("")}
+                          disabled={loading || !text}
+                          className="text-[12px] transition-colors disabled:opacity-40"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                        >
+                          Clear
+                        </button>
+                      </div>
                       <div className="flex items-center gap-2">
                         <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                         <button
@@ -5634,14 +5650,14 @@ const [proSuccess, setProSuccess] = useState(false);
                           disabled={!text.trim() || loading || (!isPro && usage.remaining === 0)}
                           className="btn-submit flex items-center justify-center px-4 py-1.5 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-[13px] font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {loading ? t("analyzing") : t("submit")}
+                          {loading ? t("analyzing") : "Re-extract claims"}
                         </button>
                       </div>
                     </div>
                   </form>
 
-                  {/* Omakase button — just below the form */}
-                  <div className="relative mt-3">
+                  {/* Omakase button */}
+                  <div className="relative">
                     <button
                       type="button"
                       disabled={!!omakaseLoading}
@@ -5689,57 +5705,11 @@ const [proSuccess, setProSuccess] = useState(false);
                       )}
                     </AnimatePresence>
                   </div>
-                </div>
 
-                {/* claims list — hoverable, clickable */}
-                <div ref={leftPaneScrollRef} className="flex-1 overflow-y-auto p-5">
-                  <div className="flex flex-col gap-1.5">
-                    {results.map((result, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3 rounded-lg px-3 py-2.5 cursor-pointer transition-all"
-                        style={{
-                          background: hoveredClaimIdx === i ? "var(--paper)" : "transparent",
-                          border: `1px solid ${hoveredClaimIdx === i ? "var(--rule)" : "transparent"}`,
-                        }}
-                        onMouseEnter={() => setHoveredClaimIdx(i)}
-                        onMouseLeave={() => setHoveredClaimIdx(null)}
-                        onClick={() => {
-                          // toggle: collapse if already the only expanded card, else expand exclusively
-                          setExpandedClaims(prev => prev.size === 1 && prev.has(i) ? new Set() : new Set([i]));
-                          // scroll right pane so this card's top is at the top of the pane
-                          const card = claimCardRefs.current[i];
-                          const pane = rightPaneRef.current;
-                          if (card && pane) {
-                            const cardRect = card.getBoundingClientRect();
-                            const paneRect = pane.getBoundingClientRect();
-                            pane.scrollTo({ top: pane.scrollTop + (cardRect.top - paneRect.top), behavior: "smooth" });
-                          }
-                        }}
-                      >
-                        <span
-                          className="text-[10px] tabular-nums mt-0.5 shrink-0 w-5"
-                          style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
-                        >
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <p
-                          className="text-[13px] italic leading-snug transition-colors"
-                          style={{
-                            color: hoveredClaimIdx === i ? "var(--ink)" : "var(--ink-dim)",
-                            fontFamily: "var(--serif)",
-                          }}
-                        >
-                          {result.claim}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* omakase result in left pane */}
+                  {/* omakase result */}
                   <AnimatePresence>
                     {omakaseResult && (
-                      <div className="mt-6">
+                      <div className="mt-2">
                         <OmakaseResultSection
                           rewrittenParagraph={omakaseResult.rewritten_paragraph}
                           referenceList={omakaseResult.reference_list}
