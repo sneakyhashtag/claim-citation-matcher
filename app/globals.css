@@ -18,8 +18,8 @@
   --paper-deep:  oklch(0.10 0.010 75);
   --ink:         oklch(0.93 0.008 80);
   --ink-dim:     oklch(0.93 0.008 80 / 0.42);
-  --accent:      oklch(0.65 0.13 30);   /* oxblood lifted for dark bg */
-  --accent-soft: oklch(0.65 0.13 30 / 0.14);
+  --accent:      oklch(0.62 0.10 145);   /* moss green lifted for dark bg */
+  --accent-soft: oklch(0.62 0.10 145 / 0.15);
   --rule:        oklch(0.93 0.008 80 / 0.10);
   --rule-soft:   oklch(0.93 0.008 80 / 0.05);
 
@@ -44,8 +44,8 @@ html.light {
   --paper-deep:  oklch(0.955 0.012 75);
   --ink:         oklch(0.22 0.015 60);
   --ink-dim:     oklch(0.52 0.012 60);
-  --accent:      oklch(0.52 0.12 30);   /* oxblood */
-  --accent-soft: oklch(0.93 0.04 35);
+  --accent:      oklch(0.48 0.08 145);  /* moss green — matches sample */
+  --accent-soft: oklch(0.93 0.03 145);
   --rule:        oklch(0.88 0.01 70);
   --rule-soft:   oklch(0.93 0.008 75);
 }
@@ -60,6 +60,32 @@ body {
   font-family: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+/* ── Warm text cohesion — map cold Tailwind slate to warm CSS variables ─── */
+/* Tailwind utilities are in @layer utilities (lower priority).               */
+/* These unlayered rules beat them, making every text-slate-* warm globally. */
+
+.text-slate-50,
+.text-slate-100,
+.text-slate-200 { color: var(--ink); }
+
+.text-slate-300 { color: color-mix(in oklch, var(--ink) 72%, var(--ink-dim)); }
+
+.text-slate-400,
+.text-slate-500 { color: var(--ink-dim); }
+
+.text-slate-600,
+.text-slate-700 { color: color-mix(in oklch, var(--ink-dim) 72%, transparent); }
+
+.hover\:text-slate-100:hover,
+.hover\:text-slate-200:hover { color: var(--ink); }
+
+.hover\:text-slate-300:hover { color: color-mix(in oklch, var(--ink) 72%, var(--ink-dim)); }
+
+.hover\:text-slate-400:hover { color: var(--ink-dim); }
+
+/* Selection highlight */
+::selection { background: var(--accent-soft); color: var(--ink); }
 
 /* ── Animated gradient orbs behind hero ──────────────────────────────────── */
 
@@ -285,7 +311,7 @@ html.light .parchment-textarea:focus {
   box-shadow:
     inset 0 2px 8px  oklch(0.22 0.015 60 / 0.09),
     inset 0 1px 3px  oklch(0.22 0.015 60 / 0.06),
-    0 0 0 2px oklch(0.52 0.12 30 / 0.20);
+    0 0 0 2px oklch(0.48 0.08 145 / 0.22);
 }
 
 /* ── Submit button shadow ─────────────────────────────────────────────────── */
@@ -343,10 +369,10 @@ html.light .orb-3 {
   opacity: 0;
 }
 
-/* ── Stat badge glow override for parchment — warm sepia instead of orange ── */
+/* ── Stat badge glow override for parchment — moss accent ─────────────────── */
 
 html.light .stat-badge-glow {
-  box-shadow: 0 0 7px 1px rgba(122, 32, 0, 0.28) !important;
+  box-shadow: 0 0 7px 1px oklch(0.48 0.08 145 / 0.28) !important;
 }
 
 /* ── Omakase loading — spinning star + pulsing glow ─────────────────────── */
@@ -439,14 +465,14 @@ html.light .btn-omakase:not(:disabled):hover {
     0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Burgundy accent for inline links on parchment ───────────────────────── */
+/* ── Accent links (moss) ─────────────────────────────────────────────────── */
 
-html.light a.link-burgundy,
-html.light button.link-burgundy {
-  color: #8B2500;
+a.link-burgundy,
+button.link-burgundy {
+  color: var(--accent);
 }
 
-html.light a.link-burgundy:hover,
-html.light button.link-burgundy:hover {
-  color: #6B1C00;
+a.link-burgundy:hover,
+button.link-burgundy:hover {
+  color: color-mix(in oklch, var(--accent) 85%, var(--ink));
 }

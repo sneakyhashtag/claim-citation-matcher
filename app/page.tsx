@@ -729,8 +729,8 @@ function ExportMenu({
         disabled={papers.length === 0}
         className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 light:border-[rgba(44,24,16,0.14)] bg-white/[0.05] light:bg-[rgba(44,24,16,0.04)] px-2.5 py-1 text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
           isPro
-            ? "text-slate-400 light:text-[#6B4226] hover:bg-white/[0.09] light:hover:bg-[rgba(44,24,16,0.08)] hover:text-slate-200 light:hover:text-[#2C1810]"
-            : "text-slate-600 light:text-[#A67856] opacity-75"
+            ? "text-[var(--ink-dim)] hover:bg-white/[0.09] light:hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            : "text-[var(--ink-dim)] opacity-75"
         }`}
       >
         {isPro ? (
@@ -775,7 +775,7 @@ function ExportMenu({
             className="absolute top-full left-0 mt-1.5 z-30 w-52 rounded-xl border border-white/[0.10] light:border-[rgba(80,50,20,0.16)] bg-[#141414] light:bg-[rgba(248,246,234,1)] shadow-2xl py-1 overflow-hidden"
             role="menu"
           >
-            <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+            <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)]">
               {t("download_as")}
             </p>
             {EXPORT_OPTIONS.map(({ type, label, ext, icon }) => (
@@ -783,12 +783,12 @@ function ExportMenu({
                 key={type}
                 type="button"
                 onClick={() => handleExport(type)}
-                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-300 light:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors text-left"
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-[var(--paper-deep)] transition-colors text-left"
                 role="menuitem"
               >
-                <span className="text-slate-500 light:text-[#8B5E3C] shrink-0">{icon}</span>
+                <span className="text-[var(--ink-dim)] shrink-0">{icon}</span>
                 <span className="flex-1 truncate">{label}</span>
-                <span className="text-slate-600 light:text-[#A67856] font-mono text-[10px] shrink-0">{ext}</span>
+                <span className="text-[var(--ink-dim)] font-mono text-[10px] shrink-0">{ext}</span>
               </button>
             ))}
           </motion.div>
@@ -936,10 +936,10 @@ function ProGatePopover({
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white light:text-[#1a0f00] mb-1.5">
+            <p className="text-sm font-semibold text-white light:text-[var(--ink)] mb-1.5">
               {t("pro_feature")}
             </p>
-            <p className="text-xs text-[#94a3b8] light:text-[#4a3010] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] light:text-[var(--ink-dim)] leading-relaxed">
               {isSignedIn ? (
                 <>
                   <button
@@ -970,7 +970,7 @@ function ProGatePopover({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-[#64748b] hover:text-white light:text-[#8b6a40] light:hover:text-[#1a0f00] transition-colors"
+            className="shrink-0 -mt-0.5 -mr-1 rounded-lg p-1 text-[#64748b] hover:text-white light:text-[var(--ink-dim)] light:hover:text-[var(--ink)] transition-colors"
             aria-label="Dismiss"
           >
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1039,17 +1039,17 @@ function OmakaseCitationPicker({
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h2 className="text-base font-semibold text-slate-100 light:text-[#2C1810] letterpress-title">
+              <h2 className="text-base font-semibold text-[var(--ink)] letterpress-title">
                 {t("choose_style")}
               </h2>
-              <p className="mt-0.5 text-xs text-slate-500 light:text-[#8B5E3C]">
+              <p className="mt-0.5 text-xs text-[var(--ink-dim)]">
                 {t("rewrite_inline_desc")}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="ml-3 shrink-0 rounded-lg p-1 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+              className="ml-3 shrink-0 rounded-lg p-1 text-slate-500 hover:text-slate-300 light:text-[var(--ink-dim)] light:hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-[var(--paper-deep)] transition-colors"
               aria-label="Close"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1068,10 +1068,10 @@ function OmakaseCitationPicker({
                 onClick={() => onSelect(id)}
                 className="group flex flex-col items-start gap-0.5 rounded-xl border border-white/[0.08] light:border-[rgba(80,50,20,0.12)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 text-left transition-all hover:border-amber-500/40 light:hover:border-amber-700/30 hover:bg-amber-500/[0.07] light:hover:bg-amber-700/[0.05] hover:shadow-[0_0_12px_1px_rgba(251,191,36,0.10)]"
               >
-                <span className="text-sm font-semibold text-slate-200 light:text-[#2C1810] group-hover:text-amber-300 light:group-hover:text-amber-800 transition-colors">
+                <span className="text-sm font-semibold text-[var(--ink)] group-hover:text-amber-300 light:group-hover:text-amber-800 transition-colors">
                   {label}
                 </span>
-                <span className="text-[10px] text-slate-500 light:text-[#8B5E3C]">
+                <span className="text-[10px] text-[var(--ink-dim)]">
                   {subtitle}
                 </span>
               </button>
@@ -1163,7 +1163,7 @@ function OmakaseResultSection({
 
   const btnBase  = "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap";
   const btnAmber = `${btnBase} border-amber-500/30 light:border-amber-700/25 bg-amber-500/10 light:bg-amber-700/[0.07] text-amber-300 light:text-amber-800 hover:bg-amber-500/[0.18] light:hover:bg-amber-700/[0.12]`;
-  const btnGhost = `${btnBase} border-white/[0.09] light:border-[rgba(80,50,20,0.13)] text-slate-400 light:text-[#6B4226] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)]`;
+  const btnGhost = `${btnBase} border-white/[0.09] light:border-[var(--rule)] text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-[var(--paper-deep)]`;
 
   return (
     <motion.div
@@ -1178,17 +1178,17 @@ function OmakaseResultSection({
       <div className="h-px bg-gradient-to-r from-transparent via-amber-500/50 light:via-amber-700/35 to-transparent" />
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3.5 border-b border-white/[0.06] light:border-[rgba(80,50,20,0.09)]">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3.5 border-b border-white/[0.06] light:border-[var(--rule-soft)]">
         <div className="flex items-center gap-2.5 min-w-0">
           <svg className="h-4 w-4 shrink-0 text-amber-400 light:text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
             <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
           </svg>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-slate-100 light:text-[#2C1810] letterpress-title truncate">
+            <h2 className="text-sm font-semibold text-[var(--ink)] letterpress-title truncate">
               {t("omakase_rewrite_title")}
             </h2>
-            <p className="text-[10px] text-slate-500 light:text-[#8B5E3C]">
+            <p className="text-[10px] text-[var(--ink-dim)]">
               {styleName} · {referenceList.length} reference{referenceList.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -1196,7 +1196,7 @@ function OmakaseResultSection({
         <button
           type="button"
           onClick={onDismiss}
-          className="ml-3 shrink-0 rounded-lg p-1.5 text-slate-500 hover:text-slate-300 light:text-[#8B5E3C] light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-[rgba(44,24,16,0.06)] transition-colors"
+          className="ml-3 shrink-0 rounded-lg p-1.5 text-slate-500 hover:text-slate-300 light:text-[var(--ink-dim)] light:hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-[var(--paper-deep)] transition-colors"
           aria-label="Dismiss Omakase result"
         >
           <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1209,14 +1209,14 @@ function OmakaseResultSection({
       {/* ── Paragraph ── */}
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between gap-4 mb-3">
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)] shrink-0">
             {t("rewritten_paragraph")}
           </h3>
           <button type="button" onClick={para.copy} className={btnGhost}>
             {para.copied ? <><CheckIcon />{t("copied")}</> : <><CopyIcon />{t("copy_paragraph")}</>}
           </button>
         </div>
-        <p className="text-sm leading-[1.85] text-slate-200 light:text-[#2C1810]">
+        <p className="text-sm leading-[1.85] text-[var(--ink)]">
           {segments.map((seg, i) =>
             seg.kind === "cite" ? (
               <mark
@@ -1236,13 +1236,13 @@ function OmakaseResultSection({
       </div>
 
       {/* ── Divider ── */}
-      <div className="mx-5 border-t border-white/[0.05] light:border-[rgba(80,50,20,0.08)]" />
+      <div className="mx-5 border-t border-white/[0.05] light:border-[var(--rule-soft)]" />
 
       {/* ── References ── */}
       {referenceList.length > 0 && (
         <div className="px-5 pt-4 pb-5 bg-white/[0.015] light:bg-[rgba(44,24,16,0.025)]">
           <div className="flex items-center justify-between gap-4 mb-3">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)] shrink-0">
               {t("references")}
             </h3>
             <button type="button" onClick={refs.copy} className={btnGhost}>
@@ -1251,7 +1251,7 @@ function OmakaseResultSection({
           </div>
           <ol className="flex flex-col gap-2">
             {referenceList.map((ref, i) => (
-              <li key={i} className="flex gap-3 text-xs leading-relaxed text-slate-300 light:text-[#3D2010]">
+              <li key={i} className="flex gap-3 text-xs leading-relaxed text-slate-300 light:text-[var(--ink-dim)]">
                 <span className="shrink-0 mt-px font-mono text-[10px] text-amber-600/70 light:text-amber-800/60 select-none tabular-nums">
                   [{i + 1}]
                 </span>
@@ -1263,9 +1263,9 @@ function OmakaseResultSection({
       )}
 
       {/* ── Footer ── */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.09)]
+      <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3.5 border-t border-white/[0.06] light:border-[var(--rule-soft)]
                       bg-white/[0.015] light:bg-[rgba(44,24,16,0.018)]">
-        <p className="text-[10px] text-slate-600 light:text-[#A67856] hidden sm:block">
+        <p className="text-[10px] text-[var(--ink-dim)] hidden sm:block">
           {t("citations_highlighted")}
         </p>
         <button type="button" onClick={all.copy} className={btnAmber}>
@@ -1312,10 +1312,10 @@ function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-100 light:text-[#2C1810]">
+            <p className="text-sm font-semibold text-[var(--ink)]">
               {t("rewriting_with_style", { style: styleName })}
             </p>
-            <p className="mt-1 text-xs text-slate-500 light:text-[#8B5E3C]">
+            <p className="mt-1 text-xs text-[var(--ink-dim)]">
               {t("inserting_refs")}
             </p>
           </div>
@@ -1506,7 +1506,7 @@ function MatchTypeInfoIcon() {
       {/* tooltip */}
       <span
         role="tooltip"
-        className="pointer-events-none absolute bottom-full right-0 z-50 mb-1.5 w-64 rounded border border-slate-700/60 bg-slate-900 px-3 py-2 text-[11px] leading-relaxed text-slate-300 opacity-0 shadow-lg transition-opacity group-hover/mti:opacity-100 group-focus-within/mti:opacity-100 light:border-[rgba(80,60,30,0.22)] light:bg-[#FDF8F0] light:text-[#3D2B10]"
+        className="pointer-events-none absolute bottom-full right-0 z-50 mb-1.5 w-64 rounded border border-slate-700/60 bg-slate-900 px-3 py-2 text-[11px] leading-relaxed text-slate-300 opacity-0 shadow-lg transition-opacity group-hover/mti:opacity-100 group-focus-within/mti:opacity-100 light:border-[rgba(80,60,30,0.22)] light:bg-[#FDF8F0] light:text-[var(--ink-dim)]"
       >
         {MATCH_TYPE_TOOLTIP}
         {/* arrow */}
@@ -1758,7 +1758,7 @@ function PaperCard({
                 className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${
                   isSaved
                     ? "text-amber-400 light:text-amber-600 hover:text-amber-300 light:hover:text-amber-700"
-                    : "text-slate-600 light:text-[#B0906A] hover:text-amber-400 light:hover:text-amber-600 hover:bg-white/[0.07] light:hover:bg-black/[0.05]"
+                    : "text-slate-600 light:text-[var(--ink-dim)] hover:text-amber-400 light:hover:text-amber-600 hover:bg-white/[0.07] light:hover:bg-black/[0.05]"
                 }`}
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -1851,8 +1851,8 @@ function PaperCard({
               disabled={isPro && relatedLoading}
               className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
                 isPro
-                  ? "text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00]"
-                  : "text-slate-600 light:text-[#A67856] opacity-75"
+                  ? "text-slate-500 light:text-[var(--accent)] hover:text-slate-300 light:hover:text-[var(--accent)]"
+                  : "text-[var(--ink-dim)] opacity-75"
               }`}
             >
               {isPro ? (
@@ -1904,13 +1904,13 @@ function PaperCard({
           >
             <div className="mt-1 ml-3 border-l-2 border-white/[0.08] light:border-[rgba(44,24,16,0.12)] pl-3">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C]">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)]">
                   {t("related_papers_section")}
                 </p>
                 <button
                   type="button"
                   onClick={() => setRelatedOpen(false)}
-                  className="inline-flex items-center gap-0.5 text-[10px] text-slate-600 light:text-[#A67856] hover:text-slate-400 light:hover:text-[#8B5E3C] transition-colors"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-[var(--ink-dim)] hover:text-slate-400 light:hover:text-[#8B5E3C] transition-colors"
                   aria-label="Collapse related papers"
                 >
                   <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -1921,11 +1921,11 @@ function PaperCard({
               </div>
               {relatedLoading && (
                 <div className="flex items-center gap-2 py-2">
-                  <svg className="h-3.5 w-3.5 animate-spin text-slate-500 light:text-[#8B5E3C] shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <svg className="h-3.5 w-3.5 animate-spin text-[var(--ink-dim)] shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
-                  <span className="text-xs text-slate-500 light:text-[#8B5E3C]">{t("searching_related")}</span>
+                  <span className="text-xs text-[var(--ink-dim)]">{t("searching_related")}</span>
                 </div>
               )}
               {relatedError && (
@@ -1935,12 +1935,12 @@ function PaperCard({
                 const visible = relatedPapers.filter((p) => paperInRange(p.year, yearFilter, customRange));
                 const hidden = relatedPapers.length - visible.length;
                 if (relatedPapers.length === 0) return (
-                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">{t("no_related_found")}</p>
+                  <p className="text-xs text-[var(--ink-dim)] py-2">{t("no_related_found")}</p>
                 );
                 if (visible.length === 0) return (
-                  <p className="text-xs text-slate-500 light:text-[#8B5E3C] py-2">
+                  <p className="text-xs text-[var(--ink-dim)] py-2">
                     {t("no_related")}
-                    {hidden > 0 && <span className="ml-1 text-slate-600 light:text-[#A67856]">({hidden} hidden)</span>}
+                    {hidden > 0 && <span className="ml-1 text-[var(--ink-dim)]">({hidden} hidden)</span>}
                   </p>
                 );
                 return (
@@ -1949,7 +1949,7 @@ function PaperCard({
                       <RelatedPaperCard key={rp.doi ?? rp.title ?? i} paper={rp} index={i} />
                     ))}
                     {hidden > 0 && (
-                      <p className="text-[11px] text-slate-600 light:text-[#A67856] pt-0.5">
+                      <p className="text-[11px] text-[var(--ink-dim)] pt-0.5">
                         {hidden === 1 ? t("hidden_by_date_one") : t("hidden_by_date_many", { n: hidden })}
                       </p>
                     )}
@@ -1990,12 +1990,12 @@ function RelatedPaperCard({ paper, index = 0 }: { paper: Paper; index?: number }
               href={doiUrl(paper.doi) ?? paper.doi}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-slate-100 light:text-[#2C1810] hover:text-blue-400 light:hover:text-[#8B2500] transition-colors leading-snug break-words"
+              className="text-sm font-medium text-[var(--ink)] hover:text-blue-400 light:hover:text-[var(--accent)] transition-colors leading-snug break-words"
             >
               {paper.title ?? "Untitled"}
             </a>
           ) : (
-            <span className="text-sm font-medium text-slate-100 light:text-[#2C1810] leading-snug break-words">
+            <span className="text-sm font-medium text-[var(--ink)] leading-snug break-words">
               {paper.title ?? "Untitled"}
             </span>
           )}
@@ -2005,12 +2005,12 @@ function RelatedPaperCard({ paper, index = 0 }: { paper: Paper; index?: number }
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               paper.source === "Semantic Scholar"
                 ? "bg-purple-500/15 text-purple-400 light:bg-[rgba(75,20,95,0.10)] light:text-[#4B1460]"
-                : "bg-white/10 light:bg-[rgba(44,24,16,0.08)] text-slate-300 light:text-[#4A2E1A]"
+                : "bg-white/10 light:bg-[rgba(44,24,16,0.08)] text-[var(--ink-dim)]"
             }`}>
               {paper.source === "Semantic Scholar" ? "S2" : "OA"}
             </span>
           )}
-          <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-slate-500/15 text-slate-400 light:bg-[rgba(44,24,16,0.08)] light:text-[#5A3820]">
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-slate-500/15 text-slate-400 light:bg-[rgba(44,24,16,0.08)] light:text-[var(--ink-dim)]">
             Related
           </span>
         </div>
@@ -2018,12 +2018,12 @@ function RelatedPaperCard({ paper, index = 0 }: { paper: Paper; index?: number }
 
       {/* authors · year */}
       {authorYearMeta && (
-        <p className="mt-1.5 text-xs text-slate-400 light:text-[#6B4226] break-words">{authorYearMeta}</p>
+        <p className="mt-1.5 text-xs text-[var(--ink-dim)] break-words">{authorYearMeta}</p>
       )}
 
       {/* journal */}
       {paper.journal && (
-        <p className="mt-0.5 text-xs text-slate-500 light:text-[#6B4226] italic truncate" title={paper.journal}>
+        <p className="mt-0.5 text-xs text-slate-500 light:text-[var(--ink-dim)] italic truncate" title={paper.journal}>
           {paper.journal}
         </p>
       )}
@@ -2074,12 +2074,12 @@ function RecencyFilter({
   };
 
   const pillBase = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors";
-  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]";
-  const pillIdle = "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]";
+  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[var(--ink)]";
+  const pillIdle = "border-transparent text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-[var(--paper-deep)] hover:text-slate-300 light:hover:text-[var(--ink-dim)]";
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)] shrink-0">
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <rect x="3" y="4" width="14" height="13" rx="2"/>
           <path strokeLinecap="round" d="M3 8h14M7 2v4M13 2v4"/>
@@ -2132,9 +2132,9 @@ function RecencyFilter({
                   onKeyDown={(e) => e.key === "Enter" && handleApply()}
                   min={1900}
                   max={2100}
-                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-slate-200 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[var(--rule)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-[var(--ink)] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <span className="text-slate-600 light:text-[#8B5E3C] text-xs select-none">–</span>
+                <span className="text-[var(--ink-dim)] text-xs select-none">–</span>
                 <input
                   type="number"
                   placeholder={t("to_year")}
@@ -2143,12 +2143,12 @@ function RecencyFilter({
                   onKeyDown={(e) => e.key === "Enter" && handleApply()}
                   min={1900}
                   max={2100}
-                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[rgba(80,50,20,0.14)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-slate-200 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-[4.5rem] rounded-lg border border-white/[0.10] light:border-[var(--rule)] bg-white/[0.07] light:bg-[rgba(44,24,16,0.05)] px-2 py-1 text-xs text-[var(--ink)] placeholder-slate-600 light:placeholder-[rgba(44,24,16,0.35)] focus:outline-none focus:ring-1 focus:ring-white/20 light:focus:ring-[rgba(80,50,20,0.2)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
                   type="button"
                   onClick={handleApply}
-                  className="rounded-lg bg-white/[0.10] light:bg-[rgba(44,24,16,0.08)] border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] px-2.5 py-1 text-xs font-medium text-slate-200 light:text-[#2C1810] hover:bg-white/[0.16] light:hover:bg-[rgba(44,24,16,0.13)] transition-colors"
+                  className="rounded-lg bg-white/[0.10] light:bg-[rgba(44,24,16,0.08)] border border-white/[0.12] light:border-[rgba(80,50,20,0.16)] px-2.5 py-1 text-xs font-medium text-[var(--ink)] hover:bg-white/[0.16] light:hover:bg-[rgba(44,24,16,0.13)] transition-colors"
                 >
                   {t("apply")}
                 </button>
@@ -2199,12 +2199,12 @@ function LanguageFilter({
   const [showProGate, setShowProGate] = useState(false);
 
   const pillBase = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors";
-  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[#2C1810]";
-  const pillIdle = "border-transparent text-slate-500 light:text-[#8B5E3C] hover:bg-white/[0.06] light:hover:bg-[rgba(44,24,16,0.05)] hover:text-slate-300 light:hover:text-[#4A2E1A]";
+  const pillActive = "bg-white/[0.12] border-white/20 text-slate-200 light:bg-[rgba(44,24,16,0.10)] light:border-[rgba(44,24,16,0.22)] light:text-[var(--ink)]";
+  const pillIdle = "border-transparent text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-[var(--paper-deep)] hover:text-slate-300 light:hover:text-[var(--ink-dim)]";
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] shrink-0">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)] shrink-0">
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <circle cx="10" cy="10" r="8"/>
           <path strokeLinecap="round" d="M2 10h16M10 2c-2 3-2 13 0 16M10 2c2 3 2 13 0 16"/>
@@ -2441,13 +2441,13 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
-              <h2 id="how-to-use-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[var(--rule)] shrink-0">
+              <h2 id="how-to-use-title" className="font-semibold text-[var(--ink)] text-base">
                 {t("how_it_works_title")}
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 light:text-[#A67856] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -2458,106 +2458,106 @@ function HowToUseModal({ onClose }: { onClose: () => void }) {
 
             {/* body */}
             <div className="px-6 py-5 space-y-5 overflow-y-auto">
-              <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">
+              <p className="text-sm text-[var(--ink-dim)] leading-relaxed">
                 {t("how_it_works_intro")}
               </p>
 
               {/* steps */}
               <div>
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide mb-2.5">{t("how_it_works_steps")}</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide mb-2.5">{t("how_it_works_steps")}</p>
                 <ol className="space-y-3">
                   {(["how_step_1", "how_step_2", "how_step_3", "how_step_4"] as const).map((key, idx) => (
                     <li key={key} className="flex items-start gap-3">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-slate-100 light:text-[#2C1810] text-xs font-medium shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/15 light:bg-[rgba(44,24,16,0.1)] text-[var(--ink)] text-xs font-medium shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
-                      <p className="text-sm text-slate-400 light:text-[#6B4226] leading-relaxed">{t(key)}</p>
+                      <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t(key)}</p>
                     </li>
                   ))}
                 </ol>
               </div>
 
               {/* paper badges */}
-              <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("paper_stats_title")}</p>
-                <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
+              <div className="rounded-xl border border-white/10 light:border-[var(--rule)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide">{t("paper_stats_title")}</p>
+                <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] leading-relaxed">
                   {t("paper_stats_intro")}
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="text-orange-400 text-sm shrink-0 leading-none mt-0.5">🔥</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-orange-400 light:text-[#7A2000]">{t("badge_flame_title")}</strong> {t("badge_flame_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-orange-400 light:text-[#7A2000]">{t("badge_flame_title")}</strong> {t("badge_flame_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-violet-400 text-sm shrink-0 leading-none mt-0.5">★</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-violet-400 light:text-[#4B1460]">{t("badge_star_title")}</strong> {t("badge_star_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-violet-400 light:text-[#4B1460]">{t("badge_star_title")}</strong> {t("badge_star_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-sky-400 text-sm shrink-0 leading-none mt-0.5">▦</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-sky-400 light:text-[#0F3264]">{t("badge_bar_title")}</strong> {t("badge_bar_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-sky-400 light:text-[#0F3264]">{t("badge_bar_title")}</strong> {t("badge_bar_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-teal-400 text-sm shrink-0 leading-none mt-0.5">IF</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-teal-400 light:text-[#004B46]">{t("badge_if_title")}</strong> {t("badge_if_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-teal-400 light:text-[#004B46]">{t("badge_if_title")}</strong> {t("badge_if_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-300 text-sm shrink-0 leading-none mt-0.5 font-semibold">Q</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-300 light:text-[#0A4620]">{t("badge_q_title")}</strong> {t("badge_q_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-emerald-300 light:text-[#0A4620]">{t("badge_q_title")}</strong> {t("badge_q_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="text-emerald-400 text-sm shrink-0 leading-none mt-0.5">📖</span>
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-emerald-400 light:text-[#0A3C19]">{t("badge_book_title")}</strong> {t("badge_book_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-emerald-400 light:text-[#0A3C19]">{t("badge_book_title")}</strong> {t("badge_book_desc")}</span>
                   </div>
                 </div>
               </div>
 
               {/* relevance tiers */}
-              <div className="rounded-xl border border-white/10 light:border-[rgba(80,50,20,0.1)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("relevance_tiers_title")}</p>
-                <p className="text-xs text-slate-500 light:text-[#6B4226] leading-relaxed">
+              <div className="rounded-xl border border-white/10 light:border-[var(--rule)] bg-white/[0.04] light:bg-[rgba(44,24,16,0.03)] px-4 py-3 space-y-2">
+                <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide">{t("relevance_tiers_title")}</p>
+                <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] leading-relaxed">
                   {t("relevance_tiers_intro")}
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-green-400 light:text-[#1E4620]">{t("tier_direct")}</strong> — {t("tier_direct_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-green-400 light:text-[#1E4620]">{t("tier_direct")}</strong> — {t("tier_direct_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-blue-400 light:text-[#2A3070]">{t("tier_high")}</strong> — {t("tier_high_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-blue-400 light:text-[#2A3070]">{t("tier_high")}</strong> — {t("tier_high_desc")}</span>
                   </div>
                   <div className="flex items-start gap-2.5">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-slate-300 light:text-[#4A2E1A]"><strong className="text-amber-400 light:text-[#6B3A00]">{t("tier_moderate")}</strong> — {t("tier_moderate_desc")}</span>
+                    <span className="text-xs text-[var(--ink-dim)]"><strong className="text-amber-400 light:text-[#6B3A00]">{t("tier_moderate")}</strong> — {t("tier_moderate_desc")}</span>
                   </div>
                 </div>
               </div>
 
               {/* good to know */}
               <div className="space-y-2.5">
-                <p className="text-xs font-medium text-slate-500 light:text-[#6B4226] uppercase tracking-wide">{t("good_to_know_title")}</p>
+                <p className="text-xs font-medium text-slate-500 light:text-[var(--ink-dim)] uppercase tracking-wide">{t("good_to_know_title")}</p>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🌐</span>
-                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_lang_title")}</strong> {t("gk_lang_desc")}
+                  <p className="text-xs text-slate-400 light:text-[var(--ink-dim)] leading-relaxed">
+                    <strong className="text-[var(--ink)]">{t("gk_lang_title")}</strong> {t("gk_lang_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">🔢</span>
-                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_daily_title")}</strong> {t("gk_daily_desc")}
+                  <p className="text-xs text-slate-400 light:text-[var(--ink-dim)] leading-relaxed">
+                    <strong className="text-[var(--ink)]">{t("gk_daily_title")}</strong> {t("gk_daily_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">👤</span>
-                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_signin_title")}</strong> {t("gk_signin_desc")}
+                  <p className="text-xs text-slate-400 light:text-[var(--ink-dim)] leading-relaxed">
+                    <strong className="text-[var(--ink)]">{t("gk_signin_title")}</strong> {t("gk_signin_desc")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 leading-none">💡</span>
-                  <p className="text-xs text-slate-400 light:text-[#4A2E1A] leading-relaxed">
-                    <strong className="text-slate-200 light:text-[#2C1810]">{t("gk_example_title")}</strong> {t("gk_example_desc")}
+                  <p className="text-xs text-slate-400 light:text-[var(--ink-dim)] leading-relaxed">
+                    <strong className="text-[var(--ink)]">{t("gk_example_title")}</strong> {t("gk_example_desc")}
                   </p>
                 </div>
               </div>
@@ -2654,12 +2654,12 @@ function CancelDialog({
           >
             <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden">
               {/* header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)]">
-                <h2 className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 light:border-[var(--rule)]">
+                <h2 className="font-semibold text-[var(--ink)] text-base">
                   {phase === "done" ? t("sub_cancelled_title") : t("cancel_sub_title")}
                 </h2>
                 {phase !== "cancelling" && (
-                  <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors" aria-label="Close">
+                  <button onClick={onClose} className="p-1.5 rounded-md text-slate-500 hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors" aria-label="Close">
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
                     </svg>
@@ -2698,13 +2698,13 @@ function CancelDialog({
                         </p>
                       </div>
                     )}
-                    <p className="text-xs text-slate-500 light:text-[#8B5E3C]">
+                    <p className="text-xs text-[var(--ink-dim)]">
                       {t("sure_cancel_sub")}
                     </p>
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={onClose}
-                        className="flex-1 rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                        className="flex-1 rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                       >
                         {t("keep_pro")}
                       </button>
@@ -2734,17 +2734,17 @@ function CancelDialog({
                   <>
                     <div className="rounded-lg bg-slate-500/10 light:bg-slate-700/[0.06] border border-slate-500/20 px-4 py-3">
                       {result.refunded ? (
-                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                        <p className="text-sm text-[var(--ink)] leading-relaxed">
                           Your subscription has been cancelled and a refund of{" "}
                           <span className="font-semibold">${(result.refund_amount_cents / 100).toFixed(2)}</span>{" "}
                           has been issued. It will appear within 5–10 business days.
                         </p>
                       ) : result.cancel_at === "immediate" ? (
-                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                        <p className="text-sm text-[var(--ink)] leading-relaxed">
                           Your subscription has been cancelled immediately.
                         </p>
                       ) : (
-                        <p className="text-sm text-slate-300 light:text-[#2C1810] leading-relaxed">
+                        <p className="text-sm text-[var(--ink)] leading-relaxed">
                           Your subscription has been cancelled. You&apos;ll retain Pro access until{" "}
                           <span className="font-semibold">
                             {new Date(result.cancel_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
@@ -2754,7 +2754,7 @@ function CancelDialog({
                     </div>
                     <button
                       onClick={onClose}
-                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                     >
                       {t("close")}
                     </button>
@@ -2767,7 +2767,7 @@ function CancelDialog({
                     <p className="text-sm text-red-400 light:text-red-700">{errorMsg}</p>
                     <button
                       onClick={onClose}
-                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-slate-300 light:text-[#4A2E1A] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
+                      className="w-full rounded-lg border border-white/[0.12] light:border-[rgba(80,50,20,0.18)] px-3 py-2 text-sm text-[var(--ink-dim)] hover:bg-white/[0.06] light:hover:bg-black/[0.04] transition-colors"
                     >
                       {t("close")}
                     </button>
@@ -2832,18 +2832,18 @@ function PlanModal({
         >
           <div className="glass-panel rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]">
             {/* header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[rgba(80,50,20,0.1)] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light:border-[var(--rule)] shrink-0">
               <div>
-                <h2 id="plan-modal-title" className="font-semibold text-slate-100 light:text-[#2C1810] text-base">
+                <h2 id="plan-modal-title" className="font-semibold text-[var(--ink)] text-base">
                   {hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
                 </h2>
-                <p className="text-xs text-slate-500 light:text-[#6B4226] mt-0.5">
+                <p className="text-xs text-slate-500 light:text-[var(--ink-dim)] mt-0.5">
                   {hasUsedTrial ? t("upgrade_billing_sub") : t("trial_billing_sub")}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-md text-slate-500 light:text-[#A67856] hover:text-slate-200 light:hover:text-[#4A2E1A] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
+                className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-slate-200 light:hover:text-[var(--ink-dim)] hover:bg-white/10 light:hover:bg-black/[0.06] transition-colors"
                 aria-label="Close"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -2877,7 +2877,7 @@ function PlanModal({
 
               {/* feature list */}
               <div className="px-6 pt-5 pb-4">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 light:text-[#8B5E3C] mb-3">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-dim)] mb-3">
                   {t("what_you_unlock")}
                 </p>
                 <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
@@ -2898,8 +2898,8 @@ function PlanModal({
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-200 light:text-[#2C1810] leading-tight">{t(titleKey as Parameters<typeof t>[0])}</p>
-                        <p className="text-[10px] text-slate-500 light:text-[#8B5E3C] leading-tight mt-0.5">{t(subKey as Parameters<typeof t>[0])}</p>
+                        <p className="text-xs font-medium text-[var(--ink)] leading-tight">{t(titleKey as Parameters<typeof t>[0])}</p>
+                        <p className="text-[10px] text-[var(--ink-dim)] leading-tight mt-0.5">{t(subKey as Parameters<typeof t>[0])}</p>
                       </div>
                     </li>
                   ))}
@@ -2907,7 +2907,7 @@ function PlanModal({
               </div>
 
               {/* divider */}
-              <div className="mx-6 border-t border-white/[0.07] light:border-[rgba(80,50,20,0.09)]" />
+              <div className="mx-6 border-t border-white/[0.07] light:border-[var(--rule-soft)]" />
 
               {/* plan cards — side by side */}
               <div className="px-6 py-5">
@@ -2917,15 +2917,15 @@ function PlanModal({
                   <button
                     onClick={() => onSelectPlan("monthly")}
                     disabled={upgrading}
-                    className="relative flex flex-col rounded-xl border-2 border-white/[0.12] light:border-[rgba(80,50,20,0.14)] px-4 pt-4 pb-4 text-left
+                    className="relative flex flex-col rounded-xl border-2 border-white/[0.12] light:border-[var(--rule)] px-4 pt-4 pb-4 text-left
                                hover:border-white/25 light:hover:border-[rgba(80,50,20,0.26)] hover:bg-white/[0.04] light:hover:bg-black/[0.03]
                                transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="text-xs font-semibold text-slate-400 light:text-[#6B4226] uppercase tracking-wide mb-3">{t("plan_monthly")}</p>
+                    <p className="text-xs font-semibold text-[var(--ink-dim)] uppercase tracking-wide mb-3">{t("plan_monthly")}</p>
                     <div className="mt-auto">
-                      <p className="text-2xl font-bold text-slate-100 light:text-[#2C1810] leading-none">$2.99</p>
-                      <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] mt-1">{t("plan_per_month")}</p>
-                      <p className="text-[10px] text-slate-600 light:text-[#A67856] mt-2.5">{t("plan_billed_monthly")}</p>
+                      <p className="text-2xl font-bold text-[var(--ink)] leading-none">$2.99</p>
+                      <p className="text-[11px] text-[var(--ink-dim)] mt-1">{t("plan_per_month")}</p>
+                      <p className="text-[10px] text-[var(--ink-dim)] mt-2.5">{t("plan_billed_monthly")}</p>
                     </div>
                   </button>
 
@@ -3127,7 +3127,7 @@ function SidebarInner({
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 min-w-0">
-                <p className="text-sm font-medium text-slate-100 light:text-[#2C1810] truncate leading-snug">
+                <p className="text-sm font-medium text-[var(--ink)] truncate leading-snug">
                   {session.user?.name ?? session.user?.email ?? "User"}
                 </p>
                 {isPro && (
@@ -3137,7 +3137,7 @@ function SidebarInner({
                 )}
               </div>
               {session.user?.name && session.user?.email && (
-                <p className="text-[11px] text-slate-500 light:text-[#8B5E3C] truncate mt-0.5">
+                <p className="text-[11px] text-[var(--ink-dim)] truncate mt-0.5">
                   {session.user.email}
                 </p>
               )}
@@ -3164,7 +3164,7 @@ function SidebarInner({
             <button
               type="button"
               onClick={onCancelSubscription}
-              className="mt-2 w-full text-center text-[10px] text-slate-600 light:text-[#A67856] hover:text-slate-400 light:hover:text-[#6B4226] underline underline-offset-2 transition-colors"
+              className="mt-2 w-full text-center text-[10px] text-[var(--ink-dim)] hover:text-slate-400 light:hover:text-[var(--ink-dim)] underline underline-offset-2 transition-colors"
             >
               {t("manage_subscription")}
             </button>
@@ -3177,7 +3177,7 @@ function SidebarInner({
         <button
           type="button"
           onClick={onNewSearch}
-          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-200 light:text-[#2C1810] bg-white/[0.08] light:bg-black/[0.07] hover:bg-white/[0.13] light:hover:bg-black/[0.11] transition-colors text-left"
+          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--ink)] bg-white/[0.08] light:bg-black/[0.07] hover:bg-white/[0.13] light:hover:bg-black/[0.11] transition-colors text-left"
         >
           <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
@@ -3199,14 +3199,14 @@ function SidebarInner({
                 <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
               ))}
               {recentTabs.length > 0 && (
-                <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600 light:text-[#A67856]">
+                <p className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-dim)]">
                   {t("sidebar_recent")}
                 </p>
               )}
             </>
           )}
           {starredTabs.length === 0 && recentTabs.length === 0 && (
-            <p className="px-3 py-3 text-xs text-slate-600 light:text-[#A67856]">{t("no_searches_yet")}</p>
+            <p className="px-3 py-3 text-xs text-[var(--ink-dim)]">{t("no_searches_yet")}</p>
           )}
           {recentTabs.map((tab) => (
             <SidebarTabRow key={tab.id} tab={tab} activeTabId={activeTabId} onLoad={onLoadTab} onStar={onStarTab} onDelete={onDeleteTab} />
@@ -3216,10 +3216,10 @@ function SidebarInner({
         <div className="flex-1" />
 
         {/* Nav items */}
-        <nav className="px-2 py-2 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[rgba(80,50,20,0.08)]">
+        <nav className="px-2 py-2 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[var(--rule-soft)]">
           <button type="button" onClick={onHowTo}
-            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-400 light:text-[#6B4226] hover:text-slate-100 light:hover:text-[#2C1810] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
-            <svg className="h-4 w-4 shrink-0 text-slate-500 light:text-[#8B5E3C]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
+            <svg className="h-4 w-4 shrink-0 text-[var(--ink-dim)]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
             </svg>
             {t("how_to_use")}
@@ -3228,9 +3228,9 @@ function SidebarInner({
       </div>
 
       {/* ── Sign out ── */}
-      <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[rgba(80,50,20,0.10)] shrink-0">
+      <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[var(--rule)] shrink-0">
         <button type="button" onClick={onSignOut}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-slate-500 light:text-[#8B5E3C] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
           <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
             <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
@@ -3275,7 +3275,7 @@ function SidebarTabRow({
         className={`shrink-0 ml-1.5 flex items-center justify-center w-5 h-5 rounded transition-colors ${
           tab.starred
             ? "text-amber-400 light:text-amber-600"
-            : "text-slate-700 light:text-[#C8A882] opacity-0 group-hover:opacity-100 hover:text-amber-400 light:hover:text-amber-600"
+            : "text-slate-700 light:text-[var(--ink-dim)] opacity-0 group-hover:opacity-100 hover:text-amber-400 light:hover:text-amber-600"
         }`}
       >
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill={tab.starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -3291,8 +3291,8 @@ function SidebarTabRow({
       >
         <span className={`block text-xs truncate leading-snug ${
           isActive
-            ? "text-slate-100 light:text-[#2C1810]"
-            : "text-slate-400 light:text-[#6B4226]"
+            ? "text-[var(--ink)]"
+            : "text-[var(--ink-dim)]"
         }`}>
           {tab.preview || t("new_search_tab")}
         </span>
@@ -3303,7 +3303,7 @@ function SidebarTabRow({
         type="button"
         onClick={() => onDelete(tab.id)}
         aria-label={t("aria_delete_tab")}
-        className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 light:text-[#A67856] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
+        className="shrink-0 mr-1.5 flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.10]"
       >
         <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22z" />
@@ -4429,7 +4429,7 @@ const [proSuccess, setProSuccess] = useState(false);
               type="button"
               onClick={() => setShowHowTo(true)}
               aria-label="How to use"
-              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-slate-400 light:text-[#6B4226] hover:text-slate-200 light:hover:text-[#2C1810]"
+              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-[var(--ink-dim)] hover:text-[var(--ink)]"
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
@@ -5252,7 +5252,7 @@ const [proSuccess, setProSuccess] = useState(false);
                         type="button"
                         onClick={() => setText(pickExample(text))}
                         disabled={loading}
-                        className="link-example text-sm text-slate-500 light:text-[#8B2500] hover:text-slate-300 light:hover:text-[#6B1C00] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="link-example text-sm text-slate-500 light:text-[var(--accent)] hover:text-slate-300 light:hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {t("try_example")}
                       </button>
@@ -5264,7 +5264,7 @@ const [proSuccess, setProSuccess] = useState(false);
                             ? "bg-red-500/15 text-red-400 light:text-red-600"
                             : usage.remaining <= 1
                             ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
-                            : "bg-white/8 light:bg-[rgba(44,24,16,0.05)] text-slate-400 light:text-[#6B4226]"
+                            : "bg-white/8 light:bg-[rgba(44,24,16,0.05)] text-[var(--ink-dim)]"
                         }`}>
                           {t("searches_left", { n: usage.remaining })}
                         </span>
@@ -5307,7 +5307,7 @@ const [proSuccess, setProSuccess] = useState(false);
                     <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-400 light:text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                       <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-sm text-slate-300 light:text-[#4A2E1A]">
+                    <p className="text-sm text-[var(--ink-dim)]">
                       {t("daily_limit_reached")}{" "}
                       {session ? (
                         <>
