@@ -1,7 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 
-export async function GET() {
+/**
+ * One-time database initialisation endpoint.
+ * Requires the `x-setup-token` header to match SETUP_DB_TOKEN env var.
+ * Run once after first deployment, then leave it alone.
+ */
+export async function GET(req: NextRequest) {
+  const token = process.env.SETUP_DB_TOKEN;
+  if (!token || req.headers.get("x-setup-token") !== token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS users (

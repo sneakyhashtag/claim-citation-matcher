@@ -67,14 +67,15 @@ function decode(raw: string): ProPayload | null {
 
 // ── admin bypass ─────────────────────────────────────────────────────────────
 
-const ADMIN_EMAILS = new Set([
-  "kangfuyanjin@gmail.com",
-  "sainayaunglinn@gmail.com",
-]);
+/** Reads admin emails from ADMIN_EMAILS env var (comma-separated). */
+function getAdminEmails(): Set<string> {
+  const raw = process.env.ADMIN_EMAILS ?? "";
+  return new Set(raw.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean));
+}
 
 /** Returns true if this email is an admin who always gets Pro access. */
 export function isAdminEmail(email: string | null | undefined): boolean {
-  return !!email && ADMIN_EMAILS.has(email);
+  return !!email && getAdminEmails().has(email.toLowerCase());
 }
 
 // ── public API ───────────────────────────────────────────────────────────────
@@ -100,7 +101,7 @@ export function checkIsPro(
   req: NextRequest,
   email: string | null | undefined
 ): boolean {
-  if (email && ADMIN_EMAILS.has(email)) {
+  if (email && getAdminEmails().has(email.toLowerCase())) {
     console.log(`[pro-cookie] checkIsPro: admin bypass for ${email}`);
     return true;
   }
