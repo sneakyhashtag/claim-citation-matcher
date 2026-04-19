@@ -5096,7 +5096,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       className="font-[family-name:var(--font-dm-sans)] text-[11px] font-medium uppercase tracking-[1.2px] mb-5"
                       style={{ color: "var(--accent)" }}
                     >
-                      — {t("differentiator_heading")}
+                      — {t("signin_editorial_label")}
                     </p>
                     <h1
                       className="font-[family-name:var(--serif)] font-normal text-[52px] leading-[1.06] tracking-[-1.5px] mb-5"
@@ -5110,7 +5110,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       className="font-[family-name:var(--serif)] italic text-[17px] leading-[1.55] max-w-[420px]"
                       style={{ color: "var(--ink-dim)" }}
                     >
-                      {t("differentiator_body")}
+                      {t("signin_description")}
                     </p>
                   </div>
 
