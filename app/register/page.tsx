@@ -5,128 +5,209 @@ import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-function BookIcon() {
-    return (
-          <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        );
-}
-
 function GoogleLogo() {
-    return (
-          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                <path fill="none" d="M0 0h48v48H0z" />
-          </svg>
-        );
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+      <path fill="none" d="M0 0h48v48H0z" />
+    </svg>
+  );
 }
 
 function RegisterForm() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const callbackUrl = searchParams.get("callbackUrl") ?? "/";
-  
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    // true when the server said the email already exists
-    const [emailTaken, setEmailTaken] = useState(false);
-  
-    const signInHref =
-          `/signin` +
-          (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
-  
-    async function handleRegister(e: React.FormEvent) {
-          e.preventDefault();
-          setLoading(true);
-          setError(null);
-          setEmailTaken(false);
-      
-          const res = await fetch("/api/auth/register", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ name, email, password }),
-          });
-      
-          const data: { error?: string } = await res.json();
-      
-          if (!res.ok) {
-                  setLoading(false);
-                  const msg = data.error ?? "Registration failed. Please try again.";
-                  setError(msg);
-                  // 409 = duplicate email
-                  if (res.status === 409) setEmailTaken(true);
-                  return;
-          }
-      
-          // Account created — sign in automatically with the new credentials.
-          const result = await signIn("credentials", {
-                  email,
-                  password,
-                  redirect: false,
-                  callbackUrl,
-          });
-      
-          setLoading(false);
-      
-          if (result?.error) {
-                  // Shouldn't normally happen right after registration.
-                  router.push(signInHref);
-          } else if (result?.url) {
-                  router.push(result.url);
-          }
-    }
-  
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080a12] px-4">
-        <div className="w-full max-w-sm rounded-xl border border-slate-700/50 bg-slate-900/80 px-8 py-9 shadow-2xl">
-          {/* header */}
-          <div className="mb-7 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/15">
-              <BookIcon />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-100">Create an account</h1>
-            <p className="mt-1 text-xs text-slate-500">Free · 3 searches per day</p>
-          </div>
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
-          {/* error banner */}
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [emailTaken, setEmailTaken] = useState(false);
+
+  const signInHref =
+    `/signin` +
+    (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setEmailTaken(false);
+
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data: { error?: string } = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      setError(data.error ?? "Registration failed. Please try again.");
+      if (res.status === 409) setEmailTaken(true);
+      return;
+    }
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl,
+    });
+
+    setLoading(false);
+
+    if (result?.error) {
+      router.push(signInHref);
+    } else if (result?.url) {
+      router.push(result.url);
+    }
+  }
+
+  return (
+    <div
+      className="min-h-screen flex flex-col sm:flex-row"
+      style={{ background: "var(--bg-deep)" }}
+    >
+      {/* ── LEFT PANE ── */}
+      <div
+        className="relative flex flex-col justify-between sm:w-1/2 px-10 pt-10 pb-10 sm:min-h-screen"
+        style={{ background: "var(--bg-deep)", borderRight: "1px solid var(--rule-soft)" }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold tracking-tight"
+            style={{ background: "var(--ink)", color: "var(--bg-deep)" }}
+          >
+            R
+          </div>
+          <span className="text-[14px] font-medium" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
+            Reference Finder
+          </span>
+        </div>
+
+        {/* Editorial copy */}
+        <div className="py-16 sm:py-0 sm:flex-1 sm:flex sm:flex-col sm:justify-center">
+          <p
+            className="text-[10px] uppercase tracking-[2.5px] mb-6"
+            style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+          >
+            — an editorial tool for researchers
+          </p>
+          <h1
+            className="text-[clamp(2.6rem,5vw,3.6rem)] leading-[1.08] font-bold mb-5"
+            style={{ color: "var(--ink)", fontFamily: "var(--serif)", letterSpacing: "-0.02em" }}
+          >
+            Find the right{" "}
+            <em className="not-italic" style={{ color: "var(--accent)" }}>
+              citation.
+            </em>
+          </h1>
+          <p
+            className="text-[14px] leading-[1.7] italic max-w-[380px]"
+            style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}
+          >
+            Paste a paragraph of your draft. We surface supporting papers from OpenAlex and Semantic Scholar — ranked by relevance, matched to the exact sentence.
+          </p>
+        </div>
+
+        {/* Stats bar */}
+        <div>
+          <div className="mb-5 h-px" style={{ background: "var(--rule-soft)" }} />
+          <div className="flex items-end gap-8 flex-wrap">
+            <div>
+              <p className="text-[18px] font-semibold leading-none mb-1" style={{ color: "var(--ink)", fontFamily: "var(--mono)" }}>240M+</p>
+              <p className="text-[10px] uppercase tracking-[1.2px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>indexed papers</p>
+            </div>
+            <div>
+              <p className="text-[15px] font-semibold leading-none mb-1" style={{ color: "var(--ink)", fontFamily: "var(--sans)" }}>EN · 中 · 日 · 한</p>
+              <p className="text-[10px] uppercase tracking-[1.2px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>languages</p>
+            </div>
+            <div>
+              <p className="text-[18px] font-semibold leading-none mb-1" style={{ color: "var(--ink)", fontFamily: "var(--mono)" }}>3</p>
+              <p className="text-[10px] uppercase tracking-[1.2px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>free searches / day</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANE ── */}
+      <div
+        className="flex flex-col justify-center sm:w-1/2 px-8 sm:px-16 py-12 sm:min-h-screen"
+        style={{ background: "var(--bg)" }}
+      >
+        <div className="w-full max-w-[380px] mx-auto">
+
+          <p
+            className="text-[10px] uppercase tracking-[2px] mb-3"
+            style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+          >
+            create account
+          </p>
+          <h2
+            className="text-[2rem] font-bold leading-tight mb-1"
+            style={{ color: "var(--ink)", fontFamily: "var(--serif)", letterSpacing: "-0.02em" }}
+          >
+            Get started.
+          </h2>
+          <p className="text-[13px] mb-7" style={{ color: "var(--ink-dim)", fontFamily: "var(--serif)" }}>
+            Free account — 3 searches per day, no credit card required.
+          </p>
+
+          {/* Error banner */}
           {error && (
-            <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
+            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-[12px] leading-relaxed" style={{ color: "#f87171" }}>
               {error}
               {emailTaken && (
-                <>
-                  {" "}
-                  <Link
-                    href={signInHref}
-                    className="underline underline-offset-2 hover:text-red-300"
-                  >
-                    Sign in instead
-                  </Link>
-                </>
+                <>{" "}<Link href={signInHref} className="underline underline-offset-2 hover:opacity-80" style={{ color: "#f87171" }}>Sign in instead →</Link></>
               )}
             </div>
           )}
 
-          {/* form */}
-          <form onSubmit={handleRegister} className="space-y-3">
+          {/* Google sign-up */}
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl })}
+            className="flex w-full items-center justify-between rounded-lg border px-4 py-3 text-[13px] font-medium transition-all active:scale-[0.99]"
+            style={{
+              background: "var(--paper)",
+              borderColor: "var(--rule)",
+              color: "var(--ink)",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink-dim)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--rule)"; }}
+          >
+            <div className="flex items-center gap-3">
+              <GoogleLogo />
+              <span style={{ fontFamily: "var(--sans)" }}>Sign up with Google</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ color: "var(--ink-dim)" }}>
+              <path d="M4 10h12M12 5l5 5-5 5" />
+            </svg>
+          </button>
+
+          {/* OR divider */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="h-px flex-1" style={{ background: "var(--rule-soft)" }} />
+            <span className="text-[10px] uppercase tracking-widest" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>or</span>
+            <div className="h-px flex-1" style={{ background: "var(--rule-soft)" }} />
+          </div>
+
+          {/* Registration form */}
+          <form onSubmit={handleRegister} className="flex flex-col gap-3">
             <div>
-              <label htmlFor="name" className="mb-1 block text-xs font-medium text-slate-400">
+              <label
+                htmlFor="name"
+                className="mb-1.5 block text-[10px] uppercase tracking-[1.5px]"
+                style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+              >
                 Name
               </label>
               <input
@@ -135,16 +216,25 @@ function RegisterForm() {
                 autoComplete="name"
                 required
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                onChange={(e) => { setName(e.target.value); setError(null); }}
                 placeholder="Your name"
+                className="w-full rounded-lg border px-3.5 py-2.5 text-[13px] outline-none transition-all"
+                style={{
+                  background: "var(--paper)",
+                  borderColor: "var(--rule)",
+                  color: "var(--ink)",
+                  fontFamily: "var(--sans)",
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = "var(--ink-dim)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "var(--rule)"; }}
               />
             </div>
             <div>
-              <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400">
+              <label
+                htmlFor="email"
+                className="mb-1.5 block text-[10px] uppercase tracking-[1.5px]"
+                style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+              >
                 Email
               </label>
               <input
@@ -153,19 +243,27 @@ function RegisterForm() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError(null);
-                  setEmailTaken(false);
+                onChange={(e) => { setEmail(e.target.value); setError(null); setEmailTaken(false); }}
+                placeholder="ada@university.edu"
+                className="w-full rounded-lg border px-3.5 py-2.5 text-[13px] outline-none transition-all"
+                style={{
+                  background: "var(--paper)",
+                  borderColor: "var(--rule)",
+                  color: "var(--ink)",
+                  fontFamily: "var(--sans)",
                 }}
-                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
-                placeholder="you@example.com"
+                onFocus={e => { e.currentTarget.style.borderColor = "var(--ink-dim)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "var(--rule)"; }}
               />
             </div>
             <div>
-              <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400">
+              <label
+                htmlFor="password"
+                className="mb-1.5 block text-[10px] uppercase tracking-[1.5px]"
+                style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}
+              >
                 Password{" "}
-                <span className="text-slate-600">(min. 8 characters)</span>
+                <span style={{ color: "var(--ink-dim)", opacity: 0.6 }}>(min. 8 characters)</span>
               </label>
               <input
                 id="password"
@@ -174,52 +272,68 @@ function RegisterForm() {
                 required
                 minLength={8}
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError(null);
-                }}
-                className="w-full rounded-lg border border-slate-600/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                onChange={(e) => { setPassword(e.target.value); setError(null); }}
                 placeholder="••••••••"
+                className="w-full rounded-lg border px-3.5 py-2.5 text-[13px] outline-none transition-all"
+                style={{
+                  background: "var(--paper)",
+                  borderColor: "var(--rule)",
+                  color: "var(--ink)",
+                  fontFamily: "var(--sans)",
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = "var(--ink-dim)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "var(--rule)"; }}
               />
             </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-[13px] font-semibold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                background: "var(--ink)",
+                color: "var(--bg-deep)",
+                fontFamily: "var(--sans)",
+              }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = "0.88"; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
             >
-              {loading ? "Creating account…" : "Create account"}
+              {loading ? "Creating account…" : (
+                <>
+                  Create account
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M4 10h12M12 5l5 5-5 5" />
+                  </svg>
+                </>
+              )}
             </button>
           </form>
 
-          {/* divider */}
-          <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-700/60" />
-            <span className="text-[11px] uppercase tracking-widest text-slate-500">or</span>
-            <div className="h-px flex-1 bg-slate-700/60" />
-          </div>
+          <div className="my-5 h-px" style={{ background: "var(--rule-soft)" }} />
 
-          {/* Google sign-up */}
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl })}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-600/60 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-500/80 hover:bg-slate-800 active:scale-[0.98]"
-          >
-            <GoogleLogo />
-            Sign up with Google
-          </button>
-
-          <p className="mt-5 text-center text-xs text-slate-500">
+          <p className="text-center text-[12px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
             Already have an account?{" "}
             <Link
               href={signInHref}
-              className="font-medium text-amber-400 transition-colors hover:text-amber-300"
+              className="transition-opacity hover:opacity-70"
+              style={{ color: "var(--ink)" }}
             >
-              Sign in
+              Sign in →
             </Link>
           </p>
+
+          <p className="mt-4 text-center text-[11px] leading-relaxed" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
+            By continuing, you agree to our{" "}
+            <Link href="/terms" className="underline underline-offset-2 transition-opacity hover:opacity-70" style={{ color: "var(--ink-dim)" }}>Terms</Link>
+            {" "}and{" "}
+            <Link href="/privacy" className="underline underline-offset-2 transition-opacity hover:opacity-70" style={{ color: "var(--ink-dim)" }}>Privacy Policy</Link>
+            .
+          </p>
+
         </div>
       </div>
-    );
+    </div>
+  );
 }
 
 export default function RegisterPage() {
