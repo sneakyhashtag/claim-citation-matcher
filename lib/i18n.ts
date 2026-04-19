@@ -328,6 +328,41 @@ const translations = {
     stat_papers: "real papers indexed",
     stat_languages: "languages supported",
     stat_formats: "citation formats",
+
+    // Sign-in page extras
+    no_account: "Don\u2019t have an account?",
+    create_account: "Create one",
+    sign_in_btn: "Sign in",
+
+    // Library view
+    library_heading: "Library",
+    library_papers_saved_one: "1 paper saved from this search.",
+    library_papers_saved_many: "{n} papers saved from this search.",
+    library_tab_saved: "Saved papers",
+    library_tab_bib: "Bibliography",
+    library_style_label: "Style",
+    library_empty_title: "Your library is empty.",
+    library_empty_sub: "Save papers from the workspace to build a bibliography.",
+    library_supports: "supports",
+    library_no_citations: "No citations saved yet.",
+    library_remove: "Remove from library",
+
+    // Main view toggle
+    view_workspace: "Workspace",
+    view_library: "Library",
+
+    // Payment card step
+    card_step_title: "Card details",
+    card_step_trial_sub: "7-day free trial \u00b7 $0 charged today",
+    card_step_paid_sub: "billed after confirmation",
+    card_plan_yearly: "Yearly plan",
+    card_plan_monthly: "Monthly plan",
+    card_trial_badge: "7-day free trial",
+    card_details_label: "Card details",
+    card_stripe_security: "Secured by Stripe \u00b7 Your card details never touch our servers",
+    card_processing: "Processing\u2026",
+    card_subscribe: "Subscribe",
+    card_start_trial: "Start 7-day free trial",
   },
 
   zh: {
@@ -620,6 +655,37 @@ const translations = {
     stat_papers: "真实收录论文数",
     stat_languages: "支持的语言",
     stat_formats: "引用格式",
+
+    no_account: "还没有账户？",
+    create_account: "立即注册",
+    sign_in_btn: "登录",
+
+    library_heading: "文献库",
+    library_papers_saved_one: "已从此搜索保存 1 篇论文。",
+    library_papers_saved_many: "已从此搜索保存 {n} 篇论文。",
+    library_tab_saved: "已保存论文",
+    library_tab_bib: "参考文献",
+    library_style_label: "格式",
+    library_empty_title: "文献库为空。",
+    library_empty_sub: "从工作区保存论文以建立参考文献列表。",
+    library_supports: "支持",
+    library_no_citations: "尚未保存任何引用。",
+    library_remove: "从文献库移除",
+
+    view_workspace: "工作区",
+    view_library: "文献库",
+
+    card_step_title: "卡片信息",
+    card_step_trial_sub: "7 天免费试用 \u00b7 今日不扣费",
+    card_step_paid_sub: "确认后计费",
+    card_plan_yearly: "年付套餐",
+    card_plan_monthly: "月付套餐",
+    card_trial_badge: "7 天免费试用",
+    card_details_label: "卡片信息",
+    card_stripe_security: "由 Stripe 加密保护 \u00b7 您的卡片信息不经过我们的服务器",
+    card_processing: "处理中\u2026",
+    card_subscribe: "订阅",
+    card_start_trial: "开始 7 天免费试用",
   },
 
   ja: {
@@ -912,6 +978,37 @@ const translations = {
     stat_papers: "収録論文数",
     stat_languages: "対応言語",
     stat_formats: "引用形式",
+
+    no_account: "アカウントをお持ちでない方は？",
+    create_account: "登録する",
+    sign_in_btn: "サインイン",
+
+    library_heading: "ライブラリ",
+    library_papers_saved_one: "このタブから 1 件の論文を保存しました。",
+    library_papers_saved_many: "このタブから {n} 件の論文を保存しました。",
+    library_tab_saved: "保存済み論文",
+    library_tab_bib: "参考文献",
+    library_style_label: "スタイル",
+    library_empty_title: "ライブラリは空です。",
+    library_empty_sub: "ワークスペースから論文を保存して参考文献リストを作成してください。",
+    library_supports: "支持",
+    library_no_citations: "まだ引用が保存されていません。",
+    library_remove: "ライブラリから削除",
+
+    view_workspace: "ワークスペース",
+    view_library: "ライブラリ",
+
+    card_step_title: "カード情報",
+    card_step_trial_sub: "7日間無料トライアル \u00b7 本日請求なし",
+    card_step_paid_sub: "確認後に請求されます",
+    card_plan_yearly: "年間プラン",
+    card_plan_monthly: "月間プラン",
+    card_trial_badge: "7日間無料トライアル",
+    card_details_label: "カード情報",
+    card_stripe_security: "Stripe により保護 \u00b7 カード情報は当サーバーを通過しません",
+    card_processing: "処理中\u2026",
+    card_subscribe: "購読する",
+    card_start_trial: "7日間無料トライアルを開始",
   },
 
   ko: {
@@ -1202,6 +1299,37 @@ const translations = {
     stat_papers: "수록 논문 수",
     stat_languages: "지원 언어",
     stat_formats: "인용 형식",
+
+    no_account: "계정이 없으신가요?",
+    create_account: "가입하기",
+    sign_in_btn: "로그인",
+
+    library_heading: "라이브러리",
+    library_papers_saved_one: "이 검색에서 1편의 논문이 저장되었습니다.",
+    library_papers_saved_many: "이 검색에서 {n}편의 논문이 저장되었습니다.",
+    library_tab_saved: "저장된 논문",
+    library_tab_bib: "참고문헌",
+    library_style_label: "스타일",
+    library_empty_title: "라이브러리가 비어 있습니다.",
+    library_empty_sub: "참고문헌 목록을 만들려면 워크스페이스에서 논문을 저장하세요.",
+    library_supports: "지지",
+    library_no_citations: "아직 저장된 인용이 없습니다.",
+    library_remove: "라이브러리에서 제거",
+
+    view_workspace: "워크스페이스",
+    view_library: "라이브러리",
+
+    card_step_title: "카드 정보",
+    card_step_trial_sub: "7일 무료 체험 \u00b7 오늘 청구 없음",
+    card_step_paid_sub: "확인 후 청구됩니다",
+    card_plan_yearly: "연간 플랜",
+    card_plan_monthly: "월간 플랜",
+    card_trial_badge: "7일 무료 체험",
+    card_details_label: "카드 정보",
+    card_stripe_security: "Stripe로 보호 \u00b7 카드 정보는 서버에 저장되지 않습니다",
+    card_processing: "처리 중\u2026",
+    card_subscribe: "구독",
+    card_start_trial: "7일 무료 체험 시작",
   },
 } as const
 
@@ -1230,5 +1358,6 @@ export function detectLang(): Lang {
   const l = navigator.language.toLowerCase()
   if (l.startsWith("zh")) return "zh"
   if (l.startsWith("ja")) return "ja"
+  if (l.startsWith("ko")) return "ko"
   return "en"
 }

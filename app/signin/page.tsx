@@ -1,26 +1,19 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { getT, detectLang, type Lang, type TFunction } from "@/lib/i18n";
 
-const ERROR_MESSAGES: Record<string, string> = {
-  EmailNotFound:
-    "No account found with this email address. Would you like to create one?",
-  GoogleOnly:
-    'This email is linked to Google sign-in. Use the "Continue with Google" button above.',
-  WrongPassword: "Incorrect password. Please try again.",
-  CredentialsSignin: "Incorrect email or password.",
-  OAuthAccountNotLinked:
-    "This email is already linked to a different sign-in method.",
-  Default: "Something went wrong. Please try again.",
+// Map NextAuth error codes to i18n keys
+const ERROR_KEY_MAP: Record<string, string> = {
+  EmailNotFound: "auth_err_email_not_found",
+  GoogleOnly: "auth_err_google_only",
+  WrongPassword: "auth_err_wrong_password",
+  CredentialsSignin: "auth_err_credentials",
+  OAuthAccountNotLinked: "auth_err_oauth_linked",
 };
-
-function errorMessage(code: string | null | undefined): string {
-  if (!code) return "";
-  return ERROR_MESSAGES[code] ?? ERROR_MESSAGES.Default;
-}
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -101,33 +94,15 @@ function QuoteIcon() {
 
 // ── Steps data ────────────────────────────────────────────────────────────────
 
-const STEPS = [
-  {
-    Icon: FileTextIcon,
-    label: "Paste",
-    desc: "Drop any academic paragraph in any language — English, 中文, or 日本語.",
-  },
-  {
-    Icon: BrainIcon,
-    label: "Extract",
-    desc: "AI identifies each factual claim in your writing that needs a citation.",
-  },
-  {
-    Icon: DatabaseIcon,
-    label: "Search",
-    desc: "Real papers pulled from OpenAlex and Semantic Scholar — never hallucinated.",
-  },
-  {
-    Icon: BarChartIcon,
-    label: "Rank",
-    desc: "Every result shows citation count, h-index, Impact Factor, and Scimago quartile.",
-  },
-  {
-    Icon: QuoteIcon,
-    label: "Cite",
-    desc: "Copy in APA, MLA, Chicago, IEEE, or let Omakase rewrite your paragraph with citations.",
-  },
-] as const;
+function getSteps(t: TFunction) {
+  return [
+    { Icon: FileTextIcon, label: t("step_paste_label"), desc: t("step_paste_desc") },
+    { Icon: BrainIcon,    label: t("step_extract_label"), desc: t("step_extract_desc") },
+    { Icon: DatabaseIcon, label: t("step_search_label"), desc: t("step_search_desc") },
+    { Icon: BarChartIcon, label: t("step_rank_label"), desc: t("step_rank_desc") },
+    { Icon: QuoteIcon,    label: t("step_cite_label"), desc: t("step_cite_desc") },
+  ];
+}
 
 // ── Sign-in form ──────────────────────────────────────────────────────────────
 
@@ -137,20 +112,37 @@ function SignInForm() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const urlError = searchParams.get("error");
 
+  const [lang, setLang] = useState<Lang>("en");
+  useEffect(() => {
+    const saved = localStorage.getItem("rf_lang") as Lang | null;
+    if (saved === "en" || saved === "zh" || saved === "ja" || saved === "ko") setLang(saved);
+    else setLang(detectLang());
+  }, []);
+
+  const t = getT(lang);
+  const steps = getSteps(t);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>(() => errorMessage(urlError));
+  const [errorCode, setErrorCode] = useState<string>(() => urlError ?? "");
   const [showEmail, setShowEmail] = useState(false);
+
+  function getErrorMsg(code: string): string {
+    if (!code) return "";
+    const key = ERROR_KEY_MAP[code] ?? "auth_err_default";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return t(key as any);
+  }
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setErrorCode("");
     const result = await signIn("credentials", { email, password, redirect: false, callbackUrl });
     setLoading(false);
     if (result?.error) {
-      setError(errorMessage(result.error));
+      setErrorCode(result.error);
     } else if (result?.url) {
       router.push(result.url);
     }
@@ -159,6 +151,8 @@ function SignInForm() {
   const registerHref =
     `/register` +
     (callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
+
+  const errorMsg = getErrorMsg(errorCode);
 
   return (
     <div className="min-h-screen flex items-start justify-center px-4 pt-10 pb-16 bg-[#0a0a0a] light:bg-[#EDEDD3]">
@@ -173,13 +167,13 @@ function SignInForm() {
             Reference Finder
           </h1>
           <p className="mt-2 text-sm text-slate-400 light:text-[#2C1810]/55 max-w-xs mx-auto leading-relaxed">
-            Find academic citations for every factual claim in your writing
+            {t("subtitle_auth")}
           </p>
         </div>
 
         {/* ── 2. Step cards ── */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-5 gap-3">
-          {STEPS.map((step) => (
+          {steps.map((step) => (
             <div
               key={step.label}
               className="flex flex-col gap-2.5 rounded-xl border border-[#252525] light:border-[#2C1810]/10 bg-[#111111] light:bg-[#F8F6EA]/80 px-4 py-4"
@@ -203,11 +197,13 @@ function SignInForm() {
         <div className="w-full max-w-sm flex flex-col gap-3">
 
           {/* error banner */}
-          {error && (
+          {errorMsg && (
             <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-xs text-red-400 leading-relaxed">
-              {error}
-              {error.includes("create one") && (
-                <> <Link href={registerHref} className="underline underline-offset-2 hover:text-red-300">Create an account</Link></>
+              {errorMsg}
+              {errorCode === "EmailNotFound" && (
+                <> <Link href={registerHref} className="underline underline-offset-2 hover:text-red-300">
+                  {t("create_account")}
+                </Link></>
               )}
             </div>
           )}
@@ -219,7 +215,7 @@ function SignInForm() {
             className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#333] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/60 px-4 py-2.5 text-sm font-medium text-slate-200 light:text-[#2C1810] transition hover:border-[#444] light:hover:border-[#2C1810]/25 hover:bg-[#222] light:hover:bg-white/80 active:scale-[0.98]"
           >
             <GoogleLogo />
-            Continue with Google
+            {t("sign_in_google")}
           </button>
 
           {/* email toggle */}
@@ -228,7 +224,7 @@ function SignInForm() {
             onClick={() => setShowEmail((v) => !v)}
             className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/12 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
           >
-            {showEmail ? "Hide email sign-in" : "Sign in with email"}
+            {showEmail ? t("email_signin_hide") : t("email_signin_show")}
           </button>
 
           {/* collapsible email / password form */}
@@ -236,22 +232,22 @@ function SignInForm() {
             <form onSubmit={handleCredentials} className="flex flex-col gap-3">
               <div>
                 <label htmlFor="email" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                  Email
+                  {t("email_label")}
                 </label>
                 <input
                   id="email" type="email" autoComplete="email" required
-                  value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                  value={email} onChange={(e) => { setEmail(e.target.value); setErrorCode(""); }}
                   className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
                   placeholder="you@example.com"
                 />
               </div>
               <div>
                 <label htmlFor="password" className="mb-1 block text-xs font-medium text-slate-400 light:text-[#2C1810]/60">
-                  Password
+                  {t("password_label")}
                 </label>
                 <input
                   id="password" type="password" autoComplete="current-password" required
-                  value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  value={password} onChange={(e) => { setPassword(e.target.value); setErrorCode(""); }}
                   className="w-full rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/15 bg-[#1a1a1a] light:bg-white/50 px-3 py-2 text-sm text-slate-100 light:text-[#2C1810] placeholder-slate-600 light:placeholder-[#2C1810]/30 outline-none transition focus:border-amber-500/50 light:focus:border-amber-600/40 focus:ring-1 focus:ring-amber-500/25 light:focus:ring-amber-600/20"
                   placeholder="••••••••"
                 />
@@ -260,12 +256,12 @@ function SignInForm() {
                 type="submit" disabled={loading}
                 className="w-full rounded-lg bg-amber-500 light:bg-amber-600 px-4 py-2.5 text-sm font-semibold text-slate-900 light:text-white transition hover:bg-amber-400 light:hover:bg-amber-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Signing in…" : "Sign in"}
+                {loading ? t("signing_in") : t("sign_in_btn")}
               </button>
               <p className="text-center text-xs text-slate-500 light:text-[#2C1810]/50">
-                Don&apos;t have an account?{" "}
+                {t("no_account")}{" "}
                 <Link href={registerHref} className="font-medium text-amber-400 light:text-amber-700 transition-colors hover:text-amber-300 light:hover:text-amber-600">
-                  Create one
+                  {t("create_account")}
                 </Link>
               </p>
             </form>
@@ -274,7 +270,7 @@ function SignInForm() {
           {/* divider */}
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
-            <span className="text-[11px] uppercase tracking-widest text-slate-600 light:text-[#2C1810]/35">or</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-600 light:text-[#2C1810]/35">{t("or")}</span>
             <div className="h-px flex-1 bg-[#222] light:bg-[#2C1810]/10" />
           </div>
 
@@ -283,7 +279,7 @@ function SignInForm() {
             href={callbackUrl}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2a2a2a] light:border-[#2C1810]/10 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-400 light:text-[#2C1810]/60 transition hover:border-[#383838] light:hover:border-[#2C1810]/20 hover:text-slate-300 light:hover:text-[#2C1810]/80 active:scale-[0.98]"
           >
-            Continue as Guest
+            {t("continue_guest")}
           </Link>
 
           {/* How to use — scrolls to top where the step cards are */}
@@ -296,7 +292,7 @@ function SignInForm() {
               <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
               </svg>
-              How to use
+              {t("how_to_use")}
             </button>
           </div>
         </div>
@@ -305,15 +301,14 @@ function SignInForm() {
         <div className="w-full max-w-sm rounded-xl border border-amber-500/20 light:border-amber-600/18 bg-amber-500/[0.06] light:bg-amber-600/[0.06] px-4 py-3">
           <p className="text-[11.5px] leading-relaxed text-slate-300 light:text-[#2C1810]/68">
             <span className="font-semibold text-amber-400 light:text-amber-700">
-              What makes Reference Finder different:{" "}
+              {t("differentiator_heading")}{" "}
             </span>
-            Omakase Mode auto-rewrites your paragraph with proper in-text citations in any style,
-            and every paper is matched claim-by-claim — not by keyword.
+            {t("differentiator_body")}
           </p>
         </div>
 
         <p className="text-[11px] text-slate-600 light:text-[#2C1810]/30">
-          Free to try · No card required
+          {t("free_to_try")}
         </p>
 
       </div>

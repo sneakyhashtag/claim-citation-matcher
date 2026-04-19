@@ -2980,14 +2980,14 @@ function PlanModal({
                 <div>
                   <h2 id="plan-modal-title" className="font-semibold text-[var(--ink)] text-base">
                     {step === "card" || step === "processing"
-                      ? "Card details"
+                      ? t("card_step_title")
                       : hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
                   </h2>
                   <p className="text-xs text-[var(--ink-dim)] mt-0.5">
                     {step === "card" || step === "processing"
                       ? hasUsedTrial
-                        ? `${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"} — billed after confirmation`
-                        : `7-day free trial · $0 charged today`
+                        ? `${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"} — ${t("card_step_paid_sub")}`
+                        : t("card_step_trial_sub")
                       : hasUsedTrial ? t("upgrade_billing_sub") : t("trial_billing_sub")}
                   </p>
                 </div>
@@ -3114,7 +3114,7 @@ function PlanModal({
                 <div className="flex items-center justify-between rounded-lg px-4 py-3" style={{ background: "var(--paper-deep)", border: "1px solid var(--rule-soft)" }}>
                   <div>
                     <p className="text-xs font-semibold text-[var(--ink)] uppercase tracking-wide">
-                      {selectedPlan === "yearly" ? "Yearly plan" : "Monthly plan"}
+                      {selectedPlan === "yearly" ? t("card_plan_yearly") : t("card_plan_monthly")}
                     </p>
                     <p className="text-[11px] text-[var(--ink-dim)] mt-0.5">
                       {selectedPlan === "yearly" ? "$29.99 / year  ≈ $2.50 / month" : "$2.99 / month"}
@@ -3122,7 +3122,7 @@ function PlanModal({
                   </div>
                   {!hasUsedTrial && (
                     <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 light:text-emerald-700 border border-emerald-500/20">
-                      7-day free trial
+                      {t("card_trial_badge")}
                     </span>
                   )}
                 </div>
@@ -3130,7 +3130,7 @@ function PlanModal({
                 {/* card element container */}
                 <div>
                   <label className="block text-[11px] font-medium text-[var(--ink-dim)] uppercase tracking-wide mb-1.5">
-                    Card details
+                    {t("card_details_label")}
                   </label>
                   <div
                     ref={mountDivRef}
@@ -3153,7 +3153,7 @@ function PlanModal({
                   <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
                   </svg>
-                  Secured by Stripe · Your card details never touch our servers
+                  {t("card_stripe_security")}
                 </p>
               </div>
 
@@ -3170,12 +3170,12 @@ function PlanModal({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                       </svg>
-                      Processing…
+                      {t("card_processing")}
                     </span>
                   ) : hasUsedTrial ? (
-                    `Subscribe · ${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"}`
+                    `${t("card_subscribe")} · ${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"}`
                   ) : (
-                    "Start 7-day free trial"
+                    t("card_start_trial")
                   )}
                 </button>
               </div>
@@ -3671,6 +3671,7 @@ function bibSortKey(item: LibraryItem): string {
 }
 
 function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSave: (paper: RatedPaper) => void }) {
+  const t = useContext(LangContext);
   const [mode, setMode] = useState<"list" | "bibliography">("list");
   const [style, setStyle] = useState("APA");
   const [copiedBib, setCopiedBib] = useState(false);
@@ -3701,13 +3702,13 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
               className="font-normal tracking-[-0.8px]"
               style={{ fontFamily: "var(--serif)", fontSize: 36, color: "var(--ink)", margin: 0 }}
             >
-              Library
+              {t("library_heading")}
             </h1>
             <p
               className="italic mt-1.5"
               style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--ink-dim)", margin: "6px 0 0" }}
             >
-              {items.length} paper{items.length !== 1 ? "s" : ""} saved from this search.
+              {items.length === 1 ? t("library_papers_saved_one") : t("library_papers_saved_many", { n: items.length })}
             </p>
           </div>
 
@@ -3731,7 +3732,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                     cursor: "pointer",
                   }}
                 >
-                  {m === "list" ? "Saved papers" : "Bibliography"}
+                  {m === "list" ? t("library_tab_saved") : t("library_tab_bib")}
                 </button>
               ))}
             </div>
@@ -3740,7 +3741,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
 
         {/* citation style selector — always visible so copy works in list mode */}
         <div className="flex items-center gap-2 flex-wrap mb-5">
-          <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.8px", textTransform: "uppercase", color: "var(--ink-dim)" }}>Style</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.8px", textTransform: "uppercase", color: "var(--ink-dim)" }}>{t("library_style_label")}</span>
           <div className="flex flex-wrap gap-1">
             {CITE_STYLES.map(s => (
               <button
@@ -3771,10 +3772,10 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
               style={{ border: "1px dashed var(--rule)", background: "var(--paper)" }}
             >
               <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", color: "var(--ink-dim)", fontSize: 16 }}>
-                Your library is empty.
+                {t("library_empty_title")}
               </p>
               <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-dim)", marginTop: 8, letterSpacing: "0.3px" }}>
-                Save papers from the workspace to build a bibliography.
+                {t("library_empty_sub")}
               </p>
             </div>
           ) : (
@@ -3794,7 +3795,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                       className="uppercase tracking-[0.8px] mr-2.5"
                       style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--accent)" }}
                     >
-                      supports
+                      {t("library_supports")}
                     </span>
                     <span
                       style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 13, color: "var(--ink-dim)" }}
@@ -3841,7 +3842,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                       <button
                         type="button"
                         onClick={() => copyItem(it.paper, idx)}
-                        title="Copy citation"
+                        title={t("copy_citation")}
                         className="rounded-lg w-7 h-7 flex items-center justify-center transition-colors"
                         style={{ color: copiedIdx === idx ? "var(--accent)" : "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
                         onMouseEnter={e => { if (copiedIdx !== idx) e.currentTarget.style.color = "var(--ink)"; }}
@@ -3862,7 +3863,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                       <button
                         type="button"
                         onClick={() => onToggleSave(it.paper)}
-                        title="Remove from library"
+                        title={t("library_remove")}
                         className="rounded-lg w-7 h-7 flex items-center justify-center transition-colors"
                         style={{ color: "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
                         onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
@@ -3940,7 +3941,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                       <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/>
                     </svg>
                   )}
-                  <span>{copiedBib ? "Copied" : "Copy all"}</span>
+                  <span>{copiedBib ? t("copied") : t("copy_all")}</span>
                 </button>
               </div>
             </div>
@@ -3954,7 +3955,7 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                 color: "var(--ink)",
               }}
             >
-              {sortedItems.length === 0 ? "No citations saved yet." : bibText}
+              {sortedItems.length === 0 ? t("library_no_citations") : bibText}
             </pre>
           </div>
         )}
@@ -4034,6 +4035,8 @@ const [proSuccess, setProSuccess] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   // Ref attached to the Omakase result card for reliable scroll-into-view
   const omakaseResultRef = useRef<HTMLDivElement>(null);
+  // Ref for the left pane's scrollable inner div
+  const leftPaneScrollRef = useRef<HTMLDivElement>(null);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -4632,12 +4635,19 @@ const [proSuccess, setProSuccess] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.length > 0 ? results[0]?.claim : null]);
 
-  // Scroll to Omakase result once it is set and rendered
+  // When Omakase result arrives: switch to Workspace, then scroll the left pane to it
   useEffect(() => {
     if (!omakaseResult) return;
+    setView("workspace");
     const id = setTimeout(() => {
-      omakaseResultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 500);
+      const omakaseEl = omakaseResultRef.current;
+      const scrollEl = leftPaneScrollRef.current;
+      if (omakaseEl && scrollEl) {
+        const elTop = omakaseEl.getBoundingClientRect().top;
+        const paneTop = scrollEl.getBoundingClientRect().top;
+        scrollEl.scrollTo({ top: scrollEl.scrollTop + (elTop - paneTop), behavior: "smooth" });
+      }
+    }, 100);
     return () => clearTimeout(id);
   }, [omakaseResult]);
 
@@ -4943,7 +4953,7 @@ const [proSuccess, setProSuccess] = useState(false);
                       cursor: "pointer",
                     }}
                   >
-                    {v === "workspace" ? "Workspace" : "Library"}
+                    {v === "workspace" ? t("view_workspace") : t("view_library")}
                   </button>
                 ))}
               </div>
@@ -5670,9 +5680,9 @@ const [proSuccess, setProSuccess] = useState(false);
                 </div>
 
                 {/* claims list — hoverable, clickable */}
-                <div className="flex-1 overflow-y-auto p-5">
+                <div ref={leftPaneScrollRef} className="flex-1 overflow-y-auto p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] uppercase tracking-[1px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>
+                    <p className="text-[10px] uppercase tracking-[1px] whitespace-nowrap" style={{ color: "var(--ink-dim)", fontFamily: "var(--mono)" }}>
                       {results.length === 1 ? t("claims_found_one") : t("claims_found_many", { n: results.length })}
                     </p>
                     <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
@@ -5692,11 +5702,13 @@ const [proSuccess, setProSuccess] = useState(false);
                         onClick={() => {
                           // toggle: collapse if already the only expanded card, else expand exclusively
                           setExpandedClaims(prev => prev.size === 1 && prev.has(i) ? new Set() : new Set([i]));
-                          // scroll right pane to this card
+                          // scroll right pane so this card's top is at the top of the pane
                           const card = claimCardRefs.current[i];
-                          if (card && rightPaneRef.current) {
-                            const cardTop = card.offsetTop;
-                            rightPaneRef.current.scrollTo({ top: cardTop - 16, behavior: "smooth" });
+                          const pane = rightPaneRef.current;
+                          if (card && pane) {
+                            const cardRect = card.getBoundingClientRect();
+                            const paneRect = pane.getBoundingClientRect();
+                            pane.scrollTo({ top: pane.scrollTop + (cardRect.top - paneRect.top), behavior: "smooth" });
                           }
                         }}
                       >
