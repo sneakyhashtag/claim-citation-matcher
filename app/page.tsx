@@ -4177,6 +4177,18 @@ const [proSuccess, setProSuccess] = useState(false);
   }, [stage, !!session]);
 
   const startNewSearch = async () => {
+    // If a blank "New search…" tab already exists, just switch to it
+    const existingBlank = tabs.find(t => t.preview === "New search…" && !t.paragraph);
+    if (existingBlank) {
+      setActiveTabId(existingBlank.id);
+      setText("");
+      setResults([]);
+      setCurrentClaims([]);
+      setOmakaseResult(null);
+      setError("");
+      return;
+    }
+
     // Clear UI
     setText("");
     setResults([]);
