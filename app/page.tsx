@@ -3380,7 +3380,7 @@ function SidebarInner({
   onDeleteTab,
   onHowTo,
   onUpgrade,
-  onCancelSubscription,
+  onManageSubscription,
   onSignOut,
 }: {
   session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null } | null;
@@ -3395,7 +3395,7 @@ function SidebarInner({
   onDeleteTab: (id: string) => void;
   onHowTo: () => void;
   onUpgrade: () => void;
-  onCancelSubscription: () => void;
+  onManageSubscription: () => void;
   onSignOut: () => void;
 }) {
   const t = useContext(LangContext);
@@ -3482,7 +3482,7 @@ function SidebarInner({
           {isPro && !isAdmin && (
             <button
               type="button"
-              onClick={onCancelSubscription}
+              onClick={onManageSubscription}
               className="mt-2 w-full text-center text-[10px] text-[var(--ink-dim)] hover:text-slate-400 light:hover:text-[var(--ink-dim)] underline underline-offset-2 transition-colors"
             >
               {t("manage_subscription")}
@@ -3543,6 +3543,16 @@ function SidebarInner({
             </svg>
             {t("how_to_use")}
           </button>
+          {isPro && !isAdmin && (
+            <button type="button" onClick={onManageSubscription}
+              className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
+              <svg className="h-4 w-4 shrink-0 text-[var(--ink-dim)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <path d="M2 10h20"/>
+              </svg>
+              {t("manage_subscription")}
+            </button>
+          )}
         </nav>
       </div>
 
@@ -4599,6 +4609,20 @@ const [proSuccess, setProSuccess] = useState(false);
     else signIn();
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error ?? "Could not open billing portal. Please try again.");
+      }
+    } catch {
+      setError("Could not open billing portal. Please try again.");
+    }
+  };
+
   const charLimit = isPro ? PRO_CHAR_LIMIT : FREE_CHAR_LIMIT;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -5046,7 +5070,7 @@ const [proSuccess, setProSuccess] = useState(false);
               onDeleteTab={deleteTab}
               onHowTo={() => setShowHowTo(true)}
               onUpgrade={handleUpgradeClick}
-              onCancelSubscription={() => setShowCancelDialog(true)}
+              onManageSubscription={handleManageSubscription}
               onSignOut={() => signOut()}
             />
           </div>
@@ -5084,7 +5108,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   onDeleteTab={deleteTab}
                   onHowTo={() => { setShowHowTo(true); setSidebarOpen(false); }}
                   onUpgrade={handleUpgradeClick}
-                  onCancelSubscription={() => setShowCancelDialog(true)}
+                  onManageSubscription={handleManageSubscription}
                   onSignOut={() => signOut()}
                 />
               </motion.aside>
