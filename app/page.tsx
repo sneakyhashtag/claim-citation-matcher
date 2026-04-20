@@ -1646,6 +1646,8 @@ function PaperCard({
   onUpgrade,
   savedPaperKeys,
   onSaveToggle,
+  zoteroConnected,
+  onSaveToZotero,
 }: {
   paper: RatedPaper;
   index?: number;
@@ -1658,6 +1660,8 @@ function PaperCard({
   onUpgrade?: () => void;
   savedPaperKeys?: Set<string>;
   onSaveToggle?: (paper: RatedPaper) => void;
+  zoteroConnected?: boolean | null;
+  onSaveToZotero?: (paper: Paper) => Promise<void>;
 }) {
   const t = useContext(LangContext);
   const [relatedOpen, setRelatedOpen] = useState(false);
@@ -1665,6 +1669,7 @@ function PaperCard({
   const [relatedPapers, setRelatedPapers] = useState<Paper[] | null>(null);
   const [relatedError, setRelatedError] = useState<string | null>(null);
   const [showProGate, setShowProGate] = useState(false);
+  const [zoteroLoading, setZoteroLoading] = useState(false);
 
   const authorLine =
     paper.authors.length === 0
@@ -1856,8 +1861,33 @@ function PaperCard({
           </div>
         )}
 
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-2 flex items-center gap-3 flex-wrap">
           <CitationMenu paper={paper} />
+          {isPro && onSaveToZotero && (
+            <button
+              type="button"
+              disabled={zoteroLoading}
+              onClick={async () => {
+                setZoteroLoading(true);
+                await onSaveToZotero(paper).catch(() => {});
+                setZoteroLoading(false);
+              }}
+              title={zoteroConnected ? "Save to Zotero" : "Connect Zotero to save"}
+              className="inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 text-[var(--ink-dim)] hover:text-[var(--ink)]"
+            >
+              {zoteroLoading ? (
+                <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+              ) : (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M4 4h16v2l-6 6v6l-4-2v-4L4 6V4z"/>
+                </svg>
+              )}
+              {zoteroConnected === false ? "Connect Zotero" : "Save to Zotero"}
+            </button>
+          )}
           <div className="relative">
             <button
               type="button"
@@ -2272,6 +2302,8 @@ function ClaimCard({
   onUpgrade,
   savedPaperKeys,
   onSaveToggle,
+  zoteroConnected,
+  onSaveToZotero,
   isExpanded = true,
   onToggle,
   isHovered = false,
@@ -2288,6 +2320,8 @@ function ClaimCard({
   onUpgrade?: () => void;
   savedPaperKeys?: Set<string>;
   onSaveToggle?: (paper: RatedPaper) => void;
+  zoteroConnected?: boolean | null;
+  onSaveToZotero?: (paper: Paper) => Promise<void>;
   isExpanded?: boolean;
   onToggle?: () => void;
   isHovered?: boolean;
@@ -2378,7 +2412,7 @@ function ClaimCard({
               ) : (
                 <div className="flex flex-col gap-3">
                   {visiblePapers.map((paper, i) => (
-                    <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} />
+                    <PaperCard key={paper.doi ?? i} paper={paper} index={i} knownPaperKeys={knownPaperKeys} onUsageUpdate={onUsageUpdate} yearFilter={yearFilter} customRange={customRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={onUpgrade} savedPaperKeys={savedPaperKeys} onSaveToggle={onSaveToggle} zoteroConnected={zoteroConnected} onSaveToZotero={onSaveToZotero} />
                   ))}
                   {hiddenCount > 0 && (
                     <p className="text-[11px] pt-0.5" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
@@ -3968,6 +4002,66 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
   );
 }
 
+// ── Zotero toast ──────────────────────────────────────────────────────────────
+
+type ZoteroToastData = { type: "success" | "error" | "info"; message: string };
+
+function ZoteroToast({
+  toast,
+  onDismiss,
+}: {
+  toast: ZoteroToastData | null;
+  onDismiss: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-[13px] font-medium shadow-xl"
+          style={{
+            background:
+              toast.type === "success"
+                ? "var(--accent)"
+                : toast.type === "error"
+                ? "rgb(239,68,68)"
+                : "var(--paper)",
+            color: toast.type === "info" ? "var(--ink)" : "white",
+            border: toast.type === "info" ? "1px solid var(--rule)" : "none",
+            fontFamily: "var(--sans)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {toast.type === "success" && (
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+            </svg>
+          )}
+          {toast.type === "error" && (
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+          )}
+          {toast.message}
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="ml-0.5 opacity-70 hover:opacity-100 transition-opacity"
+            aria-label="Dismiss"
+          >
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -4174,6 +4268,56 @@ const [proSuccess, setProSuccess] = useState(false);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
+
+  // ── Zotero ───────────────────────────────────────────────────────────────────
+  const [zoteroConnected, setZoteroConnected] = useState<boolean | null>(null);
+  const [zoteroToast, setZoteroToast] = useState<ZoteroToastData | null>(null);
+
+  // Check Zotero connection status once Pro is confirmed
+  useEffect(() => {
+    if (isPro && session) {
+      fetch("/api/zotero/status")
+        .then((r) => r.json())
+        .then((d) => setZoteroConnected(!!d.connected))
+        .catch(() => setZoteroConnected(false));
+    }
+  }, [isPro, session]);
+
+  // Handle ?zotero_connected=1 redirect from OAuth callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("zotero_connected") === "1") {
+      setZoteroConnected(true);
+      setZoteroToast({ type: "success", message: "Connected to Zotero!" });
+      window.history.replaceState({}, "", window.location.pathname);
+      setTimeout(() => setZoteroToast(null), 4000);
+    }
+  }, []);
+
+  const handleSaveToZotero = async (paper: Paper): Promise<void> => {
+    if (!zoteroConnected) {
+      window.location.href = "/api/zotero/connect";
+      return;
+    }
+    try {
+      const res = await fetch("/api/zotero/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paper),
+      });
+      const data = await res.json();
+      if (data.notConnected) {
+        setZoteroConnected(false);
+        window.location.href = "/api/zotero/connect";
+        return;
+      }
+      if (!res.ok) throw new Error(data.error ?? "Save failed");
+      setZoteroToast({ type: "success", message: "Saved to Zotero!" });
+    } catch {
+      setZoteroToast({ type: "error", message: "Failed to save to Zotero" });
+    }
+    setTimeout(() => setZoteroToast(null), 4000);
+  };
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<SearchTab[]>([]);
@@ -5830,6 +5974,8 @@ const [proSuccess, setProSuccess] = useState(false);
                       }
                       savedPaperKeys={savedPaperKeys}
                       onSaveToggle={toggleSavePaper}
+                      zoteroConnected={zoteroConnected}
+                      onSaveToZotero={handleSaveToZotero}
                       isExpanded={expandedClaims.has(i)}
                       onToggle={() => setExpandedClaims(prev => {
                         const s = new Set(prev);
@@ -5850,6 +5996,7 @@ const [proSuccess, setProSuccess] = useState(false);
         </div>
         {/* end flex shell */}
       </div>
+      <ZoteroToast toast={zoteroToast} onDismiss={() => setZoteroToast(null)} />
     </>
     </LangContext.Provider>
   );

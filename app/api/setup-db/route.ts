@@ -111,6 +111,16 @@ export async function GET(req: NextRequest) {
         ADD COLUMN IF NOT EXISTS starred BOOLEAN NOT NULL DEFAULT FALSE
     `;
 
+    await sql`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS zotero_api_key TEXT
+    `;
+
+    await sql`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS zotero_user_id TEXT
+    `;
+
     return NextResponse.json({ ok: true, message: "Tables created successfully." });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
