@@ -121,6 +121,11 @@ export async function GET(req: NextRequest) {
         ADD COLUMN IF NOT EXISTS zotero_user_id TEXT
     `;
 
+    await sql`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS grace_period_until TIMESTAMPTZ
+    `;
+
     return NextResponse.json({ ok: true, message: "Tables created successfully." });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
