@@ -1,14 +1,11 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { sql } from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-// Set STRIPE_WEBHOOK_SECRET in your Vercel environment variables.
-// Get it from the Stripe dashboard → Developers → Webhooks → your endpoint.
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
-// Next.js parses the body by default; we need the raw bytes to verify the
-// Stripe signature, so we read it as text before any JSON parsing.
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
@@ -32,25 +29,40 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     case "checkout.session.completed": {
-      // The pro cookie is set client-side via /api/activate-pro immediately
-      // after the success redirect. This webhook is the reliable server-side
-      // signal and can be extended to write to a database in the future.
       const session = event.data.object as Stripe.Checkout.Session;
-      console.log(`[webhook] Pro subscription activated for: ${session.customer_email}`);
+      console.log(`[webhook] checkout completed for: ${session.customer_email}`);
+      break;
+    }
+
+    case "customer.subscription.updated": {
+      // Trial converted to paid subscription — mark trial as used.
+      const sub = event.data.object as Stripe.Subscription;
+      const prev = (event.data.previous_attributes ?? {}) as { status?: string };
+      if (prev.status === "trialing" && sub.status === "active") {
+        console.log(`[webhook] trial converted to active for subscription: ${sub.id}`);
+        await markTrialUsed(sub.customer as string);
+      }
       break;
     }
 
     case "customer.subscription.deleted": {
-      // Subscription was cancelled. The signed pro cookie expires naturally
-      // after PRO_DURATION_DAYS. Future: invalidate via database lookup.
+      // If deleted while still in trial period, mark trial as used so the
+      // user cannot claim another free trial.
       const sub = event.data.object as Stripe.Subscription;
-      console.log(`[webhook] Subscription cancelled: ${sub.id}`);
+      const nowSec = Math.floor(Date.now() / 1000);
+      const deletedDuringTrial = sub.trial_end !== null && sub.trial_end > nowSec;
+      if (deletedDuringTrial) {
+        console.log(`[webhook] subscription cancelled during trial: ${sub.id}`);
+        await markTrialUsed(sub.customer as string);
+      } else {
+        console.log(`[webhook] subscription cancelled (post-trial): ${sub.id}`);
+      }
       break;
     }
 
     case "invoice.payment_failed": {
       const invoice = event.data.object as Stripe.Invoice;
-      console.log(`[webhook] Payment failed for: ${invoice.customer_email}`);
+      console.log(`[webhook] payment failed for: ${invoice.customer_email}`);
       break;
     }
 
@@ -59,4 +71,19 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+async function markTrialUsed(customerId: string): Promise<void> {
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (customer.deleted || !("email" in customer) || !customer.email) return;
+    await sql`
+      INSERT INTO users (email, has_used_trial, created_at)
+      VALUES (${customer.email}, true, NOW())
+      ON CONFLICT (email) DO UPDATE SET has_used_trial = true
+    `;
+    console.log(`[webhook] has_used_trial set for: ${customer.email}`);
+  } catch (err) {
+    console.error("[webhook] markTrialUsed failed:", err);
+  }
 }

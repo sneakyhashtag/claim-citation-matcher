@@ -37,15 +37,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Payment not complete" }, { status: 402 });
   }
 
-  // If this was a trial checkout, mark has_used_trial so the user cannot
-  // get another free trial in the future — even if they later cancel.
-  if (stripeSession.payment_status === "no_payment_required" && session.user.email) {
-    await sql`
-      INSERT INTO users (email, has_used_trial, created_at)
-      VALUES (${session.user.email}, true, NOW())
-      ON CONFLICT (email) DO UPDATE SET has_used_trial = true
-    `;
-  }
+  // has_used_trial is managed by the Stripe webhook (subscription.updated /
+  // subscription.deleted). Do not set it here.
 
   const res = NextResponse.json({ pro: true });
   setProCookie(res);

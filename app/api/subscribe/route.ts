@@ -128,14 +128,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Mark trial used if applicable
-  if (!hasUsedTrial) {
-    await sql`
-      INSERT INTO users (email, has_used_trial, created_at)
-      VALUES (${session.user.email}, true, NOW())
-      ON CONFLICT (email) DO UPDATE SET has_used_trial = true
-    `;
-  }
+  // has_used_trial is set by the Stripe webhook when the trial converts to
+  // paid (subscription.updated: trialing→active) or is cancelled mid-trial
+  // (subscription.deleted). Do not set it here.
 
   const res = NextResponse.json({ success: true });
   setProCookie(res);

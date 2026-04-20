@@ -52,13 +52,24 @@ export async function GET(_req: NextRequest) {
     });
 
     for (const customer of customers.data) {
-      // Check active or trialing subscriptions.
+      // Check active subscriptions.
       const activeSubs = await stripe.subscriptions.list({
         customer: customer.id,
         status: "active",
         limit: 1,
       });
       if (activeSubs.data.length > 0) {
+        const res = NextResponse.json({ pro: true, hasUsedTrial });
+        setProCookie(res);
+        return res;
+      }
+      // Also treat trialing subscriptions as Pro.
+      const trialingSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: "trialing",
+        limit: 1,
+      });
+      if (trialingSubs.data.length > 0) {
         const res = NextResponse.json({ pro: true, hasUsedTrial });
         setProCookie(res);
         return res;
