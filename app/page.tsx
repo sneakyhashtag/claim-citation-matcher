@@ -2959,7 +2959,11 @@ function PlanModal({
 
   const handleCardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripeRef.current || !cardElementRef.current || processing) return;
+    // Capture refs before any state changes — setStep("processing") triggers
+    // useEffect cleanup which destroys the card element and nulls the ref.
+    const stripe = stripeRef.current;
+    const card = cardElementRef.current;
+    if (!stripe || !card || processing) return;
 
     setProcessing(true);
     setCardError(null);
@@ -2975,16 +2979,9 @@ function PlanModal({
       const { clientSecret } = await siRes.json();
 
       // 2. Confirm the card setup — validates the card without charging
-      if (!cardElementRef.current) {
-        setCardError("Please enter your card details and try again.");
-        setStep("card");
-        setProcessing(false);
-        return;
-      }
-
-      const { setupIntent, error: setupError } = await stripeRef.current.confirmCardSetup(
+      const { setupIntent, error: setupError } = await stripe.confirmCardSetup(
         clientSecret,
-        { payment_method: { card: cardElementRef.current } }
+        { payment_method: { card } }
       );
 
       if (setupError) {
@@ -3016,7 +3013,7 @@ function PlanModal({
 
       // 4. If the first invoice needs 3DS confirmation, handle it
       if (subData.requiresAction && subData.clientSecret) {
-        const { error: actionError } = await stripeRef.current.confirmCardPayment(
+        const { error: actionError } = await stripe.confirmCardPayment(
           subData.clientSecret
         );
         if (actionError) {
