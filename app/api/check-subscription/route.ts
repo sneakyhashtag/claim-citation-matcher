@@ -69,8 +69,8 @@ export async function GET(_req: NextRequest) {
           pro: true,
           hasUsedTrial,
           subscriptionStatus: sub.status,
-          periodEnd: sub.current_period_end,   // Unix timestamp
-          trialEnd: sub.trial_end ?? null,      // Unix timestamp or null
+          periodEnd: (sub as any).current_period_end ?? null,
+          trialEnd: sub.trial_end ?? null,
         };
 
         const res = NextResponse.json(payload);

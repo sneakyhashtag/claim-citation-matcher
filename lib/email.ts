@@ -1,6 +1,11 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy — avoids "Missing API key" build error when RESEND_API_KEY is not set locally.
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY ?? "");
+  return _resend;
+}
 
 const FROM = process.env.EMAIL_FROM ?? "Reference Finder <noreply@referencefinder.app>";
 
@@ -10,7 +15,7 @@ export async function sendPaymentFailedEmail(to: string): Promise<void> {
     return;
   }
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: "Action needed: payment issue with your Reference Finder subscription",

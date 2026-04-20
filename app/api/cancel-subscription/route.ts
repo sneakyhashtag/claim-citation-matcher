@@ -31,9 +31,9 @@ function daysSince(unixTs: number): number {
   return (Date.now() / 1000 - unixTs) / 86400;
 }
 
-/** Current billing period end from the first subscription item. */
+/** Current billing period end — field removed from Stripe v20 TS types, cast needed. */
 function periodEnd(sub: Stripe.Subscription): number {
-  return sub.items.data[0]?.current_period_end ?? 0;
+  return (sub as any).current_period_end ?? 0;
 }
 
 /**
