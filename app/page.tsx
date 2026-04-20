@@ -4628,7 +4628,7 @@ const [proSuccess, setProSuccess] = useState(false);
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ claim: c.claim, papers: searchData.papers }),
+              body: JSON.stringify({ claim: c.claim, papers: searchData.papers, lang }),
             }
           );
           if (!rateData) return { claim: c.claim, papers: [] };
@@ -4776,7 +4776,7 @@ const [proSuccess, setProSuccess] = useState(false);
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ claim: c.claim, papers: searchData.papers }),
+                body: JSON.stringify({ claim: c.claim, papers: searchData.papers, lang: langFilter }),
               }
             );
             if (!rateData) return { claim: c.claim, papers: [] };

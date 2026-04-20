@@ -48,9 +48,17 @@ const RatingSchema = z.object({
   ),
 });
 
+const LANG_NAMES: Record<string, string> = {
+  en: "English",
+  zh: "Chinese (Simplified)",
+  ja: "Japanese",
+  ko: "Korean",
+};
+
 export async function rateRelevance(
   claim: string,
-  papers: Paper[]
+  papers: Paper[],
+  lang = "en"
 ): Promise<RatedPaper[]> {
   if (papers.length === 0) return [];
 
@@ -65,6 +73,8 @@ export async function rateRelevance(
     model: relevanceScoringModel(),
     max_tokens: 2048,
     system: `You are a research assistant evaluating how relevant academic papers are to a specific claim.
+
+Write all explanation and matching_excerpt fields in ${LANG_NAMES[lang] ?? "English"}.
 
 Rate each paper's relevance to the claim on a scale of 1–5:
 1 = Not relevant
