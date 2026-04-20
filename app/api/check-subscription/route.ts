@@ -6,16 +6,6 @@ import { sql } from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-/**
- * GET /api/check-subscription
- *
- * Verifies the signed-in user's Pro status and syncs the Pro cookie.
- * Source of truth priority:
- *   1. Admin email bypass
- *   2. DB grace_period_until (payment failed but within 3-day window)
- *   3. Stripe subscription status (active / trialing / past_due)
- * The DB pro_status column is kept in sync by the /api/stripe/webhook handler.
- */
 async function getUserRow(email: string) {
   try {
     const result = await sql`
@@ -37,9 +27,8 @@ export async function GET(_req: NextRequest) {
 
   const email = session.user.email;
 
-  // Admin bypass.
   if (isAdminEmail(email)) {
-    const res = NextResponse.json({ pro: true, hasUsedTrial: true });
+    const res = NextResponse.json({ pro: true, hasUsedTrial: true, subscriptionStatus: "active" });
     setProCookie(res);
     return res;
   }
@@ -47,9 +36,14 @@ export async function GET(_req: NextRequest) {
   const row = await getUserRow(email);
   const hasUsedTrial: boolean = row?.has_used_trial ?? false;
 
-  // Grace period: payment failed but we're giving the user 3 extra days.
+  // Grace period: payment failed but we're giving 3 extra days.
   if (row?.grace_period_until && new Date(row.grace_period_until) > new Date()) {
-    const res = NextResponse.json({ pro: true, hasUsedTrial, gracePeriod: true });
+    const res = NextResponse.json({
+      pro: true,
+      hasUsedTrial,
+      gracePeriod: true,
+      subscriptionStatus: "past_due",
+    });
     setProCookie(res);
     return res;
   }
@@ -58,38 +52,43 @@ export async function GET(_req: NextRequest) {
     const customers = await stripe.customers.list({ email, limit: 5 });
 
     for (const customer of customers.data) {
-      // active, trialing, and past_due all count as Pro.
-      // past_due = Stripe is retrying the payment (within its own retry window).
       for (const status of ["active", "trialing", "past_due"] as const) {
         const subs = await stripe.subscriptions.list({
           customer: customer.id,
           status,
           limit: 1,
         });
-        if (subs.data.length > 0) {
-          // Keep DB in sync in case the webhook missed an event.
-          await sql`
-            UPDATE users SET pro_status = true WHERE email = ${email}
-          `.catch(() => {});
-          const res = NextResponse.json({ pro: true, hasUsedTrial });
-          setProCookie(res);
-          return res;
-        }
+        if (subs.data.length === 0) continue;
+
+        const sub = subs.data[0];
+
+        // Keep DB in sync.
+        await sql`UPDATE users SET pro_status = true WHERE email = ${email}`.catch(() => {});
+
+        const payload: Record<string, unknown> = {
+          pro: true,
+          hasUsedTrial,
+          subscriptionStatus: sub.status,
+          periodEnd: sub.current_period_end,   // Unix timestamp
+          trialEnd: sub.trial_end ?? null,      // Unix timestamp or null
+        };
+
+        const res = NextResponse.json(payload);
+        setProCookie(res);
+        return res;
       }
     }
 
-    // No qualifying subscription — ensure DB is also cleared.
+    // No qualifying subscription.
     await sql`
-      UPDATE users SET pro_status = false, grace_period_until = NULL
-      WHERE email = ${email}
+      UPDATE users SET pro_status = false, grace_period_until = NULL WHERE email = ${email}
     `.catch(() => {});
 
     const res = NextResponse.json({ pro: false, hasUsedTrial });
     clearProCookie(res);
     return res;
   } catch (err) {
-    // Stripe is down or rate-limited — fall back to the DB flag so we don't
-    // accidentally downgrade users during an outage.
+    // Stripe unavailable — fall back to DB flag.
     if (row?.pro_status) {
       const res = NextResponse.json({ pro: true, hasUsedTrial, fallback: true });
       setProCookie(res);

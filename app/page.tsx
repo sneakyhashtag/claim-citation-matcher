@@ -3382,6 +3382,9 @@ function SidebarInner({
   onUpgrade,
   onManageSubscription,
   onSignOut,
+  subStatus,
+  periodEnd,
+  trialEnd,
 }: {
   session: { user?: { name?: string | null; email?: string | null; image?: string | null } | null } | null;
   isPro: boolean;
@@ -3397,11 +3400,34 @@ function SidebarInner({
   onUpgrade: () => void;
   onManageSubscription: () => void;
   onSignOut: () => void;
+  subStatus: "trialing" | "active" | "past_due" | null;
+  periodEnd: number | null;
+  trialEnd: number | null;
 }) {
   const t = useContext(LangContext);
   const starredTabs = tabs.filter((tab) => tab.starred);
   const recentTabs  = tabs.filter((tab) => !tab.starred);
   const isAdmin = ["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session?.user?.email ?? "");
+
+  // Subscription status line
+  const nowSec = Math.floor(Date.now() / 1000);
+  const trialDaysLeft = trialEnd ? Math.ceil((trialEnd - nowSec) / 86400) : null;
+  const renewalDateStr = periodEnd
+    ? new Date(periodEnd * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
+  const subStatusLine = (() => {
+    if (!isPro) return t("sub_status_free");
+    if (subStatus === "trialing" && trialDaysLeft !== null) {
+      if (trialDaysLeft <= 1) return t("sub_status_trial_last_day");
+      return t("sub_status_trial").replace("{days}", String(trialDaysLeft));
+    }
+    if (subStatus === "past_due") return t("sub_status_past_due");
+    if (renewalDateStr) return t("sub_status_active").replace("{date}", renewalDateStr);
+    return isPro ? "Pro" : t("sub_status_free");
+  })();
+
+  const showTrialBanner = subStatus === "trialing" && trialDaysLeft !== null && trialDaysLeft <= 3;
 
   return (
     <div className="flex flex-col h-full">
@@ -3460,8 +3486,35 @@ function SidebarInner({
                   {session.user.email}
                 </p>
               )}
+              <p className={`text-[10px] mt-0.5 font-medium truncate ${
+                subStatus === "trialing" ? "text-emerald-400 light:text-emerald-700"
+                : subStatus === "past_due" ? "text-amber-400 light:text-amber-600"
+                : isPro ? "text-amber-400 light:text-amber-700"
+                : "text-[var(--ink-dim)]"
+              }`}>
+                {subStatusLine}
+              </p>
             </div>
           </div>
+
+          {/* Trial ending banner */}
+          {showTrialBanner && (
+            <div className="mb-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.08] light:bg-amber-700/[0.06] px-3 py-2.5">
+              <p className="text-[11px] text-amber-300 light:text-amber-800 leading-snug">
+                {trialDaysLeft === 0
+                  ? t("trial_ending_banner_today")
+                  : t("trial_ending_banner").replace("{days}", String(trialDaysLeft))}
+                {" "}
+                <button
+                  type="button"
+                  onClick={onManageSubscription}
+                  className="underline underline-offset-2 font-medium hover:opacity-75 transition-opacity"
+                >
+                  {t("trial_ending_cta")}
+                </button>
+              </p>
+            </div>
+          )}
 
           {/* Upgrade to Pro button — free users only */}
           {!isPro && (
@@ -4162,7 +4215,10 @@ export default function Home() {
   const [usage, setUsage] = useState({ count: 0, remaining: 3, limit: 3 });
   const [isPro, setIsPro] = useState(false);
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
-const [proSuccess, setProSuccess] = useState(false);
+  const [proSuccess, setProSuccess] = useState(false);
+  const [subStatus, setSubStatus] = useState<"trialing" | "active" | "past_due" | null>(null);
+  const [periodEnd, setPeriodEnd] = useState<number | null>(null);
+  const [trialEnd, setTrialEnd] = useState<number | null>(null);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -4267,9 +4323,12 @@ const [proSuccess, setProSuccess] = useState(false);
     // Check Stripe subscription status on every app load so Pro access survives
     // sign-out / sign-in cycles. The route reads the email from the server-side
     // session and re-sets the Pro cookie if an active subscription is found.
-    apiFetch<{ pro: boolean; hasUsedTrial: boolean }>("/api/check-subscription").then(({ data }) => {
+    apiFetch<{ pro: boolean; hasUsedTrial: boolean; subscriptionStatus?: string; periodEnd?: number; trialEnd?: number }>("/api/check-subscription").then(({ data }) => {
       if (data?.pro) setIsPro(true);
       if (data?.hasUsedTrial) setHasUsedTrial(true);
+      if (data?.subscriptionStatus) setSubStatus(data.subscriptionStatus as "trialing" | "active" | "past_due");
+      if (data?.periodEnd) setPeriodEnd(data.periodEnd);
+      if (data?.trialEnd) setTrialEnd(data.trialEnd);
     });
     // Handle post-checkout success redirect: /?payment=success&session_id=cs_xxx
     const params = new URLSearchParams(window.location.search);
@@ -4279,6 +4338,7 @@ const [proSuccess, setProSuccess] = useState(false);
       apiFetch<{ pro: boolean }>(`/api/activate-pro?session_id=${sessionId}`).then(({ data }) => {
         if (data?.pro) {
           setIsPro(true);
+          setSubStatus("active");
           setProSuccess(true);
         }
       });
@@ -4289,7 +4349,7 @@ const [proSuccess, setProSuccess] = useState(false);
   // Auto-dismiss the Pro success banner after 5 seconds
   useEffect(() => {
     if (!proSuccess) return;
-    const t = setTimeout(() => setProSuccess(false), 5000);
+    const t = setTimeout(() => setProSuccess(false), 3000);
     return () => clearTimeout(t);
   }, [proSuccess]);
 
@@ -5029,6 +5089,7 @@ const [proSuccess, setProSuccess] = useState(false);
           onClose={() => setShowPlanModal(false)}
           onSuccess={() => {
             setIsPro(true);
+            setSubStatus("active");
             setProSuccess(true);
             setShowPlanModal(false);
           }}
@@ -5072,6 +5133,9 @@ const [proSuccess, setProSuccess] = useState(false);
               onUpgrade={handleUpgradeClick}
               onManageSubscription={handleManageSubscription}
               onSignOut={() => signOut()}
+              subStatus={subStatus}
+              periodEnd={periodEnd}
+              trialEnd={trialEnd}
             />
           </div>
         </motion.aside>
@@ -5110,6 +5174,9 @@ const [proSuccess, setProSuccess] = useState(false);
                   onUpgrade={handleUpgradeClick}
                   onManageSubscription={handleManageSubscription}
                   onSignOut={() => signOut()}
+                  subStatus={subStatus}
+                  periodEnd={periodEnd}
+                  trialEnd={trialEnd}
                 />
               </motion.aside>
             </>
@@ -5768,26 +5835,7 @@ const [proSuccess, setProSuccess] = useState(false);
                   </div>
                 </form>
 
-                {/* Pro success toast — shown once after payment, auto-dismisses after 5 s */}
-                <AnimatePresence>
-                  {proSuccess && (
-                    <motion.div
-                      key="pro-success-banner"
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="mt-3 flex items-start gap-3 rounded-lg border border-green-500/25 light:border-[rgba(30,70,32,0.35)] bg-green-500/10 light:bg-[rgba(30,70,32,0.07)] px-4 py-3"
-                    >
-                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500 light:text-[#1E4620]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
-                      </svg>
-                      <p className="text-sm text-green-300 light:text-[#1E4620]">
-                        <strong>Welcome to Pro!</strong> You now have unlimited searches. Thank you for subscribing.
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Pro success toast rendered via portal — see bottom of return */}
 
                 {/* Daily limit banner */}
                 {usage.remaining === 0 && !loading && !isPro && (
@@ -6055,6 +6103,26 @@ const [proSuccess, setProSuccess] = useState(false);
         {/* end flex shell */}
       </div>
       <ZoteroToast toast={zoteroToast} onDismiss={() => setZoteroToast(null)} />
+
+      {/* ── Pro success toast ── */}
+      <AnimatePresence>
+        {proSuccess && (
+          <motion.div
+            key="pro-success-toast"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-[13px] font-medium shadow-xl"
+            style={{ background: "#18a558", color: "white", whiteSpace: "nowrap" }}
+          >
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd"/>
+            </svg>
+            {t("welcome_pro_toast")}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
     </LangContext.Provider>
   );

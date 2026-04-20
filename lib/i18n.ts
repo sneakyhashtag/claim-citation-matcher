@@ -298,6 +298,15 @@ const translations = {
     sidebar_recent: "Recent",
     no_saved_papers: "No saved papers yet \u2014 bookmark papers from your search results.",
     manage_subscription: "Manage subscription",
+    sub_status_free: "Free tier",
+    sub_status_trial: "Pro Trial · {days} days left",
+    sub_status_trial_last_day: "Pro Trial · Last day",
+    sub_status_active: "Pro · Renews {date}",
+    sub_status_past_due: "Pro · Payment issue",
+    trial_ending_banner: "Your trial ends in {days} days.",
+    trial_ending_banner_today: "Your trial ends today.",
+    trial_ending_cta: "Manage subscription →",
+    welcome_pro_toast: "Welcome to Pro! You're all set.",
 
     // Sidebar tab row
     new_search_tab: "New search\u2026",
@@ -634,6 +643,15 @@ const translations = {
     sidebar_recent: "最近",
     no_saved_papers: "暂无已保存的论文——从搜索结果中收藏论文。",
     manage_subscription: "管理订阅",
+    sub_status_free: "免费版",
+    sub_status_trial: "Pro 试用 · 剩余 {days} 天",
+    sub_status_trial_last_day: "Pro 试用 · 最后一天",
+    sub_status_active: "Pro · {date} 续费",
+    sub_status_past_due: "Pro · 付款问题",
+    trial_ending_banner: "您的试用期将在 {days} 天后结束。",
+    trial_ending_banner_today: "您的试用期今天结束。",
+    trial_ending_cta: "管理订阅 →",
+    welcome_pro_toast: "欢迎使用 Pro！一切就绪。",
 
     // Sidebar tab row
     new_search_tab: "新搜索…",
@@ -966,6 +984,15 @@ const translations = {
     sidebar_recent: "最近",
     no_saved_papers: "保存済みの論文はまだありません — 検索結果から論文をブックマークしてください。",
     manage_subscription: "サブスクリプションを管理",
+    sub_status_free: "無料プラン",
+    sub_status_trial: "Pro トライアル · 残り {days} 日",
+    sub_status_trial_last_day: "Pro トライアル · 最終日",
+    sub_status_active: "Pro · {date} に更新",
+    sub_status_past_due: "Pro · 支払い問題",
+    trial_ending_banner: "トライアルはあと {days} 日で終了します。",
+    trial_ending_banner_today: "トライアルは本日終了します。",
+    trial_ending_cta: "サブスクリプションを管理 →",
+    welcome_pro_toast: "Pro へようこそ！準備完了です。",
 
     // Sidebar tab row
     new_search_tab: "新規検索…",
@@ -1296,6 +1323,15 @@ const translations = {
     sidebar_recent: "최근",
     no_saved_papers: "아직 저장된 논문이 없습니다 — 검색 결과에서 논문을 북마크하세요.",
     manage_subscription: "구독 관리",
+    sub_status_free: "무료 플랜",
+    sub_status_trial: "Pro 체험 · {days}일 남음",
+    sub_status_trial_last_day: "Pro 체험 · 마지막 날",
+    sub_status_active: "Pro · {date} 갱신",
+    sub_status_past_due: "Pro · 결제 문제",
+    trial_ending_banner: "체험 기간이 {days}일 후 종료됩니다.",
+    trial_ending_banner_today: "체험 기간이 오늘 종료됩니다.",
+    trial_ending_cta: "구독 관리 →",
+    welcome_pro_toast: "Pro에 오신 걸 환영합니다! 모든 준비가 완료되었습니다.",
 
     // Sidebar tab row
     new_search_tab: "새 검색…",
