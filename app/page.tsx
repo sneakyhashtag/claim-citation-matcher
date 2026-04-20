@@ -2898,13 +2898,25 @@ function PlanModal({
     (async () => {
       // 1. Get publishable key from server (avoids NEXT_PUBLIC_ prefix requirement)
       const cfgRes = await fetch("/api/stripe-config");
-      if (!cfgRes.ok || cancelled) return;
+      if (cancelled) return;
+      if (!cfgRes.ok) {
+        if (!cancelled) setCardError("Payment system is unavailable. Please try again later.");
+        return;
+      }
       const { publishableKey } = await cfgRes.json();
+      if (!publishableKey) {
+        if (!cancelled) setCardError("Payment system is not configured. Please contact support.");
+        return;
+      }
 
       // 2. Load Stripe.js
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(publishableKey);
-      if (!stripe || cancelled) return;
+      if (cancelled) return;
+      if (!stripe) {
+        setCardError("Failed to load payment system. Please refresh and try again.");
+        return;
+      }
       stripeRef.current = stripe;
 
       // 3. Create and mount the card element
