@@ -3124,9 +3124,9 @@ function PlanModal({
                   {([
                     ["feat_unlimited", "feat_unlimited_sub"],
                     ["feat_char_limit", "feat_char_limit_sub"],
-                    ["feat_upload", "feat_upload_sub"],
                     ["feat_omakase", "feat_omakase_sub"],
-                    ["feat_export", "feat_export_sub"],
+                    ["feat_zotero", "feat_zotero_sub"],
+                    ["feat_ai_model", "feat_ai_model_sub"],
                     ["feat_date_filter", "feat_date_filter_sub"],
                     ["feat_find_more", "feat_find_more_sub"],
                     ["feat_future", "feat_future_sub"],
