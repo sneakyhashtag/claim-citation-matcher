@@ -4890,7 +4890,7 @@ const [proSuccess, setProSuccess] = useState(false);
         <div
           className={`relative flex-1 min-w-0 [overflow-anchor:none] ${
             results.length > 0 && stage === "app" && ready
-              ? "h-screen overflow-hidden flex flex-col"
+              ? isMobile ? "flex flex-col" : "h-screen overflow-hidden flex flex-col"
               : isCentered
                 ? "flex items-center justify-center py-12 px-4 sm:px-6"
                 : "flex flex-col"
@@ -5571,15 +5571,16 @@ const [proSuccess, setProSuccess] = useState(false);
 
           {/* ── split-screen workspace: shown when results exist ── */}
           {ready && stage === "app" && results.length > 0 && view === "workspace" && (
-            <div className="flex flex-1 overflow-hidden min-w-0">
+            <div className={`flex ${isMobile ? "flex-col" : "flex-row"} flex-1 ${isMobile ? "" : "overflow-hidden"} min-w-0`}>
 
               {/* ── LEFT PANE: paragraph input ── */}
               <div
                 ref={leftPaneScrollRef}
-                className="flex flex-col overflow-y-auto"
+                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto"}`}
                 style={{
-                  width: "50%",
-                  borderRight: "1px solid var(--rule)",
+                  width: isMobile ? "100%" : "50%",
+                  borderRight: isMobile ? "none" : "1px solid var(--rule)",
+                  borderBottom: isMobile ? "1px solid var(--rule)" : "none",
                   background: "var(--bg)",
                 }}
               >
@@ -5726,9 +5727,9 @@ const [proSuccess, setProSuccess] = useState(false);
               {/* ── RIGHT PANE: citation browser ── */}
               <div
                 ref={rightPaneRef}
-                className="flex flex-col overflow-y-auto"
+                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto"}`}
                 style={{
-                  width: "50%",
+                  width: isMobile ? "100%" : "50%",
                   background: "var(--bg-deep)",
                 }}
               >
