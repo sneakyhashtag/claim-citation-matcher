@@ -2879,7 +2879,7 @@ function PlanModal({
   );
 
   // ── inline card flow ──────────────────────────────────────────────────────
-  const [step, setStep] = useState<"plan" | "card" | "processing">("plan");
+  const [step, setStep] = useState<"plan" | "card">("plan");
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
   const [cardError, setCardError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -2967,7 +2967,6 @@ function PlanModal({
 
     setProcessing(true);
     setCardError(null);
-    setStep("processing");
 
     try {
       // 1. Create a SetupIntent ($0 card validation)
@@ -3043,7 +3042,7 @@ function PlanModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-black/30 z-50 backdrop-blur-[2px]"
-          onClick={step === "processing" ? undefined : onClose}
+          onClick={processing ? undefined : onClose}
         />
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <motion.div
@@ -3074,12 +3073,12 @@ function PlanModal({
                 )}
                 <div>
                   <h2 id="plan-modal-title" className="font-semibold text-[var(--ink)] text-base">
-                    {step === "card" || step === "processing"
+                    {step === "card"
                       ? t("card_step_title")
                       : hasUsedTrial ? t("upgrade_to_pro") : t("start_trial_title")}
                   </h2>
                   <p className="text-xs text-[var(--ink-dim)] mt-0.5">
-                    {step === "card" || step === "processing"
+                    {step === "card"
                       ? hasUsedTrial
                         ? `${selectedPlan === "yearly" ? "$29.99/year" : "$2.99/month"} — ${t("card_step_paid_sub")}`
                         : t("card_step_trial_sub")
@@ -3088,10 +3087,10 @@ function PlanModal({
                 </div>
               </div>
               <button
-                onClick={step === "processing" ? undefined : onClose}
+                onClick={processing ? undefined : onClose}
                 className="p-1.5 rounded-md text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--paper-deep)] transition-colors disabled:opacity-40"
                 aria-label="Close"
-                disabled={step === "processing"}
+                disabled={processing}
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                   <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
@@ -3202,7 +3201,7 @@ function PlanModal({
             )}
 
             {/* ── step: card entry ── */}
-            {(step === "card" || step === "processing") && (
+            {step === "card" && (
             <form onSubmit={handleCardSubmit} className="overflow-y-auto">
               <div className="px-6 py-5 space-y-4">
                 {/* plan summary */}
@@ -3255,11 +3254,11 @@ function PlanModal({
               <div className="px-6 pb-6">
                 <button
                   type="submit"
-                  disabled={processing || step === "processing"}
+                  disabled={processing}
                   className="w-full rounded-xl py-3 text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: "var(--ink)", color: "var(--paper)" }}
                 >
-                  {step === "processing" ? (
+                  {processing ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
