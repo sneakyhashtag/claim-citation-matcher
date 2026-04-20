@@ -488,8 +488,16 @@ function formatCitationGBT(paper: Paper): string {
 let _lastCitFmtId: (typeof CITATION_FORMATS)[number]["id"] = "apa";
 
 function bibTexEscape(s: string): string {
-  // Minimal escaping: protect literal braces and ampersands.
-  return s.replace(/\\/g, "\\textbackslash{}").replace(/[{}]/g, (c) => `\\${c}`).replace(/&/g, "\\&");
+  return s
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/[{}]/g, (c) => `\\${c}`)
+    .replace(/&/g, "\\&")
+    .replace(/%/g, "\\%")
+    .replace(/#/g, "\\#")
+    .replace(/\$/g, "\\$")
+    .replace(/_/g, "\\_")
+    .replace(/\^/g, "\\^{}")
+    .replace(/~/g, "\\textasciitilde{}");
 }
 
 function makeBibKey(paper: Paper, index: number): string {
@@ -840,7 +848,7 @@ function getTier(score: number): {
   if (score >= 4) return {
     label: "tier_high",
     cardClass: "border-[var(--rule)]",
-    badgeClass: "bg-[var(--paper-deep)] border-[var(--rule)] text-[var(--ink-dim)]",
+    badgeClass: "bg-blue-500/10 border-blue-400/40 text-blue-400 light:bg-blue-50 light:border-blue-400/50 light:text-blue-600",
     excerptBorderClass: "border-l-[var(--accent)]",
     excerptBgClass: "bg-[var(--paper-deep)]",
     excerptTextClass: "text-[var(--ink)]",
@@ -849,7 +857,7 @@ function getTier(score: number): {
   return {
     label: "tier_moderate",
     cardClass: "border-[var(--rule)]",
-    badgeClass: "bg-[var(--paper-deep)] border-[var(--rule)] text-[var(--ink-dim)]",
+    badgeClass: "bg-amber-500/10 border-amber-400/40 text-amber-400 light:bg-amber-50 light:border-amber-400/50 light:text-amber-600",
     excerptBorderClass: "border-l-[var(--rule)]",
     excerptBgClass: "bg-[var(--paper-deep)]",
     excerptTextClass: "text-[var(--ink-dim)]",
@@ -1328,8 +1336,16 @@ function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
 function ScoreBadge({ score }: { score: number }) {
   const t = useContext(LangContext);
   const { label, badgeClass } = getTier(score);
+  const filled = Math.min(Math.round(score), 5);
   return (
     <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-[family-name:var(--font-dm-sans)] text-[10px] tracking-[0.5px] uppercase ${badgeClass}`}>
+      <span className="flex items-center gap-px">
+        {Array.from({ length: 5 }, (_, i) => (
+          <svg key={i} width="7" height="7" viewBox="0 0 12 12" fill={i < filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" aria-hidden>
+            <path strokeLinejoin="round" d="M6 1l1.24 3.09L10.5 4.5l-2.57 2.5.61 3.5L6 9l-2.54 1.5.61-3.5L1.5 4.5l3.26-.41z"/>
+          </svg>
+        ))}
+      </span>
       {t(label as Parameters<typeof t>[0])}
     </span>
   );
@@ -5703,7 +5719,6 @@ const [proSuccess, setProSuccess] = useState(false);
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ExportMenu papers={allPapers} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                         <button
                           type="submit"
                           disabled={!text.trim() || loading || (!isPro && usage.remaining === 0)}
