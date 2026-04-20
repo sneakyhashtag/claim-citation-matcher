@@ -4913,123 +4913,169 @@ const [proSuccess, setProSuccess] = useState(false);
         {/* ── Top bar — app stage only ── */}
         {stage === "app" && ready && (
           <header
-            className="sticky top-0 z-20 h-14 flex items-center gap-3 px-5 border-b shrink-0"
+            className="sticky top-0 z-20 border-b shrink-0"
             style={{ background: "var(--bg)", borderColor: "var(--rule)" }}
           >
-            {/* hamburger — when sidebar closed */}
-            {isSignedIn && !sidebarOpen && (
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open sidebar"
-                className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
-                style={{ color: "var(--ink-dim)" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-              >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
-                </svg>
-              </button>
-            )}
-
-            {/* logo mark + name */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div
-                className="w-7 h-7 rounded-[8px] flex items-center justify-center italic font-semibold text-[14px] shrink-0"
-                style={{ background: "var(--ink)", color: "var(--bg)", fontFamily: "var(--serif)" }}
-              >
-                R
-              </div>
-              <span
-                className="text-[15px] font-medium hidden sm:inline"
-                style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}
-              >
-                Reference Finder
-              </span>
-            </div>
-
-            <div className="flex-1" />
-
-            {/* Workspace / Library nav — centered, only when results exist */}
-            {results.length > 0 && (
-              <div
-                className="absolute left-1/2 -translate-x-1/2 flex items-center rounded-full p-0.5 gap-0.5"
-                style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
-              >
-                {(["workspace", "library"] as const).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setView(v)}
-                    className="relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium transition-all capitalize"
-                    style={{
-                      fontFamily: "var(--sans)",
-                      background: view === v ? "var(--ink)" : "transparent",
-                      color: view === v ? "var(--paper)" : "var(--ink-dim)",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {v === "workspace" ? t("view_workspace") : t("view_library")}
-                    {v === "library" && tabLibraryItems.length > 0 && (
-                      <span
-                        className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums"
-                        style={{
-                          minWidth: 16,
-                          height: 16,
-                          padding: "0 4px",
-                          background: view === "library" ? "var(--paper)" : "var(--ink)",
-                          color: view === "library" ? "var(--ink)" : "var(--paper)",
-                          fontFamily: "var(--mono)",
-                        }}
-                      >
-                        {tabLibraryItems.length}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* right: lang + theme + sign-in */}
-            <div className="flex items-center gap-2 shrink-0">
-
-              {/* usage counter pill */}
-              {!isPro && (
-                <span
-                  className={`hidden sm:inline text-[11px] font-medium tabular-nums px-2 py-1 rounded-full ${
-                    usage.remaining === 0
-                      ? "bg-red-500/15 text-red-400 light:text-red-600"
-                      : usage.remaining <= 1
-                      ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
-                      : ""
-                  }`}
-                  style={
-                    usage.remaining > 1
-                      ? { background: "var(--paper-deep)", color: "var(--ink-dim)", fontFamily: "var(--mono)" }
-                      : { fontFamily: "var(--mono)" }
-                  }
-                >
-                  {usage.remaining}/{usage.limit}
-                </span>
-              )}
-
-              <LanguagePicker lang={lang} onChange={setLang} />
-              <ThemeToggle theme={theme} onToggle={toggleTheme} />
-
-              {!session && (
+            {/* ── primary row ── */}
+            <div className="h-14 flex items-center gap-3 px-5 relative">
+              {/* hamburger — when sidebar closed */}
+              {isSignedIn && !sidebarOpen && (
                 <button
-                  onClick={() => setStage("auth")}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors"
-                  style={{ border: "1px solid var(--rule)", color: "var(--ink-dim)", background: "transparent", fontFamily: "var(--sans)" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-dim)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink-dim)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--rule)"; }}
+                  type="button"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open sidebar"
+                  className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors shrink-0"
+                  style={{ color: "var(--ink-dim)" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
                 >
-                  {t("sign_in")}
+                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                  </svg>
                 </button>
               )}
+
+              {/* logo mark + name */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <div
+                  className="w-7 h-7 rounded-[8px] flex items-center justify-center italic font-semibold text-[14px] shrink-0"
+                  style={{ background: "var(--ink)", color: "var(--bg)", fontFamily: "var(--serif)" }}
+                >
+                  R
+                </div>
+                <span
+                  className="text-[15px] font-medium hidden sm:inline"
+                  style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}
+                >
+                  Reference Finder
+                </span>
+              </div>
+
+              <div className="flex-1" />
+
+              {/* Workspace / Library nav — desktop: absolute center; hidden on mobile (shown in second row) */}
+              {results.length > 0 && !isMobile && (
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 flex items-center rounded-full p-0.5 gap-0.5"
+                  style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+                >
+                  {(["workspace", "library"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setView(v)}
+                      className="relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium transition-all capitalize"
+                      style={{
+                        fontFamily: "var(--sans)",
+                        background: view === v ? "var(--ink)" : "transparent",
+                        color: view === v ? "var(--paper)" : "var(--ink-dim)",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {v === "workspace" ? t("view_workspace") : t("view_library")}
+                      {v === "library" && tabLibraryItems.length > 0 && (
+                        <span
+                          className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums"
+                          style={{
+                            minWidth: 16,
+                            height: 16,
+                            padding: "0 4px",
+                            background: view === "library" ? "var(--paper)" : "var(--ink)",
+                            color: view === "library" ? "var(--ink)" : "var(--paper)",
+                            fontFamily: "var(--mono)",
+                          }}
+                        >
+                          {tabLibraryItems.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* right: lang + theme + sign-in */}
+              <div className="flex items-center gap-2 shrink-0">
+
+                {/* usage counter pill */}
+                {!isPro && (
+                  <span
+                    className={`hidden sm:inline text-[11px] font-medium tabular-nums px-2 py-1 rounded-full ${
+                      usage.remaining === 0
+                        ? "bg-red-500/15 text-red-400 light:text-red-600"
+                        : usage.remaining <= 1
+                        ? "bg-amber-500/15 text-amber-400 light:text-amber-700"
+                        : ""
+                    }`}
+                    style={
+                      usage.remaining > 1
+                        ? { background: "var(--paper-deep)", color: "var(--ink-dim)", fontFamily: "var(--mono)" }
+                        : { fontFamily: "var(--mono)" }
+                    }
+                  >
+                    {usage.remaining}/{usage.limit}
+                  </span>
+                )}
+
+                <LanguagePicker lang={lang} onChange={setLang} />
+                <ThemeToggle theme={theme} onToggle={toggleTheme} />
+
+                {!session && (
+                  <button
+                    onClick={() => setStage("auth")}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors"
+                    style={{ border: "1px solid var(--rule)", color: "var(--ink-dim)", background: "transparent", fontFamily: "var(--sans)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-dim)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink-dim)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--rule)"; }}
+                  >
+                    {t("sign_in")}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* ── mobile second row: workspace / library toggle ── */}
+            {results.length > 0 && isMobile && (
+              <div className="flex justify-center pb-2 px-4">
+                <div
+                  className="flex items-center rounded-full p-0.5 gap-0.5"
+                  style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+                >
+                  {(["workspace", "library"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setView(v)}
+                      className="relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-medium transition-all capitalize"
+                      style={{
+                        fontFamily: "var(--sans)",
+                        background: view === v ? "var(--ink)" : "transparent",
+                        color: view === v ? "var(--paper)" : "var(--ink-dim)",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {v === "workspace" ? t("view_workspace") : t("view_library")}
+                      {v === "library" && tabLibraryItems.length > 0 && (
+                        <span
+                          className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums"
+                          style={{
+                            minWidth: 16,
+                            height: 16,
+                            padding: "0 4px",
+                            background: view === "library" ? "var(--paper)" : "var(--ink)",
+                            color: view === "library" ? "var(--ink)" : "var(--paper)",
+                            fontFamily: "var(--mono)",
+                          }}
+                        >
+                          {tabLibraryItems.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </header>
         )}
 
