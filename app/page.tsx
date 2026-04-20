@@ -4178,7 +4178,7 @@ const [proSuccess, setProSuccess] = useState(false);
 
   const startNewSearch = async () => {
     // If a blank "New search…" tab already exists, just switch to it
-    const existingBlank = tabs.find(t => t.preview === "New search…" && !t.paragraph);
+    const existingBlank = tabs.find(t => (!t.preview || t.preview === "New search…") && !t.paragraph);
     if (existingBlank) {
       setActiveTabId(existingBlank.id);
       setText("");
@@ -4201,12 +4201,12 @@ const [proSuccess, setProSuccess] = useState(false);
       const { data } = await apiFetch<{ id: string; createdAt: string; updatedAt: string }>("/api/tabs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preview: "New search…", paragraph: "", claims: [], results: [] }),
+        body: JSON.stringify({ preview: "", paragraph: "", claims: [], results: [] }),
       });
       if (data?.id) {
         const newTab: SearchTab = {
           id: data.id,
-          preview: "New search…",
+          preview: "",
           paragraph: "",
           claims: [],
           results: [],
@@ -4218,7 +4218,7 @@ const [proSuccess, setProSuccess] = useState(false);
         setActiveTabId(data.id);
       }
     } else {
-      const id = lsAddTab({ preview: "New search…", paragraph: "", claims: [], results: [], omakase: null });
+      const id = lsAddTab({ preview: "", paragraph: "", claims: [], results: [], omakase: null });
       setTabs(lsGetTabs());
       setActiveTabId(id);
     }
@@ -4500,7 +4500,7 @@ const [proSuccess, setProSuccess] = useState(false);
       if (session) {
         // Determine whether to patch the current tab or create a new one
         const currentTab = currentActiveTabId ? tabs.find((t) => t.id === currentActiveTabId) : null;
-        const isBlankPlaceholder = currentTab && currentTab.preview === "New search…" && !currentTab.paragraph;
+        const isBlankPlaceholder = currentTab && (!currentTab.preview || currentTab.preview === "New search…") && !currentTab.paragraph;
 
         if (isBlankPlaceholder && currentActiveTabId) {
           // PATCH: fill in the blank tab created by "New Search"
@@ -4562,7 +4562,7 @@ const [proSuccess, setProSuccess] = useState(false);
         // Guest: write to localStorage synchronously — sidebar updates immediately
         if (currentActiveTabId) {
           const currentTab = tabs.find((t) => t.id === currentActiveTabId);
-          const isBlankPlaceholder = currentTab && currentTab.preview === "New search…" && !currentTab.paragraph;
+          const isBlankPlaceholder = currentTab && (!currentTab.preview || currentTab.preview === "New search…") && !currentTab.paragraph;
           if (isBlankPlaceholder) {
             lsUpdateTab(currentActiveTabId, { preview: tabPreview, paragraph: text, claims, results: claimResults });
             setTabs(lsGetTabs());
