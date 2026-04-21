@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useDeferredValue, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -3827,12 +3827,26 @@ function bibSortKey(item: LibraryItem): string {
   return (parts[parts.length - 1] ?? first).toLowerCase();
 }
 
-function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSave: (paper: RatedPaper) => void }) {
+function LibraryView({
+  items,
+  onToggleSave,
+  isPro = false,
+  zoteroConnected,
+  onSaveToZotero,
+}: {
+  items: LibraryItem[];
+  onToggleSave: (paper: RatedPaper) => void;
+  isPro?: boolean;
+  zoteroConnected?: boolean | null;
+  onSaveToZotero?: (paper: Paper) => Promise<void>;
+}) {
   const t = useContext(LangContext);
   const [mode, setMode] = useState<"list" | "bibliography">("list");
   const [style, setStyle] = useState("APA");
   const [copiedBib, setCopiedBib] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [zoteroLoadingIdx, setZoteroLoadingIdx] = useState<number | null>(null);
+  const [zoteroSavingAll, setZoteroSavingAll] = useState(false);
 
   // Bibliography view always sorted A→Z by first author's last name
   const sortedItems = useMemo(
@@ -4016,6 +4030,34 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
                           </svg>
                         )}
                       </button>
+                      {/* save to zotero */}
+                      {isPro && onSaveToZotero && (
+                        <button
+                          type="button"
+                          disabled={zoteroLoadingIdx === idx}
+                          onClick={async () => {
+                            setZoteroLoadingIdx(idx);
+                            await onSaveToZotero(it.paper).catch(() => {});
+                            setZoteroLoadingIdx(null);
+                          }}
+                          title={zoteroConnected === false ? "Connect Zotero" : "Save to Zotero"}
+                          className="rounded-lg w-7 h-7 flex items-center justify-center transition-colors disabled:opacity-50"
+                          style={{ color: "var(--ink-dim)", background: "transparent", border: "none", cursor: "pointer" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                        >
+                          {zoteroLoadingIdx === idx ? (
+                            <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M4 4h16v2l-6 6v6l-4-2v-4L4 6V4z"/>
+                            </svg>
+                          )}
+                        </button>
+                      )}
                       {/* unsave button */}
                       <button
                         type="button"
@@ -4044,11 +4086,46 @@ function LibraryView({ items, onToggleSave }: { items: LibraryItem[]; onToggleSa
             className="rounded-2xl overflow-hidden"
             style={{ background: "var(--paper)", border: "1px solid var(--rule)" }}
           >
-            {/* toolbar: copy-all only, close to the text */}
+            {/* toolbar: save-all-to-zotero + copy-all */}
             <div
-              className="flex items-center justify-end px-4 py-2.5 border-b"
+              className="flex items-center justify-end gap-2 px-4 py-2.5 border-b"
               style={{ background: "var(--paper-deep)", borderColor: "var(--rule-soft)" }}
             >
+              {isPro && onSaveToZotero && sortedItems.length > 0 && (
+                <button
+                  type="button"
+                  disabled={zoteroSavingAll}
+                  onClick={async () => {
+                    setZoteroSavingAll(true);
+                    for (const it of sortedItems) {
+                      await onSaveToZotero(it.paper).catch(() => {});
+                    }
+                    setZoteroSavingAll(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors disabled:opacity-50"
+                  style={{
+                    fontFamily: "var(--sans)",
+                    border: "1px solid var(--rule)",
+                    background: "transparent",
+                    color: "var(--ink-dim)",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                >
+                  {zoteroSavingAll ? (
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M4 4h16v2l-6 6v6l-4-2v-4L4 6V4z"/>
+                    </svg>
+                  )}
+                  <span>{zoteroSavingAll ? "Saving…" : (zoteroConnected === false ? "Connect Zotero" : "Save all to Zotero")}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -4173,10 +4250,6 @@ export default function Home() {
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
   const [customRange, setCustomRange] = useState<CustomRange>(null);
   const [langFilter, setLangFilter] = useState<LangFilter>("all");
-  // Deferred values keep the year filter non-blocking — React renders stale UI first
-  // then applies the new filter without janking the thread.
-  const deferredYearFilter = useDeferredValue(yearFilter);
-  const deferredCustomRange = useDeferredValue(customRange);
 
   // Keys of all papers already shown in the main results — used to deduplicate related papers
   const knownPaperKeys = useMemo(() => {
@@ -4883,6 +4956,21 @@ export default function Home() {
       return;
     }
 
+    // Instant preview: filter already-fetched "all" results by language client-side
+    if (langFilter !== "all") {
+      const allCached = resultsCacheRef.current.get("all");
+      if (allCached) {
+        const preview = allCached.map(cr => ({
+          ...cr,
+          papers: cr.papers.filter(p =>
+            p.language === langFilter ||
+            (langFilter === "en" && !p.language)
+          ),
+        }));
+        setResults(preview);
+      }
+    }
+
     let cancelled = false;
     (async () => {
       setStatus(t("status_filtering"));
@@ -4912,7 +5000,6 @@ export default function Home() {
           })
         );
         if (!cancelled) {
-          // Store in cache so the next switch to this language is instant
           resultsCacheRef.current.set(langFilter, claimResults);
           setResults(claimResults);
           setView("workspace");
@@ -5896,7 +5983,7 @@ export default function Home() {
 
           {/* ── library view ── */}
           {ready && stage === "app" && results.length > 0 && view === "library" && (
-            <LibraryView items={tabLibraryItems} onToggleSave={toggleSavePaper} />
+            <LibraryView items={tabLibraryItems} onToggleSave={toggleSavePaper} isPro={isPro} zoteroConnected={zoteroConnected} onSaveToZotero={handleSaveToZotero} />
           )}
 
           {/* ── split-screen workspace: shown when results exist ── */}
@@ -6076,8 +6163,8 @@ export default function Home() {
                       result={result}
                       index={i}
                       knownPaperKeys={knownPaperKeys}
-                      yearFilter={deferredYearFilter}
-                      customRange={deferredCustomRange}
+                      yearFilter={yearFilter}
+                      customRange={customRange}
                       isPro={isPro}
                       isSignedIn={isSignedIn}
                       onUpgrade={handleUpgradeClick}

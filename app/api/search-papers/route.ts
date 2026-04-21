@@ -11,6 +11,7 @@ interface OpenAlexWork {
   publication_year: number | null;
   doi: string | null;
   cited_by_count: number;
+  language: string | null;
   abstract_inverted_index: Record<string, number[]> | null;
   authorships: {
     author: { display_name: string };
@@ -70,7 +71,7 @@ async function fetchOpenAlex(query: string, language?: string): Promise<Paper[]>
   }
   url.searchParams.set(
     "select",
-    "id,title,publication_year,doi,cited_by_count,abstract_inverted_index,authorships,primary_location,primary_topic,biblio"
+    "id,title,publication_year,doi,cited_by_count,language,abstract_inverted_index,authorships,primary_location,primary_topic,biblio"
   );
 
   const res = await fetch(url.toString(), {
@@ -160,6 +161,7 @@ async function fetchOpenAlex(query: string, language?: string): Promise<Paper[]>
       subjectArea: work.primary_topic?.field?.display_name ?? null,
       doi: work.doi ?? null,
       abstract: reconstructAbstract(work.abstract_inverted_index),
+      language: work.language ?? null,
       source: "OpenAlex" as const,
     };
   });

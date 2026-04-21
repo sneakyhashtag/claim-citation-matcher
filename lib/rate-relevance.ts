@@ -27,6 +27,7 @@ export interface Paper {
   abstract: string | null;
   source?: "OpenAlex" | "Semantic Scholar";
   s2PaperId?: string | null;
+  language?: string | null;
 }
 
 export interface RatedPaper extends Paper {
