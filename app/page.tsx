@@ -4250,6 +4250,7 @@ export default function Home() {
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
   const [customRange, setCustomRange] = useState<CustomRange>(null);
   const [langFilter, setLangFilter] = useState<LangFilter>("all");
+  const [filterLoading, setFilterLoading] = useState(false);
 
   // Keys of all papers already shown in the main results — used to deduplicate related papers
   const knownPaperKeys = useMemo(() => {
@@ -4973,7 +4974,7 @@ export default function Home() {
 
     let cancelled = false;
     (async () => {
-      setStatus(t("status_filtering"));
+      setFilterLoading(true);
       try {
         const langParam = langFilter !== "all" ? `&language=${langFilter}` : "";
         const claimResults: ClaimResult[] = await Promise.all(
@@ -5003,14 +5004,14 @@ export default function Home() {
           resultsCacheRef.current.set(langFilter, claimResults);
           setResults(claimResults);
           setView("workspace");
-          setStatus("");
+          setFilterLoading(false);
         }
       } catch {
-        if (!cancelled) setStatus("");
+        if (!cancelled) setFilterLoading(false);
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => { cancelled = true; setFilterLoading(false); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langFilter]);
 
@@ -6150,13 +6151,22 @@ export default function Home() {
                 }}
               >
                 {/* filters header */}
-                <div className="px-5 pt-4 pb-3 border-b flex flex-wrap gap-3" style={{ borderColor: "var(--rule-soft)" }}>
+                <div className="px-5 pt-4 pb-3 border-b flex flex-wrap items-center gap-3" style={{ borderColor: "var(--rule-soft)" }}>
                   <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                   <LanguageFilter value={langFilter} onChange={setLangFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
+                  {filterLoading && (
+                    <div className="flex items-center gap-1.5 ml-1" style={{ color: "var(--ink-dim)" }}>
+                      <svg className="animate-spin h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.3px" }}>Filtering…</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* claim cards */}
-                <div ref={resultsRef} className="flex flex-col gap-3 p-5">
+                <div ref={resultsRef} className="flex flex-col gap-3 p-5" style={{ opacity: filterLoading ? 0.5 : 1, transition: "opacity 0.15s" }}>
                   {results.map((result, i) => (
                     <ClaimCard
                       key={i}
