@@ -4317,19 +4317,24 @@ export default function Home() {
     if (session) setStage("app");
   }, [session]);
 
+  const syncSubscription = () => {
+    apiFetch<{ pro: boolean; hasUsedTrial: boolean; subscriptionStatus?: string; periodEnd?: number; trialEnd?: number }>("/api/check-subscription").then(({ data }) => {
+      if (!data) return;
+      setIsPro(!!data.pro);
+      if (data.hasUsedTrial) setHasUsedTrial(true);
+      setSubStatus(data.subscriptionStatus as "trialing" | "active" | "past_due" | null ?? null);
+      setPeriodEnd(data.periodEnd ?? null);
+      setTrialEnd(data.trialEnd ?? null);
+    });
+  };
+
   useEffect(() => {
     if (stage !== "app") return;
     fetchUsage();
-    // Check Stripe subscription status on every app load so Pro access survives
-    // sign-out / sign-in cycles. The route reads the email from the server-side
-    // session and re-sets the Pro cookie if an active subscription is found.
-    apiFetch<{ pro: boolean; hasUsedTrial: boolean; subscriptionStatus?: string; periodEnd?: number; trialEnd?: number }>("/api/check-subscription").then(({ data }) => {
-      if (data?.pro) setIsPro(true);
-      if (data?.hasUsedTrial) setHasUsedTrial(true);
-      if (data?.subscriptionStatus) setSubStatus(data.subscriptionStatus as "trialing" | "active" | "past_due");
-      if (data?.periodEnd) setPeriodEnd(data.periodEnd);
-      if (data?.trialEnd) setTrialEnd(data.trialEnd);
-    });
+    // Fetch subscription status on load, then refresh every 24 h so the
+    // "N days left" trial counter and Pro status stay accurate without a page reload.
+    syncSubscription();
+    const dailyTimer = setInterval(syncSubscription, 24 * 60 * 60 * 1000);
     // Handle post-checkout success redirect: /?payment=success&session_id=cs_xxx
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
@@ -4343,6 +4348,7 @@ export default function Home() {
         }
       });
     }
+    return () => clearInterval(dailyTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 

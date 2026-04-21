@@ -5,8 +5,6 @@ import { checkIsPro, clearProCookie } from "@/lib/pro-cookie";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const REFUND_WINDOW_DAYS = 7;
-
 /** Find the active (or trialing) Stripe subscription for a customer email. */
 async function findActiveSubscription(
   email: string
@@ -26,21 +24,16 @@ async function findActiveSubscription(
   return null;
 }
 
-/** Days elapsed since a Unix timestamp. */
-function daysSince(unixTs: number): number {
-  return (Date.now() / 1000 - unixTs) / 86400;
-}
-
-/** Current billing period end — field removed from Stripe v20 TS types, cast needed. */
+/** current_period_end — removed from Stripe v20 TS types, cast needed. */
 function periodEnd(sub: Stripe.Subscription): number {
   return (sub as any).current_period_end ?? 0;
 }
 
 /**
- * Find the PaymentIntent ID for the latest paid invoice on a subscription,
- * so we can issue a refund. Returns null if no paid invoice exists (e.g. trial).
+ * Returns the first paid invoice for the subscription, or null if none exists
+ * (i.e. the user is still in their trial and has never been charged).
  */
-async function findPaidPaymentIntentId(
+async function findPaidInvoice(
   subId: string
 ): Promise<{ paymentIntentId: string; amountPaid: number } | null> {
   const invoices = await stripe.invoices.list({ subscription: subId, limit: 5 });
@@ -49,7 +42,6 @@ async function findPaidPaymentIntentId(
   );
   if (!paidInvoice) return null;
 
-  // Use the InvoicePayments API (Stripe v20) to find the PaymentIntent.
   const payments = await stripe.invoicePayments.list({ invoice: paidInvoice.id, limit: 5 });
   const paidPayment = payments.data.find((p) => p.status === "paid");
   if (!paidPayment) return null;
@@ -62,7 +54,8 @@ async function findPaidPaymentIntentId(
 }
 
 /**
- * GET — preview: returns subscription info without cancelling.
+ * GET — preview: returns whether the user has been charged and when their
+ * current period ends, so the frontend can show the right cancel confirmation.
  */
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -81,27 +74,26 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const days = daysSince(sub.start_date);
-  const eligibleForRefund = days <= REFUND_WINDOW_DAYS;
-
-  let refundAmountCents = 0;
-  if (eligibleForRefund) {
-    const paid = await findPaidPaymentIntentId(sub.id);
-    if (paid) refundAmountCents = paid.amountPaid;
-  }
+  const paid = await findPaidInvoice(sub.id);
 
   return NextResponse.json({
-    eligible_for_refund: eligibleForRefund,
-    days_since_start: Math.floor(days),
-    refund_amount_cents: refundAmountCents,
+    has_been_charged: paid !== null,
+    // No refunds are issued — cancelling after charge keeps Pro until period end.
+    refund_amount_cents: 0,
     current_period_end_iso: new Date(periodEnd(sub) * 1000).toISOString(),
+    is_trialing: sub.status === "trialing",
   });
 }
 
 /**
- * POST — actually cancels the subscription.
- * Within REFUND_WINDOW_DAYS: cancel immediately + full refund of last payment.
- * After that: cancel at period end, no refund.
+ * POST — cancels the subscription.
+ *
+ * Trial (never charged):
+ *   → Cancel immediately. Nothing to refund. Pro access ends now.
+ *
+ * Paid (at least one successful charge):
+ *   → cancel_at_period_end. No refund. Pro continues until current_period_end.
+ *     This matches how Spotify, Netflix, and Claude handle cancellation.
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -120,34 +112,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const days = daysSince(sub.start_date);
-  const eligibleForRefund = days <= REFUND_WINDOW_DAYS;
+  const paid = await findPaidInvoice(sub.id);
+  const hasBeenCharged = paid !== null;
 
-  if (eligibleForRefund) {
-    // Cancel immediately.
+  if (!hasBeenCharged) {
+    // Still in trial — cancel immediately, nothing to refund.
     await stripe.subscriptions.cancel(sub.id);
-
-    // Refund the latest paid charge, if any.
-    let refundAmountCents = 0;
-    const paid = await findPaidPaymentIntentId(sub.id);
-    if (paid) {
-      const refund = await stripe.refunds.create({
-        payment_intent: paid.paymentIntentId,
-        reason: "requested_by_customer",
-      });
-      refundAmountCents = refund.amount;
-    }
-
     const res = NextResponse.json({
       cancelled: true,
-      refunded: refundAmountCents > 0,
-      refund_amount_cents: refundAmountCents,
+      refunded: false,
+      refund_amount_cents: 0,
       cancel_at: "immediate",
     });
     clearProCookie(res);
     return res;
   } else {
-    // Cancel at end of billing period.
+    // Already charged — cancel at end of current billing period.
+    // User keeps Pro until current_period_end; no refund issued.
     await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
     return NextResponse.json({
       cancelled: true,
