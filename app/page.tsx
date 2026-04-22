@@ -5306,6 +5306,12 @@ export default function Home() {
                 >
                   Reference Finder
                 </span>
+                <span
+                  className="hidden sm:inline text-[10px] font-semibold uppercase tracking-[0.8px] px-1.5 py-0.5 rounded-md"
+                  style={{ background: "var(--accent)", color: "var(--bg)", fontFamily: "var(--sans)", opacity: 0.85 }}
+                >
+                  Beta
+                </span>
               </div>
 
               <div className="flex-1" />
@@ -5527,6 +5533,12 @@ export default function Home() {
                       style={{ color: "var(--ink)" }}
                     >
                       Reference Finder
+                    </span>
+                    <span
+                      className="text-[10px] font-semibold uppercase tracking-[0.8px] px-1.5 py-0.5 rounded-md"
+                      style={{ background: "var(--accent)", color: "var(--bg)", fontFamily: "var(--sans)", opacity: 0.85 }}
+                    >
+                      Beta
                     </span>
                     <div className="ml-auto flex items-center gap-2">
                       <LanguagePicker lang={lang} onChange={setLang} />
