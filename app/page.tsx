@@ -5056,28 +5056,6 @@ export default function Home() {
       {/* ── how to use modal ── */}
       {showHowTo && <HowToUseModal onClose={() => setShowHowTo(false)} />}
 
-      {/* ── help button — only on landing/auth stage ── */}
-      <AnimatePresence>
-        {ready && stage !== "app" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed top-4 left-4 z-30"
-          >
-            <button
-              type="button"
-              onClick={() => setShowHowTo(true)}
-              aria-label="How to use"
-              className="parchment-pill flex items-center justify-center w-8 h-8 rounded-xl border border-white/15 light:border-[rgba(80,50,20,0.18)] bg-white/10 light:bg-[rgba(248,246,234,0.92)] backdrop-blur-sm hover:bg-white/15 light:hover:bg-[rgba(240,238,218,0.95)] transition-colors text-[var(--ink-dim)] hover:text-[var(--ink)]"
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-              </svg>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── omakase citation style picker ── */}
       <AnimatePresence>
@@ -5578,6 +5556,14 @@ export default function Home() {
                     >
                       {t("signin_description")}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowHowTo(true)}
+                      className="mt-3 font-[family-name:var(--serif)] italic text-[15px] underline underline-offset-2 decoration-1 bg-transparent border-0 p-0 cursor-pointer transition-opacity hover:opacity-70"
+                      style={{ color: "var(--ink-dim)" }}
+                    >
+                      See how it works
+                    </button>
                   </div>
 
                   {/* bottom: stats */}
