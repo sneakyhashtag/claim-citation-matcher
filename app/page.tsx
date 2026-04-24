@@ -3702,6 +3702,24 @@ function SidebarInner({
             </button>
           )}
 
+          {/* Manage subscription — Pro non-admin users */}
+          {isPro && !isAdmin && (
+            <button
+              type="button"
+              onClick={onManageSubscription}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors"
+              style={{ color: "var(--ink-dim)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+            >
+              <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <path d="M2 10h20"/>
+              </svg>
+              {t("manage_subscription")}
+            </button>
+          )}
+
         </div>
       )}
 
