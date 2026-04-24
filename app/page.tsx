@@ -3687,25 +3687,6 @@ function SidebarInner({
             </div>
           </div>
 
-          {/* Trial ending banner */}
-          {showTrialBanner && (
-            <div className="mb-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.08] light:bg-amber-700/[0.06] px-3 py-2.5">
-              <p className="text-[11px] text-amber-300 light:text-amber-800 leading-snug">
-                {trialDaysLeft === 0
-                  ? t("trial_ending_banner_today")
-                  : t("trial_ending_banner").replace("{days}", String(trialDaysLeft))}
-                {" "}
-                <button
-                  type="button"
-                  onClick={onManageSubscription}
-                  className="underline underline-offset-2 font-medium hover:opacity-75 transition-opacity"
-                >
-                  {t("trial_ending_cta")}
-                </button>
-              </p>
-            </div>
-          )}
-
           {/* Upgrade to Pro button — free users only */}
           {!isPro && (
             <button
@@ -3812,8 +3793,8 @@ function SidebarInner({
                 {t("how_to_use")}
               </button>
 
-              {/* Manage subscription — Pro non-admin only */}
-              {isPro && !isAdmin && (
+              {/* Manage subscription — all signed-in non-admin users */}
+              {!isAdmin && (
                 <button
                   type="button"
                   onClick={() => { onManageSubscription(); setSettingsOpen(false); }}
