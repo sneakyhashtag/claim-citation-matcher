@@ -3773,20 +3773,21 @@ function SidebarInner({
       <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[var(--rule)] shrink-0 flex items-center gap-1">
 
         {/* Settings button + popover */}
-        <div ref={settingsRef} className="relative">
+        <div ref={settingsRef} className="relative w-full">
           <button
             type="button"
             onClick={() => setSettingsOpen(v => !v)}
             aria-label="Settings"
-            className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+            className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-colors ${
               settingsOpen
                 ? "text-[var(--ink)] bg-white/[0.10] light:bg-black/[0.09]"
                 : "text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05]"
             }`}
           >
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path fillRule="evenodd" d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.206 1.25l-1.18 2.045a1 1 0 01-1.187.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.206-1.25l1.18-2.045a1 1 0 011.187-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
             </svg>
+            Settings
           </button>
 
           {/* Settings popover */}
