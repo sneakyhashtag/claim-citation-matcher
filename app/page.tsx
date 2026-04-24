@@ -3824,9 +3824,6 @@ function SidebarInner({
                 </button>
               )}
 
-              {/* Divider */}
-              <div className="my-1 border-t" style={{ borderColor: "var(--rule-soft)" }} />
-
               {/* Sign out */}
               <button
                 type="button"
