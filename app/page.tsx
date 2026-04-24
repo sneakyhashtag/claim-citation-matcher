@@ -1410,13 +1410,25 @@ function splitIntoSentences(text: string): string[] {
   return result.filter(s => s.trim());
 }
 
+function splitAtMidpoint(s: string): [string, string] {
+  const mid = Math.floor(s.length / 2);
+  // Walk outward from midpoint to find a word boundary (space)
+  let lo = mid, hi = mid;
+  while (lo > 0 && s[lo] !== " ") lo--;
+  while (hi < s.length && s[hi] !== " ") hi++;
+  const cut = s[lo] === " " ? lo + 1 : hi + 1;
+  const a = s.slice(0, cut > 0 ? cut - 1 : 0);
+  const b = s.slice(cut > 0 ? cut : hi + 1);
+  return [a.trim() ? a : s, b.trim() ? b : ""];
+}
+
 function mapSentencesToClaims(
   text: string,
   claims: { claim: string; searchQuery: string }[]
 ): Array<{ text: string; claimIndex: number | null }> {
   const threshold = 0.22;
   const sentences = splitIntoSentences(text);
-  return sentences.map(s => {
+  const raw = sentences.map(s => {
     let bestIdx = -1;
     let bestScore = threshold;
     claims.forEach((claim, i) => {
@@ -1425,6 +1437,20 @@ function mapSentencesToClaims(
     });
     return { text: s, claimIndex: bestIdx >= 0 ? bestIdx : null };
   });
+
+  // Split any long matched segment at its midpoint so the underlined region
+  // stays readable rather than spanning multiple lines as one giant block.
+  const result: Array<{ text: string; claimIndex: number | null }> = [];
+  for (const seg of raw) {
+    if (seg.claimIndex !== null && seg.text.length > 180) {
+      const [a, b] = splitAtMidpoint(seg.text);
+      result.push({ text: a + " ", claimIndex: seg.claimIndex });
+      if (b) result.push({ text: b, claimIndex: seg.claimIndex });
+    } else {
+      result.push(seg);
+    }
+  }
+  return result;
 }
 
 function InteractiveParagraph({
@@ -3741,19 +3767,9 @@ function SidebarInner({
 
         <div className="flex-1" />
 
-        {/* Nav items */}
-        <nav className="px-2 py-2 flex flex-col gap-0.5 border-t border-white/[0.06] light:border-[var(--rule-soft)]">
-          <button type="button" onClick={onHowTo}
-            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
-            <svg className="h-4 w-4 shrink-0 text-[var(--ink-dim)]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-            </svg>
-            {t("how_to_use")}
-          </button>
-        </nav>
       </div>
 
-      {/* ── Bottom bar: settings + sign out ── */}
+      {/* ── Bottom bar: settings ── */}
       <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[var(--rule)] shrink-0 flex items-center gap-1">
 
         {/* Settings button + popover */}
@@ -3783,6 +3799,19 @@ function SidebarInner({
                 boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
               }}
             >
+              {/* How to use */}
+              <button
+                type="button"
+                onClick={() => { onHowTo(); setSettingsOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                </svg>
+                {t("how_to_use")}
+              </button>
+
+              {/* Manage subscription — Pro non-admin only */}
               {isPro && !isAdmin && (
                 <button
                   type="button"
@@ -3796,19 +3825,25 @@ function SidebarInner({
                   {t("manage_subscription")}
                 </button>
               )}
+
+              {/* Divider */}
+              <div className="my-1 border-t" style={{ borderColor: "var(--rule-soft)" }} />
+
+              {/* Sign out */}
+              <button
+                type="button"
+                onClick={() => { onSignOut(); setSettingsOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
+                  <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
+                </svg>
+                {t("sign_out")}
+              </button>
             </div>
           )}
         </div>
-
-        {/* Sign out */}
-        <button type="button" onClick={onSignOut}
-          className="flex items-center gap-2.5 flex-1 px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
-          <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-            <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
-            <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
-          </svg>
-          {t("sign_out")}
-        </button>
       </div>
     </div>
   );
@@ -6396,15 +6431,14 @@ export default function Home() {
 
               {/* ── RIGHT PANE: citation browser ── */}
               <div
-                ref={rightPaneRef}
-                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto min-h-0"}`}
+                className={`flex flex-col ${isMobile ? "" : "min-h-0"}`}
                 style={{
                   width: isMobile ? "100%" : "50%",
                   background: "var(--bg-deep)",
                 }}
               >
-                {/* header: citation counter + filters */}
-                <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--rule-soft)" }}>
+                {/* header: citation counter + filters — fixed, does not scroll */}
+                <div className="shrink-0 px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--rule-soft)" }}>
                   <div className="flex items-baseline justify-between mb-2.5">
                     <div>
                       <p className="text-[13px] font-semibold" style={{ color: "var(--ink)", fontFamily: "var(--sans)" }}>
@@ -6430,7 +6464,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* claim cards */}
+                {/* claim cards — scrollable region */}
+                <div ref={rightPaneRef} className={`flex-1 min-h-0 ${isMobile ? "" : "overflow-y-auto"}`}>
                 <div ref={resultsRef} className="flex flex-col gap-3 p-5" style={{ opacity: filterLoading ? 0.5 : 1, transition: "opacity 0.15s" }}>
                   {results.map((result, i) => (
                     <ClaimCard
@@ -6461,6 +6496,7 @@ export default function Home() {
                       cardRef={(el) => { claimCardRefs.current[i] = el; }}
                     />
                   ))}
+                </div>
                 </div>
               </div>
 
