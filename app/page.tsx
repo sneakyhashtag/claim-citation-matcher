@@ -3560,6 +3560,18 @@ function SidebarInner({
   const starredTabs = tabs.filter((tab) => tab.starred);
   const recentTabs  = tabs.filter((tab) => !tab.starred);
   const isAdmin = ["sainayaunglinn@gmail.com", "kangfuyanjin@gmail.com"].includes(session?.user?.email ?? "");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!settingsOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [settingsOpen]);
 
   // Subscription status line
   const nowSec = Math.floor(Date.now() / 1000);
@@ -3683,16 +3695,6 @@ function SidebarInner({
             </button>
           )}
 
-          {/* Manage subscription link — Pro non-admin users */}
-          {isPro && !isAdmin && (
-            <button
-              type="button"
-              onClick={onManageSubscription}
-              className="mt-2 w-full text-center text-[10px] text-[var(--ink-dim)] hover:text-slate-400 light:hover:text-[var(--ink-dim)] underline underline-offset-2 transition-colors"
-            >
-              {t("manage_subscription")}
-            </button>
-          )}
         </div>
       )}
 
@@ -3748,23 +3750,59 @@ function SidebarInner({
             </svg>
             {t("how_to_use")}
           </button>
-          {isPro && !isAdmin && (
-            <button type="button" onClick={onManageSubscription}
-              className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left">
-              <svg className="h-4 w-4 shrink-0 text-[var(--ink-dim)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <rect x="2" y="5" width="20" height="14" rx="2"/>
-                <path d="M2 10h20"/>
-              </svg>
-              {t("manage_subscription")}
-            </button>
-          )}
         </nav>
       </div>
 
-      {/* ── Sign out ── */}
-      <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[var(--rule)] shrink-0">
+      {/* ── Bottom bar: settings + sign out ── */}
+      <div className="px-2 pt-2 pb-4 border-t border-white/[0.08] light:border-[var(--rule)] shrink-0 flex items-center gap-1">
+
+        {/* Settings button + popover */}
+        <div ref={settingsRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(v => !v)}
+            aria-label="Settings"
+            className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+              settingsOpen
+                ? "text-[var(--ink)] bg-white/[0.10] light:bg-black/[0.09]"
+                : "text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05]"
+            }`}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path fillRule="evenodd" d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.206 1.25l-1.18 2.045a1 1 0 01-1.187.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.206-1.25l1.18-2.045a1 1 0 011.187-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+            </svg>
+          </button>
+
+          {/* Settings popover */}
+          {settingsOpen && (
+            <div
+              className="absolute bottom-full left-0 mb-1.5 w-52 rounded-xl border py-1 shadow-xl z-50"
+              style={{
+                background: "var(--bg-deep)",
+                borderColor: "var(--rule)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+              }}
+            >
+              {isPro && !isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => { onManageSubscription(); setSettingsOpen(false); }}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-white/[0.07] light:hover:bg-black/[0.05] transition-colors text-left"
+                >
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <path d="M2 10h20"/>
+                  </svg>
+                  {t("manage_subscription")}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sign out */}
         <button type="button" onClick={onSignOut}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
+          className="flex items-center gap-2.5 flex-1 px-3 py-2 rounded-lg text-sm text-[var(--ink-dim)] hover:text-red-400 light:hover:text-red-600 hover:bg-red-500/[0.08] light:hover:bg-red-500/[0.06] transition-colors text-left">
           <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clipRule="evenodd"/>
             <path fillRule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clipRule="evenodd"/>
