@@ -1354,21 +1354,68 @@ function sentenceClaimOverlap(sentence: string, claim: string): number {
   return overlap / Math.max(cw.size, 1);
 }
 
+// Words that precede a period but are NOT sentence endings
+const ABBREVS = new Set([
+  "al","et","vs","cf","ed","vol","fig","figs","eq","eqs","pp","ch","rev",
+  "mr","mrs","ms","dr","jr","sr","no","st","avg","approx","dept","univ",
+  "intl","tech","ibid","op","cit","repr","trans","def",
+]);
+
+/**
+ * Split academic text into real sentences.
+ *
+ * A period is treated as a sentence boundary only when:
+ *   – followed by whitespace + uppercase letter
+ *   – AND the word before the period is not a single initial ("J."),
+ *     a multi-dot abbreviation ("U.S.", "e.g."), or a known abbreviation ("et", "al", "vs"…)
+ *
+ * "!" and "?" are always sentence boundaries.
+ * Decimal numbers ("3.3") are automatically excluded because the digit after
+ * the dot is not an uppercase letter.
+ */
+function splitIntoSentences(text: string): string[] {
+  if (!text.trim()) return [];
+  const result: string[] = [];
+  let lastIdx = 0;
+  // Match [.!?]+ (optionally followed by closing quotes/brackets), then whitespace + uppercase
+  const re = /([.!?]+)(["')\]]*)\s+(?=[A-Z])/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const punctStart = m.index;
+    const afterBoundary = m.index + m[0].length;
+
+    if (m[0].startsWith(".")) {
+      const beforePunct = text.slice(0, punctStart);
+      // Last non-whitespace token before the period
+      const rawToken = beforePunct.match(/\S+$/)?.[0] ?? "";
+      // Strip trailing closing brackets/quotes (e.g. "2020)" → "2020")
+      const token = rawToken.replace(/[)\]"']+$/, "");
+      // Letters only, lowercased (for abbreviation lookup)
+      const letters = token.replace(/[^a-zA-Z]/g, "").toLowerCase();
+
+      if (
+        // Single-letter initial: "J.", "A." — but don't skip pure numbers ("2100")
+        (letters.length === 1) ||
+        // Multi-part abbreviation with internal dot: "U.S.", "e.g.", "i.e."
+        token.includes(".") ||
+        // Known abbreviation list
+        ABBREVS.has(letters)
+      ) continue;
+    }
+
+    result.push(text.slice(lastIdx, afterBoundary));
+    lastIdx = afterBoundary;
+  }
+  if (lastIdx < text.length) result.push(text.slice(lastIdx));
+  return result.filter(s => s.trim());
+}
+
 function mapSentencesToClaims(
   text: string,
   claims: { claim: string; searchQuery: string }[]
 ): Array<{ text: string; claimIndex: number | null }> {
   const threshold = 0.22;
-  const re = /[^.!?]+[.!?]+\s*/g;
-  const sentences: string[] = [];
-  let m: RegExpExecArray | null;
-  let lastEnd = 0;
-  while ((m = re.exec(text)) !== null) {
-    sentences.push(m[0]);
-    lastEnd = m.index + m[0].length;
-  }
-  if (lastEnd < text.length) sentences.push(text.slice(lastEnd));
-
+  const sentences = splitIntoSentences(text);
   return sentences.map(s => {
     let bestIdx = -1;
     let bestScore = threshold;
