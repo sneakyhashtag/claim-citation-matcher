@@ -4531,22 +4531,13 @@ export default function Home() {
 
   const scrollToClaimCard = (idx: number) => {
     const alreadyExpanded = expandedClaims.has(idx);
-    setExpandedClaims(prev => {
-      const s = new Set(prev);
-      if (alreadyExpanded) s.delete(idx); else s.add(idx);
-      return s;
-    });
     if (!alreadyExpanded) {
-      setTimeout(() => {
-        const card = claimCardRefs.current[idx];
-        const pane = rightPaneRef.current;
-        if (card && pane) {
-          const cardTop = card.getBoundingClientRect().top;
-          const paneTop = pane.getBoundingClientRect().top;
-          pane.scrollTo({ top: pane.scrollTop + (cardTop - paneTop) - 16, behavior: "smooth" });
-        }
-      }, 300);
+      setExpandedClaims(prev => { const s = new Set(prev); s.add(idx); return s; });
     }
+    // scrollIntoView finds the nearest scrollable ancestor automatically
+    setTimeout(() => {
+      claimCardRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, alreadyExpanded ? 0 : 300);
   };
 
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
