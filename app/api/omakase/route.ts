@@ -92,14 +92,20 @@ export async function POST(req: NextRequest) {
   // ── Call Anthropic API ─────────────────────────────────────────────────────
   const papersBlock = buildPapersBlock(papers);
 
-  const gbtHint = citationStyle === "GB/T 7714"
-    ? "\n\nFor GB/T 7714 (Chinese national standard): in-text citations use superscript numbers [1]. Reference list format: Author1 LastInitials, Author2 LastInitials. Title[J]. Journal Name, Year, Volume(Issue): Pages. Example: Zhang S, Li X. Effects of climate change on coral reefs[J]. Nature Climate Change, 2020, 10(3): 234-241. List up to 3 authors then use \"et al\" for more."
+  const isNumberedStyle = ["IEEE", "Vancouver", "GB/T 7714"].some(s => citationStyle.startsWith(s));
+
+  const numberedHint = isNumberedStyle
+    ? `\n\nCRITICAL NUMBERING RULE for ${citationStyle}: Number references in ORDER OF FIRST APPEARANCE in the paragraph starting from [1]. The reference_list array must be in that exact same order: reference_list[0] is the full citation for [1], reference_list[1] for [2], etc. Never use a citation number higher than the total count of unique papers you cite. Every [N] in the paragraph must correspond exactly to reference_list[N-1].`
+    : "";
+
+  const gbtFormatHint = citationStyle === "GB/T 7714"
+    ? "\n\nGB/T 7714 reference list format: Author1 LastInitials, Author2 LastInitials. Title[J]. Journal Name, Year, Volume(Issue): Pages. Example: Zhang S, Li X. Effects of climate change on coral reefs[J]. Nature Climate Change, 2020, 10(3): 234-241. List up to 3 authors then use \"et al\" for more."
     : "";
 
   const response = await client.messages.parse({
     model: omakaseModel(),
     max_tokens: 2048,
-    system: `You are an academic writing assistant. Rewrite the following paragraph with proper in-text citations using the citation style specified. Only use papers from the provided list. Prefer papers categorized as Direct or High relevance with higher citation counts and h-index. Do not use Moderate papers unless no better option exists.${gbtHint}`,
+    system: `You are an academic writing assistant. Rewrite the following paragraph with proper in-text citations using the citation style specified. Only use papers from the provided list. Prefer papers categorized as Direct or High relevance with higher citation counts and h-index. Do not use Moderate papers unless no better option exists.${numberedHint}${gbtFormatHint}`,
     messages: [
       {
         role: "user",
@@ -108,18 +114,60 @@ export async function POST(req: NextRequest) {
 Original paragraph:
 ${paragraph}
 
-Available papers:
+Available papers (referenced by [N] number):
 ${papersBlock}
 
 Return a JSON object with:
 - rewritten_paragraph: the paragraph rewritten with in-text citations at every relevant claim
-- reference_list: an array of full formatted references for each source you cited, in ${citationStyle} format`,
+- reference_list: an array of full formatted references for each source you cited, in ${citationStyle} format${isNumberedStyle ? " (ordered by first appearance in paragraph, matching [1], [2], [3]... in text)" : ""}`,
       },
     ],
     output_config: {
       format: zodOutputFormat(OmakaseSchema),
     },
   });
+
+  // ── Post-process: normalize numbered citation indices ─────────────────────
+  if (isNumberedStyle && response.parsed_output?.rewritten_paragraph) {
+    const para = response.parsed_output.rewritten_paragraph;
+    const refList = response.parsed_output.reference_list ?? [];
+
+    // Extract unique cited numbers in order of first appearance
+    const seenNums = new Set<number>();
+    const appearedOrder: number[] = [];
+    const numRe = /\[(\d+)\]/g;
+    let nm: RegExpExecArray | null;
+    while ((nm = numRe.exec(para)) !== null) {
+      const n = parseInt(nm[1]);
+      if (!seenNums.has(n)) { seenNums.add(n); appearedOrder.push(n); }
+    }
+
+    if (appearedOrder.length > 0) {
+      // Build old→new map based on first-appearance order
+      const renumberMap = new Map<number, number>();
+      appearedOrder.forEach((oldN, i) => renumberMap.set(oldN, i + 1));
+
+      const newPara = para.replace(/\[(\d+)\]/g, (_, d) => {
+        const mapped = renumberMap.get(parseInt(d));
+        return mapped ? `[${mapped}]` : `[${d}]`;
+      });
+
+      // Sort reference list to match first-appearance order
+      // (assume the model listed them in ascending old-number order or first-appearance order)
+      // Use the reference list as-is but truncate to cited count
+      const newRefs = appearedOrder
+        .map(oldN => {
+          const zeroIdx = oldN - 1;
+          return zeroIdx >= 0 && zeroIdx < refList.length ? refList[zeroIdx] : refList[appearedOrder.indexOf(oldN)];
+        })
+        .filter(Boolean);
+
+      return NextResponse.json({
+        rewritten_paragraph: newPara,
+        reference_list: newRefs.length > 0 ? newRefs : refList,
+      });
+    }
+  }
 
   const parsed = response.parsed_output;
   if (!parsed?.rewritten_paragraph?.trim()) {

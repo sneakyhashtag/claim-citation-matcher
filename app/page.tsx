@@ -995,13 +995,13 @@ function ProGatePopover({
 // ── Omakase citation style picker modal ───────────────────────────────────────
 
 const OMAKASE_STYLES = [
-  { id: "apa",       label: "APA",        subtitle: "7th edition" },
-  { id: "mla",       label: "MLA",        subtitle: "9th edition" },
-  { id: "chicago",   label: "Chicago",    subtitle: "17th edition" },
-  { id: "harvard",   label: "Harvard",    subtitle: "Author–date" },
-  { id: "ieee",      label: "IEEE",       subtitle: "Numbered refs" },
-  { id: "vancouver", label: "Vancouver",  subtitle: "Numbered refs" },
-  { id: "gbt",       label: "GB/T 7714", subtitle: "Chinese national standard" },
+  { id: "apa",       label: "APA 7th",      subtitle: "Author–date" },
+  { id: "mla",       label: "MLA 9th",      subtitle: "Author–page" },
+  { id: "chicago",   label: "Chicago 17th", subtitle: "Notes-bibliography" },
+  { id: "harvard",   label: "Harvard",      subtitle: "Author–date" },
+  { id: "ieee",      label: "IEEE",         subtitle: "Numbered refs" },
+  { id: "vancouver", label: "Vancouver",    subtitle: "Numbered refs" },
+  { id: "gbt",       label: "GB/T 7714",   subtitle: "Chinese national standard" },
 ] as const;
 
 type OmakaseStyleId = (typeof OMAKASE_STYLES)[number]["id"];
@@ -1328,6 +1328,99 @@ function OmakaseLoadingOverlay({ styleName }: { styleName: string }) {
         </div>
       </motion.div>
     </>
+  );
+}
+
+// ── interactive paragraph ─────────────────────────────────────────────────────
+
+const STOP_WORDS = new Set([
+  "the","a","an","and","or","but","in","on","at","to","for","of","with","by",
+  "that","this","is","are","was","were","be","been","have","has","had","do",
+  "does","did","will","would","could","should","may","might","can","its","it",
+  "as","from","than","their","there","they","which","who","what","how","when",
+  "where","also","more","less","most","some","such","each","all","into","about",
+  "over","after","before","between","through","under","while","during","per",
+]);
+
+function wordSet(text: string): Set<string> {
+  return new Set((text.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? []).filter(w => !STOP_WORDS.has(w)));
+}
+
+function sentenceClaimOverlap(sentence: string, claim: string): number {
+  const sw = wordSet(sentence);
+  const cw = wordSet(claim);
+  let overlap = 0;
+  for (const w of sw) if (cw.has(w)) overlap++;
+  return overlap / Math.max(cw.size, 1);
+}
+
+function mapSentencesToClaims(
+  text: string,
+  claims: { claim: string; searchQuery: string }[]
+): Array<{ text: string; claimIndex: number | null }> {
+  const threshold = 0.22;
+  const re = /[^.!?]+[.!?]+\s*/g;
+  const sentences: string[] = [];
+  let m: RegExpExecArray | null;
+  let lastEnd = 0;
+  while ((m = re.exec(text)) !== null) {
+    sentences.push(m[0]);
+    lastEnd = m.index + m[0].length;
+  }
+  if (lastEnd < text.length) sentences.push(text.slice(lastEnd));
+
+  return sentences.map(s => {
+    let bestIdx = -1;
+    let bestScore = threshold;
+    claims.forEach((claim, i) => {
+      const score = sentenceClaimOverlap(s, claim.claim);
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    });
+    return { text: s, claimIndex: bestIdx >= 0 ? bestIdx : null };
+  });
+}
+
+function InteractiveParagraph({
+  text,
+  claims,
+  hoveredClaimIdx,
+  onHoverClaim,
+  onClickClaim,
+}: {
+  text: string;
+  claims: { claim: string; searchQuery: string }[];
+  hoveredClaimIdx: number | null;
+  onHoverClaim: (idx: number | null) => void;
+  onClickClaim: (idx: number) => void;
+}) {
+  const segments = useMemo(() => mapSentencesToClaims(text, claims), [text, claims]);
+  return (
+    <p className="text-[14px] leading-[1.7]" style={{ fontFamily: "var(--serif)", color: "var(--ink)" }}>
+      {segments.map((seg, i) => {
+        if (seg.claimIndex === null) return <span key={i}>{seg.text}</span>;
+        const isActive = hoveredClaimIdx === seg.claimIndex;
+        return (
+          <span
+            key={i}
+            style={{
+              textDecoration: "underline",
+              textDecorationColor: isActive ? "var(--accent)" : "var(--ink-dim)",
+              textDecorationThickness: "1px",
+              textUnderlineOffset: "3px",
+              background: isActive ? "var(--accent-soft)" : "transparent",
+              borderRadius: "2px",
+              cursor: "pointer",
+              transition: "background 0.12s ease, text-decoration-color 0.12s ease",
+            }}
+            onMouseEnter={() => onHoverClaim(seg.claimIndex!)}
+            onMouseLeave={() => onHoverClaim(null)}
+            onClick={() => onClickClaim(seg.claimIndex!)}
+          >
+            {seg.text}
+          </span>
+        );
+      })}
+    </p>
   );
 }
 
@@ -2333,6 +2426,7 @@ function ClaimCard({
   isExpanded = true,
   onToggle,
   isHovered = false,
+  onHover,
   cardRef,
 }: {
   result: ClaimResult;
@@ -2351,6 +2445,7 @@ function ClaimCard({
   isExpanded?: boolean;
   onToggle?: () => void;
   isHovered?: boolean;
+  onHover?: (idx: number | null) => void;
   cardRef?: (el: HTMLDivElement | null) => void;
 }) {
   const t = useContext(LangContext);
@@ -2379,6 +2474,8 @@ function ClaimCard({
         borderLeft: `3px solid ${accentBorderColor}`,
         transition: "background 0.15s ease, border-color 0.15s ease",
       }}
+      onMouseEnter={() => onHover?.(index)}
+      onMouseLeave={() => onHover?.(null)}
     >
       {/* claim header — click to collapse/expand */}
       <div
@@ -2399,6 +2496,14 @@ function ClaimCard({
         <p className="flex-1 text-[14px] italic leading-[1.5]" style={{ color: "var(--ink)", fontFamily: "var(--serif)" }}>
           {result.claim}
         </p>
+        {!isExpanded && (
+          <span
+            className="shrink-0 mt-0.5 mr-1 text-[10px] font-medium tabular-nums px-1.5 py-0.5 rounded-full"
+            style={{ background: "var(--bg)", border: "1px solid var(--rule-soft)", color: "var(--ink-dim)", fontFamily: "var(--mono)", whiteSpace: "nowrap" }}
+          >
+            {visiblePapers.length === 0 ? "no papers" : visiblePapers.length === 1 ? "1 paper" : `${visiblePapers.length} papers`}
+          </span>
+        )}
         {onToggle && (
           <svg
             className="shrink-0 mt-1 transition-transform"
@@ -4299,8 +4404,29 @@ export default function Home() {
   // Split-screen interaction state
   const [hoveredClaimIdx, setHoveredClaimIdx] = useState<number | null>(null);
   const [expandedClaims, setExpandedClaims] = useState<Set<number>>(new Set());
+  const [paragraphMode, setParagraphMode] = useState<"edit" | "view">("edit");
   const claimCardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rightPaneRef = useRef<HTMLDivElement>(null);
+
+  const scrollToClaimCard = (idx: number) => {
+    const alreadyExpanded = expandedClaims.has(idx);
+    setExpandedClaims(prev => {
+      const s = new Set(prev);
+      if (alreadyExpanded) s.delete(idx); else s.add(idx);
+      return s;
+    });
+    if (!alreadyExpanded) {
+      setTimeout(() => {
+        const card = claimCardRefs.current[idx];
+        const pane = rightPaneRef.current;
+        if (card && pane) {
+          const cardTop = card.getBoundingClientRect().top;
+          const paneTop = pane.getBoundingClientRect().top;
+          pane.scrollTo({ top: pane.scrollTop + (cardTop - paneTop) - 16, behavior: "smooth" });
+        }
+      }, 60);
+    }
+  };
 
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
   const [showOmakasePicker, setShowOmakasePicker] = useState(false);
@@ -4575,6 +4701,7 @@ export default function Home() {
     setOmakaseResult(tab.omakase ?? null);
     setError("");
     setActiveTabId(tab.id);
+    if (tab.results.length > 0) setParagraphMode("view");
   };
 
   const deleteTab = async (tabId: string) => {
@@ -5015,12 +5142,13 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langFilter]);
 
-  // Expand all claims and reset hover when new results arrive
+  // Collapse all claims by default and reset hover when new results arrive
   useEffect(() => {
     if (results.length > 0) {
-      setExpandedClaims(new Set(results.map((_, i) => i)));
+      setExpandedClaims(new Set());
       setHoveredClaimIdx(null);
       claimCardRefs.current = new Array(results.length).fill(null);
+      setParagraphMode("view");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.length > 0 ? results[0]?.claim : null]);
@@ -5308,7 +5436,7 @@ export default function Home() {
                 </span>
                 <span
                   className="hidden sm:inline text-[10px] font-semibold uppercase tracking-[0.8px] px-1.5 py-0.5 rounded-md"
-                  style={{ background: "var(--accent)", color: "var(--bg)", fontFamily: "var(--sans)", opacity: 0.85 }}
+                  style={{ background: "transparent", border: "1px solid var(--rule)", color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
                 >
                   Beta
                 </span>
@@ -5536,7 +5664,7 @@ export default function Home() {
                     </span>
                     <span
                       className="text-[10px] font-semibold uppercase tracking-[0.8px] px-1.5 py-0.5 rounded-md"
-                      style={{ background: "var(--accent)", color: "var(--bg)", fontFamily: "var(--sans)", opacity: 0.85 }}
+                      style={{ background: "transparent", border: "1px solid var(--rule)", color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
                     >
                       Beta
                     </span>
@@ -6001,76 +6129,118 @@ export default function Home() {
                 }}
               >
                 <div className="flex flex-col flex-1 p-5 gap-3">
-                  <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-3">
-                    {/* textarea — grows to fill available pane height */}
-                    <div className="relative flex flex-col flex-1">
-                      <textarea
-                        value={text}
-                        onChange={(e) => { setText(e.target.value.slice(0, charLimit)); }}
-                        placeholder={t("placeholder")}
-                        aria-label="Paragraph input"
-                        className={`parchment-textarea w-full flex-1 rounded-xl border px-4 py-3 pb-6 text-[14px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
-                          !isPro && text.length >= FREE_CHAR_LIMIT
-                            ? "focus:ring-red-500/40"
-                            : "focus:ring-[var(--accent)]"
-                        }`}
-                        style={{
-                          minHeight: 260,
-                          background: "var(--paper)",
-                          borderColor: !isPro && text.length >= FREE_CHAR_LIMIT ? "rgba(239,68,68,0.4)" : "var(--rule)",
-                          color: "var(--ink)",
-                          fontFamily: "var(--serif)",
-                        }}
-                        disabled={loading}
-                      />
-                      <span
-                        className="absolute bottom-2 right-3 text-[10px] tabular-nums tracking-[0.3px]"
-                        style={{
-                          fontFamily: "var(--mono)",
-                          color: charLimit - text.length <= (isPro ? 500 : 100) ? "var(--accent)" : "var(--ink-dim)",
-                        }}
-                      >
-                        {text.length.toLocaleString()}/{charLimit.toLocaleString()}
-                      </span>
-                    </div>
 
-                    {/* action buttons */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3">
+                  {paragraphMode === "view" ? (
+                    /* ── Interactive paragraph view ── */
+                    <div className="flex flex-col flex-1 gap-3">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-[10px] font-semibold uppercase tracking-widest"
+                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                        >
+                          Your paragraph
+                        </span>
                         <button
                           type="button"
-                          onClick={() => setText(pickExample(text))}
-                          disabled={loading}
-                          className="text-[12px] transition-colors disabled:opacity-40"
-                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                          onClick={() => setParagraphMode("edit")}
+                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors"
+                          style={{ border: "1px solid var(--rule)", color: "var(--ink-dim)", background: "transparent", fontFamily: "var(--sans)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-dim)"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--ink-dim)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--rule)"; }}
                         >
-                          {t("try_example")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setText("")}
-                          disabled={loading || !text}
-                          className="text-[12px] transition-colors disabled:opacity-40"
-                          style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
-                        >
-                          Clear
+                          <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                          Edit
                         </button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="submit"
-                          disabled={!text.trim() || loading || (!isPro && usage.remaining === 0)}
-                          className="btn-submit flex items-center justify-center px-4 py-1.5 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-[13px] font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {loading ? t("analyzing") : "Re-extract claims"}
-                        </button>
+                      <div
+                        className="flex-1 rounded-xl border px-4 py-3 overflow-y-auto"
+                        style={{ background: "var(--paper)", borderColor: "var(--rule)", minHeight: 260 }}
+                      >
+                        <InteractiveParagraph
+                          text={text}
+                          claims={currentClaims}
+                          hoveredClaimIdx={hoveredClaimIdx}
+                          onHoverClaim={setHoveredClaimIdx}
+                          onClickClaim={scrollToClaimCard}
+                        />
                       </div>
                     </div>
-                  </form>
+                  ) : (
+                    /* ── Edit mode: textarea + action buttons ── */
+                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-3">
+                      {/* textarea — grows to fill available pane height */}
+                      <div className="relative flex flex-col flex-1">
+                        <textarea
+                          value={text}
+                          onChange={(e) => { setText(e.target.value.slice(0, charLimit)); }}
+                          placeholder={t("placeholder")}
+                          aria-label="Paragraph input"
+                          className={`parchment-textarea w-full flex-1 rounded-xl border px-4 py-3 pb-6 text-[14px] leading-[1.65] resize-none focus:outline-none focus:ring-1 transition-colors disabled:opacity-50 ${
+                            !isPro && text.length >= FREE_CHAR_LIMIT
+                              ? "focus:ring-red-500/40"
+                              : "focus:ring-[var(--accent)]"
+                          }`}
+                          style={{
+                            minHeight: 260,
+                            background: "var(--paper)",
+                            borderColor: !isPro && text.length >= FREE_CHAR_LIMIT ? "rgba(239,68,68,0.4)" : "var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "var(--serif)",
+                          }}
+                          disabled={loading}
+                        />
+                        <span
+                          className="absolute bottom-2 right-3 text-[10px] tabular-nums tracking-[0.3px]"
+                          style={{
+                            fontFamily: "var(--mono)",
+                            color: charLimit - text.length <= (isPro ? 500 : 100) ? "var(--accent)" : "var(--ink-dim)",
+                          }}
+                        >
+                          {text.length.toLocaleString()}/{charLimit.toLocaleString()}
+                        </span>
+                      </div>
+
+                      {/* action buttons */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setText(pickExample(text))}
+                            disabled={loading}
+                            className="text-[12px] transition-colors disabled:opacity-40"
+                            style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                            onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                            onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                          >
+                            {t("try_example")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setText("")}
+                            disabled={loading || !text}
+                            className="text-[12px] transition-colors disabled:opacity-40"
+                            style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}
+                            onMouseEnter={e => (e.currentTarget.style.color = "var(--ink)")}
+                            onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-dim)")}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="submit"
+                            disabled={!text.trim() || loading || (!isPro && usage.remaining === 0)}
+                            className="btn-submit flex items-center justify-center px-4 py-1.5 rounded-lg bg-white light:bg-[#2C1810] text-gray-950 light:text-[rgba(248,246,234,0.95)] text-[13px] font-semibold hover:bg-slate-100 light:hover:bg-[#3D2214] disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {loading ? t("analyzing") : "Re-extract claims"}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  )}
 
                   {/* Omakase button */}
                   <div className="relative">
@@ -6148,8 +6318,19 @@ export default function Home() {
                   background: "var(--bg-deep)",
                 }}
               >
-                {/* filters header */}
-                <div className="px-5 pt-4 pb-3 border-b flex flex-wrap items-center gap-3" style={{ borderColor: "var(--rule-soft)" }}>
+                {/* header: citation counter + filters */}
+                <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: "var(--rule-soft)" }}>
+                  <div className="flex items-baseline justify-between mb-2.5">
+                    <div>
+                      <p className="text-[13px] font-semibold" style={{ color: "var(--ink)", fontFamily: "var(--sans)" }}>
+                        Citations needed
+                      </p>
+                      <p className="text-[11px]" style={{ color: "var(--ink-dim)", fontFamily: "var(--sans)" }}>
+                        {results.filter(r => r.papers.length > 0).length} of {results.length} claim{results.length !== 1 ? "s" : ""} supported
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
                   <RecencyFilter value={yearFilter} onChange={setYearFilter} customRange={customRange} onCustomRange={setCustomRange} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                   <LanguageFilter value={langFilter} onChange={setLangFilter} isPro={isPro} isSignedIn={isSignedIn} onUpgrade={handleUpgradeClick} />
                   {filterLoading && (
@@ -6161,6 +6342,7 @@ export default function Home() {
                       <span style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.3px" }}>Filtering…</span>
                     </div>
                   )}
+                  </div>
                 </div>
 
                 {/* claim cards */}
@@ -6190,6 +6372,7 @@ export default function Home() {
                         return s;
                       })}
                       isHovered={hoveredClaimIdx === i}
+                      onHover={setHoveredClaimIdx}
                       cardRef={(el) => { claimCardRefs.current[i] = el; }}
                     />
                   ))}
