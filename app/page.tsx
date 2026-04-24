@@ -4528,9 +4528,13 @@ export default function Home() {
     if (!alreadyExpanded) {
       setExpandedClaims(prev => { const s = new Set(prev); s.add(idx); return s; });
     }
-    // scrollIntoView finds the nearest scrollable ancestor automatically
     setTimeout(() => {
-      claimCardRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const card = claimCardRefs.current[idx];
+      const pane = rightPaneRef.current;
+      if (card && pane) {
+        const offset = card.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop - 16;
+        pane.scrollTo({ top: offset, behavior: "smooth" });
+      }
     }, alreadyExpanded ? 0 : 300);
   };
 
@@ -6417,7 +6421,7 @@ export default function Home() {
 
               {/* ── RIGHT PANE: citation browser ── */}
               <div
-                className={`flex flex-col ${isMobile ? "" : "min-h-0"}`}
+                className={`flex flex-col ${isMobile ? "" : "overflow-hidden"}`}
                 style={{
                   width: isMobile ? "100%" : "50%",
                   background: "var(--bg-deep)",
@@ -6451,7 +6455,7 @@ export default function Home() {
                 </div>
 
                 {/* claim cards — scrollable region */}
-                <div ref={rightPaneRef} className={`flex-1 min-h-0 ${isMobile ? "" : "overflow-y-auto"}`}>
+                <div ref={rightPaneRef} className={`flex-1 ${isMobile ? "" : "overflow-y-auto"}`}>
                 <div ref={resultsRef} className="flex flex-col gap-3 p-5" style={{ opacity: filterLoading ? 0.5 : 1, transition: "opacity 0.15s" }}>
                   {results.map((result, i) => (
                     <ClaimCard
