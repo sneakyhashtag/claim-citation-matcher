@@ -4471,7 +4471,7 @@ export default function Home() {
           const paneTop = pane.getBoundingClientRect().top;
           pane.scrollTo({ top: pane.scrollTop + (cardTop - paneTop) - 16, behavior: "smooth" });
         }
-      }, 60);
+      }, 300);
     }
   };
 
@@ -6167,7 +6167,7 @@ export default function Home() {
               {/* ── LEFT PANE: paragraph input ── */}
               <div
                 ref={leftPaneScrollRef}
-                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto"}`}
+                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto min-h-0"}`}
                 style={{
                   width: isMobile ? "100%" : "50%",
                   borderRight: isMobile ? "none" : "1px solid var(--rule)",
@@ -6359,7 +6359,7 @@ export default function Home() {
               {/* ── RIGHT PANE: citation browser ── */}
               <div
                 ref={rightPaneRef}
-                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto"}`}
+                className={`flex flex-col ${isMobile ? "" : "overflow-y-auto min-h-0"}`}
                 style={{
                   width: isMobile ? "100%" : "50%",
                   background: "var(--bg-deep)",
