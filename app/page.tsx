@@ -4524,18 +4524,17 @@ export default function Home() {
     setActiveClaimIdx(idx);
     setExpandedClaims(new Set([idx]));
 
-    // Wait for Framer Motion expand animation (220ms) then instant scroll
+    // Wait for Framer Motion expand/collapse animations (220ms) to finish,
+    // then snap the card to the very top of the scroll container.
+    // scrollIntoView with block:"start" finds the nearest scrollable ancestor
+    // (the right pane on desktop, the page on mobile) and aligns card top
+    // flush with that container's top edge — no smooth animation.
     setTimeout(() => {
-      const card = claimCardRefs.current[idx];
-      const pane = rightPaneRef.current;
-      if (card && pane) {
-        // Instant scroll — no smooth animation
-        pane.scrollTop = card.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop;
-      } else if (card) {
-        // Mobile: scroll the page
-        card.scrollIntoView({ block: "start" });
-      }
-    }, 250);
+      claimCardRefs.current[idx]?.scrollIntoView({
+        behavior: "instant" as ScrollBehavior,
+        block: "start",
+      });
+    }, 300);
   };
 
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
