@@ -4524,17 +4524,39 @@ export default function Home() {
     setActiveClaimIdx(idx);
     setExpandedClaims(new Set([idx]));
 
-    // Wait for Framer Motion expand/collapse animations (220ms) to finish,
-    // then snap the card to the very top of the scroll container.
-    // scrollIntoView with block:"start" finds the nearest scrollable ancestor
-    // (the right pane on desktop, the page on mobile) and aligns card top
-    // flush with that container's top edge — no smooth animation.
+    // Wait for Framer Motion expand/collapse animations (220ms duration) plus
+    // a buffer, then snap the card to the top of the actual scroll container.
+    // We walk the DOM rather than relying on scrollIntoView because the browser
+    // only treats an element as scrollable once its content overflows — before
+    // the expansion settles, scrollIntoView may find no scrollable ancestor and
+    // do nothing. Walking gives us the container unconditionally.
     setTimeout(() => {
-      claimCardRefs.current[idx]?.scrollIntoView({
-        behavior: "instant" as ScrollBehavior,
-        block: "start",
-      });
-    }, 300);
+      const card = claimCardRefs.current[idx];
+      if (!card) return;
+
+      // Walk up from the card until we find an ancestor whose computed
+      // overflow-y is "auto" or "scroll" — that's the real scroll container.
+      let container: HTMLElement | null = card.parentElement;
+      while (container) {
+        const oy = window.getComputedStyle(container).overflowY;
+        if (oy === "auto" || oy === "scroll") break;
+        container = container.parentElement;
+      }
+
+      if (container) {
+        // Scroll the pane so the card header is flush with the container top.
+        container.scrollTo({
+          top: container.scrollTop + card.getBoundingClientRect().top - container.getBoundingClientRect().top,
+          behavior: "instant" as ScrollBehavior,
+        });
+      } else {
+        // No scrollable pane found (mobile stacked view) — scroll the window.
+        window.scrollTo({
+          top: card.getBoundingClientRect().top + window.scrollY,
+          behavior: "instant" as ScrollBehavior,
+        });
+      }
+    }, 350);
   };
 
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
