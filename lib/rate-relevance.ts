@@ -109,6 +109,15 @@ For each paper also provide:
 
   const { ratings } = response.parsed_output!;
 
+  // DEBUG: log full Claude relevance response
+  console.log("[rate-relevance] claim:", claim);
+  for (const r of ratings) {
+    console.log("[rate-relevance] paper:", papers[r.index]?.title ?? "Unknown");
+    console.log("[rate-relevance]   score:", r.score, "| match_type:", r.match_type);
+    console.log("[rate-relevance]   explanation:", r.explanation);
+    console.log("[rate-relevance]   matching_excerpt:", r.matching_excerpt);
+  }
+
   return ratings
     .filter((r) => r.score >= 3)
     .map((r) => ({
