@@ -2046,11 +2046,10 @@ function PaperCard({
                 : () => setShowZoteroGate((v) => !v)
               }
               disabled={isPro && zoteroLoading}
-              className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
-                isPro
-                  ? "text-[var(--ink-dim)] light:text-[var(--accent)] hover:text-[var(--ink)] light:hover:text-[var(--accent)]"
-                  : "text-[var(--ink-dim)]"
-              }`}
+              className="inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50"
+              style={{ color: isPro ? "var(--accent)" : "var(--ink-dim)" }}
+              onMouseEnter={e => { if (isPro) (e.currentTarget as HTMLElement).style.opacity = "0.7"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
             >
               {isPro ? (
                 zoteroLoading ? (
@@ -2089,11 +2088,10 @@ function PaperCard({
               type="button"
               onClick={isPro ? handleFindRelated : () => setShowProGate((v) => !v)}
               disabled={isPro && relatedLoading}
-              className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
-                isPro
-                  ? "text-[var(--ink-dim)] light:text-[var(--accent)] hover:text-[var(--ink)] light:hover:text-[var(--accent)]"
-                  : "text-[var(--ink-dim)]"
-              }`}
+              className="inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50"
+              style={{ color: isPro ? "var(--accent)" : "var(--ink-dim)" }}
+              onMouseEnter={e => { if (isPro) (e.currentTarget as HTMLElement).style.opacity = "0.7"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
             >
               {isPro ? (
                 relatedLoading ? (
@@ -6504,7 +6502,7 @@ export default function Home() {
                         if (s.has(i)) s.delete(i); else s.add(i);
                         return s;
                       })}
-                      isHovered={hoveredClaimIdx === i}
+                      isHovered={hoveredClaimIdx === i || activeClaimIdx === i}
                       onHover={setHoveredClaimIdx}
                       cardRef={(el) => { claimCardRefs.current[i] = el; }}
                     />
