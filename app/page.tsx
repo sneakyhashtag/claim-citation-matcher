@@ -1457,12 +1457,14 @@ function InteractiveParagraph({
   text,
   claims,
   hoveredClaimIdx,
+  activeClaimIdx,
   onHoverClaim,
   onClickClaim,
 }: {
   text: string;
   claims: { claim: string; searchQuery: string }[];
   hoveredClaimIdx: number | null;
+  activeClaimIdx: number | null;
   onHoverClaim: (idx: number | null) => void;
   onClickClaim: (idx: number) => void;
 }) {
@@ -1471,16 +1473,18 @@ function InteractiveParagraph({
     <p className="text-[14px] leading-[1.7]" style={{ fontFamily: "var(--serif)", color: "var(--ink)" }}>
       {segments.map((seg, i) => {
         if (seg.claimIndex === null) return <span key={i}>{seg.text}</span>;
-        const isActive = hoveredClaimIdx === seg.claimIndex;
+        const isActive = activeClaimIdx === seg.claimIndex;
+        const isHovered = hoveredClaimIdx === seg.claimIndex;
         return (
           <span
             key={i}
+            data-claim-idx={seg.claimIndex}
             style={{
               textDecoration: "underline",
-              textDecorationColor: isActive ? "var(--accent)" : "var(--ink-dim)",
-              textDecorationThickness: "1px",
+              textDecorationColor: isActive ? "var(--accent)" : isHovered ? "var(--accent)" : "var(--ink-dim)",
+              textDecorationThickness: isActive ? "2px" : "1px",
               textUnderlineOffset: "3px",
-              background: isActive ? "var(--accent-soft)" : "transparent",
+              background: isActive ? "var(--accent-soft)" : isHovered ? "var(--accent-soft)" : "transparent",
               borderRadius: "2px",
               cursor: "pointer",
               transition: "background 0.12s ease, text-decoration-color 0.12s ease",
@@ -4518,24 +4522,36 @@ export default function Home() {
   const [upgrading, setUpgrading] = useState(false);
   // Split-screen interaction state
   const [hoveredClaimIdx, setHoveredClaimIdx] = useState<number | null>(null);
+  const [activeClaimIdx, setActiveClaimIdx] = useState<number | null>(null);
   const [expandedClaims, setExpandedClaims] = useState<Set<number>>(new Set());
   const [paragraphMode, setParagraphMode] = useState<"edit" | "view">("edit");
   const claimCardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rightPaneRef = useRef<HTMLDivElement>(null);
 
   const scrollToClaimCard = (idx: number) => {
-    const alreadyExpanded = expandedClaims.has(idx);
-    if (!alreadyExpanded) {
-      setExpandedClaims(prev => { const s = new Set(prev); s.add(idx); return s; });
+    // Toggle: clicking the already-active claim collapses all
+    if (activeClaimIdx === idx) {
+      setActiveClaimIdx(null);
+      setExpandedClaims(new Set());
+      return;
     }
+
+    // Expand only this card, collapse all others
+    setActiveClaimIdx(idx);
+    setExpandedClaims(new Set([idx]));
+
+    // Wait for Framer Motion expand animation (220ms) then instant scroll
     setTimeout(() => {
       const card = claimCardRefs.current[idx];
       const pane = rightPaneRef.current;
       if (card && pane) {
-        const offset = card.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop - 16;
-        pane.scrollTo({ top: offset, behavior: "smooth" });
+        // Instant scroll — no smooth animation
+        pane.scrollTop = card.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop;
+      } else if (card) {
+        // Mobile: scroll the page
+        card.scrollIntoView({ block: "start" });
       }
-    }, alreadyExpanded ? 0 : 300);
+    }, 250);
   };
 
   const [showOmakaseGate, setShowOmakaseGate] = useState(false);
@@ -5257,6 +5273,7 @@ export default function Home() {
     if (results.length > 0) {
       setExpandedClaims(new Set());
       setHoveredClaimIdx(null);
+      setActiveClaimIdx(null);
       claimCardRefs.current = new Array(results.length).fill(null);
       setParagraphMode("view");
     }
@@ -6273,6 +6290,7 @@ export default function Home() {
                           text={text}
                           claims={currentClaims}
                           hoveredClaimIdx={hoveredClaimIdx}
+                          activeClaimIdx={activeClaimIdx}
                           onHoverClaim={setHoveredClaimIdx}
                           onClickClaim={scrollToClaimCard}
                         />
